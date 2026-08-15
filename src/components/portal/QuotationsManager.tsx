@@ -26,7 +26,7 @@ import { calculateGstInvoiceTotals, INDIAN_GST_STATES, extractStateCode } from '
 import { BrandLogo } from '../BrandLogo';
 
 export const QuotationsManager: React.FC = () => {
-  const { quotations, clients, addQuotation, updateQuotation, convertQuoteToInvoice, addClient } = useApp();
+  const { quotations, clients, addQuotation, updateQuotation, convertQuoteToInvoice, addClient, agencyConfig } = useApp();
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [previewQuote, setPreviewQuote] = useState<Quotation | null>(null);
   const [editingQuoteId, setEditingQuoteId] = useState<string | null>(null);
@@ -262,28 +262,28 @@ export const QuotationsManager: React.FC = () => {
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     };
-    generateQuotationPDF(tempQuote);
+    generateQuotationPDF(tempQuote, agencyConfig);
   };
 
   return (
     <div className="space-y-6">
       {/* Header Bar */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-gradient-to-r from-[#0f172a] via-[#131d33] to-[#0f172a] p-6 rounded-2xl border border-slate-800 shadow-xl">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-gradient-to-r from-[#111e47]/90 via-[#0d1b3e]/90 to-[#081430]/90 p-6 rounded-2xl border border-blue-500/20 shadow-lg">
         <div>
           <div className="flex items-center space-x-2">
-            <div className="p-2 rounded-lg bg-blue-500/10 border border-blue-500/30 text-blue-400">
+            <div className="p-2 rounded-lg bg-blue-600/20 border border-blue-500/30 text-blue-400">
               <FileText className="w-5 h-5" />
             </div>
-            <h2 className="text-xl font-black text-white tracking-tight">QUOTATIONS & ESTIMATES</h2>
+            <h2 className="text-xl font-bold text-white tracking-tight">QUOTATIONS & ESTIMATES</h2>
           </div>
-          <p className="text-xs text-slate-400 mt-1">
+          <p className="text-xs text-slate-300 mt-1">
             Create professional commercial proposals with Subtotal, Discount, Taxable Amount, GST calculation, and instant PDF generation.
           </p>
         </div>
         <button
           id="btn-create-quote-top"
           onClick={openCreateModal}
-          className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold flex items-center space-x-2 transition-all shadow-lg shadow-blue-600/25 hover:scale-[1.02] cursor-pointer"
+          className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold flex items-center space-x-2 transition-all shadow-md shadow-blue-600/30 hover:scale-[1.02] cursor-pointer"
         >
           <Plus className="w-4 h-4" />
           <span>New Quotation</span>
@@ -291,9 +291,9 @@ export const QuotationsManager: React.FC = () => {
       </div>
 
       {/* Quotations List */}
-      <div className="rounded-2xl border border-slate-800 bg-[#0d1527] overflow-hidden shadow-lg">
-        <div className="px-5 py-4 border-b border-slate-800 flex justify-between items-center bg-slate-900/50">
-          <div className="text-xs font-bold uppercase tracking-wider text-slate-300">
+      <div className="rounded-2xl border border-blue-500/20 bg-gradient-to-b from-[#111e47]/90 to-[#0a1330]/90 overflow-hidden shadow-xl">
+        <div className="px-5 py-4 border-b border-blue-500/20 flex justify-between items-center bg-[#0d1b3e]/80">
+          <div className="text-xs font-bold uppercase tracking-wider text-slate-200">
             Active Quotation Records ({quotations.length})
           </div>
           <div className="text-[11px] text-slate-400">
@@ -301,8 +301,8 @@ export const QuotationsManager: React.FC = () => {
           </div>
         </div>
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs text-slate-300">
-            <thead className="bg-slate-900/90 text-slate-400 uppercase text-[10px] tracking-wider border-b border-slate-800">
+          <table className="w-full text-left text-xs text-slate-200">
+            <thead className="bg-[#09132c]/90 text-slate-400 uppercase text-[10px] tracking-wider border-b border-blue-500/20">
               <tr>
                 <th className="py-3.5 px-4 font-semibold">Quotation No</th>
                 <th className="py-3.5 px-4 font-semibold">Client & Scope</th>
@@ -313,24 +313,24 @@ export const QuotationsManager: React.FC = () => {
                 <th className="py-3.5 px-4 font-semibold text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/60">
+            <tbody className="divide-y divide-blue-500/10">
               {quotations.map(q => {
                 const taxAmt = q.taxableAmount ?? (q.subtotal - (q.discountAmount || 0));
                 return (
-                  <tr key={q.id} className="hover:bg-slate-800/30 transition-colors">
+                  <tr key={q.id} className="hover:bg-blue-600/10 transition-colors">
                     <td className="py-4 px-4 font-mono font-bold text-blue-400">
                       {q.quoteNumber}
                     </td>
                     <td className="py-4 px-4">
                       <div className="font-bold text-white text-sm">{q.clientCompany || q.clientName}</div>
-                      <div className="text-[11px] text-slate-400 truncate max-w-xs">{q.title}</div>
-                      <div className="text-[10px] text-slate-500">{q.items?.length || 0} line item(s)</div>
+                      <div className="text-[11px] text-slate-300 truncate max-w-xs">{q.title}</div>
+                      <div className="text-[10px] text-slate-400">{q.items?.length || 0} line item(s)</div>
                     </td>
-                    <td className="py-4 px-4 text-slate-400 text-[11px]">
-                      <div>Issued: <span className="text-slate-300">{q.issueDate}</span></div>
-                      <div className="text-slate-500">Valid: <span className="text-slate-400">{q.validUntil}</span></div>
+                    <td className="py-4 px-4 text-slate-300 text-[11px]">
+                      <div>Issued: <span className="text-white font-medium">{q.issueDate}</span></div>
+                      <div className="text-slate-400">Valid: <span className="text-slate-200">{q.validUntil}</span></div>
                     </td>
-                    <td className="py-4 px-4 text-right font-mono text-slate-300">
+                    <td className="py-4 px-4 text-right font-mono text-slate-200">
                       ₹ {taxAmt.toLocaleString('en-IN')}
                     </td>
                     <td className="py-4 px-4 text-right">
@@ -346,11 +346,11 @@ export const QuotationsManager: React.FC = () => {
                     <td className="py-4 px-4 text-center">
                       <span className={`inline-block px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
                         q.status === 'converted' 
-                          ? 'bg-purple-500/15 text-purple-400 border border-purple-500/30'
+                          ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30'
                           : q.status === 'approved'
-                          ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
+                          ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
                           : q.status === 'sent'
-                          ? 'bg-blue-500/15 text-blue-400 border border-blue-500/30'
+                          ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
                           : 'bg-slate-700/50 text-slate-300 border border-slate-600'
                       }`}>
                         {q.status}
@@ -362,15 +362,15 @@ export const QuotationsManager: React.FC = () => {
                           id={`btn-view-${q.id}`}
                           onClick={() => setPreviewQuote(q)}
                           title="Preview Quotation Card"
-                          className="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors"
+                          className="p-2 rounded-lg bg-[#142352] hover:bg-blue-600 text-slate-300 hover:text-white border border-blue-500/20 transition-colors"
                         >
                           <Eye className="w-3.5 h-3.5" />
                         </button>
                         <button
                           id={`btn-pdf-${q.id}`}
-                          onClick={() => generateQuotationPDF(q)}
+                          onClick={() => generateQuotationPDF(q, agencyConfig)}
                           title="Generate & Download PDF"
-                          className="p-2 rounded-lg bg-blue-600/20 hover:bg-blue-600 text-blue-400 hover:text-white border border-blue-500/30 transition-all"
+                          className="p-2 rounded-lg bg-blue-600/20 hover:bg-blue-600 text-blue-400 hover:text-white border border-blue-500/30 transition-all cursor-pointer"
                         >
                           <Download className="w-3.5 h-3.5" />
                         </button>
@@ -378,7 +378,7 @@ export const QuotationsManager: React.FC = () => {
                           id={`btn-edit-${q.id}`}
                           onClick={() => openEditModal(q)}
                           title="Edit Quotation"
-                          className="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-[11px] font-semibold transition-colors"
+                          className="px-2.5 py-1.5 rounded-lg bg-[#142352] hover:bg-[#1d3275] text-slate-200 text-[11px] font-semibold border border-blue-500/20 transition-colors"
                         >
                           Edit
                         </button>
@@ -386,7 +386,7 @@ export const QuotationsManager: React.FC = () => {
                           <button
                             id={`btn-convert-${q.id}`}
                             onClick={() => convertQuoteToInvoice(q.id)}
-                            className="px-2.5 py-1.5 rounded-lg bg-emerald-600/20 hover:bg-emerald-600 border border-emerald-500/30 hover:border-emerald-500 text-[11px] font-bold text-emerald-400 hover:text-white transition-all flex items-center space-x-1"
+                            className="px-2.5 py-1.5 rounded-lg bg-emerald-500/20 hover:bg-emerald-600 border border-emerald-500/30 text-[11px] font-bold text-emerald-300 hover:text-white transition-all flex items-center space-x-1"
                           >
                             <span>Invoice</span>
                             <ArrowRight className="w-3 h-3" />
@@ -402,24 +402,24 @@ export const QuotationsManager: React.FC = () => {
         </div>
       </div>
 
-      {/* CREATE / EDIT QUOTATION MODAL - EXACT FORMAT REQUESTED */}
+      {/* CREATE / EDIT QUOTATION MODAL */}
       {showCreateModal && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
-          <div className="bg-[#0b1329] border-2 border-blue-600/40 rounded-3xl w-full max-w-4xl p-6 sm:p-8 shadow-2xl my-auto text-slate-200">
+          <div className="bg-[#0b132c] border border-blue-500/30 rounded-3xl w-full max-w-4xl p-6 sm:p-8 shadow-2xl my-auto text-slate-200">
             
             {/* Template Header Badge */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-slate-800 mb-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-blue-500/20 mb-6">
               <BrandLogo size="md" variant="full" theme="dark" />
               <div className="flex items-center gap-3">
                 <div className="text-right hidden sm:block">
-                  <span className="text-[10px] font-black tracking-widest text-blue-400 uppercase bg-blue-500/10 px-3 py-1 rounded-full border border-blue-500/20">
+                  <span className="text-[10px] font-bold tracking-widest text-blue-400 uppercase bg-blue-500/10 px-3 py-1 rounded-full border border-blue-500/30">
                     Commercial Proposal Builder
                   </span>
                   <div className="font-mono text-xs text-slate-400 mt-1">{quoteNumber}</div>
                 </div>
                 <button
                   onClick={() => setShowCreateModal(false)}
-                  className="p-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-white transition-colors"
+                  className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition-colors"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -428,7 +428,7 @@ export const QuotationsManager: React.FC = () => {
 
             <div className="space-y-6">
               {/* Top Meta Fields */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-900/70 p-4 rounded-2xl border border-slate-800">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-[#0e1938] p-4 rounded-2xl border border-blue-500/20">
                 <div className="space-y-3">
                   <div>
                     <label className="text-[11px] font-bold uppercase tracking-wider text-slate-300 block mb-1">
@@ -440,7 +440,7 @@ export const QuotationsManager: React.FC = () => {
                       value={quoteNumber}
                       onChange={e => setQuoteNumber(e.target.value)}
                       placeholder="QTN-2026-0001"
-                      className="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-700 text-sm font-mono font-bold text-blue-400 outline-none focus:border-blue-500"
+                      className="w-full px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700 text-sm font-mono font-bold text-blue-400 outline-none focus:border-blue-500"
                     />
                   </div>
 
@@ -463,7 +463,7 @@ export const QuotationsManager: React.FC = () => {
                         id="select-client"
                         value={clientId}
                         onChange={e => setClientId(e.target.value)}
-                        className="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-700 text-xs font-semibold text-white outline-none focus:border-blue-500"
+                        className="w-full px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs font-semibold text-white outline-none focus:border-blue-500"
                       >
                         {clients.map(c => (
                           <option key={c.id} value={c.id}>
@@ -472,28 +472,28 @@ export const QuotationsManager: React.FC = () => {
                         ))}
                       </select>
                     ) : (
-                      <div className="p-3 bg-slate-950 rounded-xl border border-blue-500/30 space-y-2 mt-1">
+                      <div className="p-3 bg-slate-900 rounded-xl border border-blue-500/40 space-y-2 mt-1 shadow-lg">
                         <div className="text-[10px] font-bold text-blue-400 uppercase">Quick Add New Client</div>
                         <input
                           type="text"
                           placeholder="Client / Representative Name *"
                           value={newClientName}
                           onChange={e => setNewClientName(e.target.value)}
-                          className="w-full px-2.5 py-1.5 rounded bg-slate-900 border border-slate-700 text-xs text-white outline-none"
+                          className="w-full px-2.5 py-1.5 rounded bg-slate-950 border border-slate-700 text-xs text-white outline-none focus:border-blue-500"
                         />
                         <input
                           type="text"
                           placeholder="Company / Business Name"
                           value={newClientCompany}
                           onChange={e => setNewClientCompany(e.target.value)}
-                          className="w-full px-2.5 py-1.5 rounded bg-slate-900 border border-slate-700 text-xs text-white outline-none"
+                          className="w-full px-2.5 py-1.5 rounded bg-slate-950 border border-slate-700 text-xs text-white outline-none focus:border-blue-500"
                         />
                         <input
                           type="email"
                           placeholder="Email Address *"
                           value={newClientEmail}
                           onChange={e => setNewClientEmail(e.target.value)}
-                          className="w-full px-2.5 py-1.5 rounded bg-slate-900 border border-slate-700 text-xs text-white outline-none"
+                          className="w-full px-2.5 py-1.5 rounded bg-slate-950 border border-slate-700 text-xs text-white outline-none focus:border-blue-500"
                         />
                         <button
                           type="button"
@@ -518,7 +518,7 @@ export const QuotationsManager: React.FC = () => {
                         type="date"
                         value={issueDate}
                         onChange={e => setIssueDate(e.target.value)}
-                        className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-xs font-mono text-white outline-none focus:border-blue-500"
+                        className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs font-mono text-white outline-none focus:border-blue-500"
                       />
                     </div>
                     <div>
@@ -530,7 +530,7 @@ export const QuotationsManager: React.FC = () => {
                         type="date"
                         value={validUntil}
                         onChange={e => setValidUntil(e.target.value)}
-                        className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-xs font-mono text-white outline-none focus:border-blue-500"
+                        className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs font-mono text-white outline-none focus:border-blue-500"
                       />
                     </div>
                   </div>
@@ -543,7 +543,7 @@ export const QuotationsManager: React.FC = () => {
                       id="select-gst-mode"
                       value={gstType}
                       onChange={e => setGstType(e.target.value as any)}
-                      className="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-700 text-xs text-white outline-none focus:border-blue-500"
+                      className="w-full px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white outline-none focus:border-blue-500"
                     >
                       <option value="igst">Integrated GST (IGST 18%) - Standard Inter-State</option>
                       <option value="cgst_sgst">CGST (9%) + SGST (9%) - Intra-State Odisha</option>
@@ -576,35 +576,35 @@ export const QuotationsManager: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => addItem('Website Design', 50000)}
-                    className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-[11px] font-semibold text-blue-300 hover:text-white transition-all cursor-pointer"
+                    className="px-3 py-1.5 rounded-lg bg-blue-600/20 hover:bg-blue-600 border border-blue-500/30 text-[11px] font-semibold text-blue-300 hover:text-white transition-all cursor-pointer"
                   >
                     + Website Design (₹50,000)
                   </button>
                   <button
                     type="button"
                     onClick={() => addItem('Hosting', 10000)}
-                    className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-[11px] font-semibold text-blue-300 hover:text-white transition-all cursor-pointer"
+                    className="px-3 py-1.5 rounded-lg bg-blue-600/20 hover:bg-blue-600 border border-blue-500/30 text-[11px] font-semibold text-blue-300 hover:text-white transition-all cursor-pointer"
                   >
                     + Hosting (₹10,000)
                   </button>
                   <button
                     type="button"
                     onClick={() => addItem('Full-Stack Web App Development', 150000)}
-                    className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-[11px] font-semibold text-blue-300 hover:text-white transition-all cursor-pointer"
+                    className="px-3 py-1.5 rounded-lg bg-blue-600/20 hover:bg-blue-600 border border-blue-500/30 text-[11px] font-semibold text-blue-300 hover:text-white transition-all cursor-pointer"
                   >
                     + Full-Stack Web App (₹1,50,000)
                   </button>
                   <button
                     type="button"
                     onClick={() => addItem('UI/UX Interactive Prototyping', 25000)}
-                    className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-[11px] font-semibold text-blue-300 hover:text-white transition-all cursor-pointer"
+                    className="px-3 py-1.5 rounded-lg bg-blue-600/20 hover:bg-blue-600 border border-blue-500/30 text-[11px] font-semibold text-blue-300 hover:text-white transition-all cursor-pointer"
                   >
                     + UI/UX Design (₹25,000)
                   </button>
                   <button
                     type="button"
                     onClick={() => addItem('Backend API & Supabase Cluster', 45000)}
-                    className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-[11px] font-semibold text-blue-300 hover:text-white transition-all cursor-pointer"
+                    className="px-3 py-1.5 rounded-lg bg-blue-600/20 hover:bg-blue-600 border border-blue-500/30 text-[11px] font-semibold text-blue-300 hover:text-white transition-all cursor-pointer"
                   >
                     + Backend & DB (₹45,000)
                   </button>
@@ -612,15 +612,15 @@ export const QuotationsManager: React.FC = () => {
               </div>
 
               {/* LINE ITEMS TABLE */}
-              <div className="border border-slate-800 rounded-2xl overflow-hidden bg-slate-950/60">
-                <div className="p-3 bg-slate-900 border-b border-slate-800 flex justify-between items-center">
+              <div className="border border-blue-500/20 rounded-2xl overflow-hidden bg-[#0e1938]">
+                <div className="p-3 bg-[#0a132c] border-b border-blue-500/20 flex justify-between items-center">
                   <div className="text-xs font-bold text-white uppercase tracking-wider">
                     Line Items
                   </div>
                   <button
                     type="button"
                     onClick={() => addItem('', 10000)}
-                    className="text-xs font-bold text-blue-400 hover:text-blue-300 flex items-center space-x-1 px-2.5 py-1 rounded-lg bg-blue-500/10 border border-blue-500/30 cursor-pointer"
+                    className="text-xs font-bold text-blue-400 hover:text-white flex items-center space-x-1 px-2.5 py-1 rounded-lg bg-blue-600/20 hover:bg-blue-600 border border-blue-500/30 cursor-pointer transition-all"
                   >
                     <Plus className="w-3.5 h-3.5" />
                     <span>Add Item</span>
@@ -637,7 +637,7 @@ export const QuotationsManager: React.FC = () => {
                   </div>
 
                   {items.map((item, idx) => (
-                    <div key={item.id} className="grid grid-cols-12 gap-2 items-center bg-slate-900/80 p-2.5 rounded-xl border border-slate-800/80 hover:border-slate-700 transition-colors">
+                    <div key={item.id} className="grid grid-cols-12 gap-2 items-center bg-slate-900/90 p-2.5 rounded-xl border border-slate-800 hover:border-blue-500/40 transition-colors shadow-inner">
                       <div className="col-span-5">
                         <input
                           required
@@ -669,14 +669,14 @@ export const QuotationsManager: React.FC = () => {
                           className="w-full px-2.5 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-xs font-mono text-right text-white outline-none focus:border-blue-500"
                         />
                       </div>
-                      <div className="col-span-2 text-right font-mono font-bold text-white text-xs pr-1">
+                      <div className="col-span-2 text-right font-mono font-bold text-cyan-400 text-xs pr-1">
                         ₹ {item.amount.toLocaleString('en-IN')}
                       </div>
                       <div className="col-span-1 text-center">
                         <button
                           type="button"
                           onClick={() => removeItem(idx)}
-                          className="p-1.5 text-slate-400 hover:text-red-400 rounded-lg hover:bg-slate-800 transition-colors"
+                          className="p-1.5 text-slate-400 hover:text-rose-400 rounded-lg hover:bg-rose-500/10 transition-colors"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -686,8 +686,8 @@ export const QuotationsManager: React.FC = () => {
                 </div>
               </div>
 
-              {/* FINANCIAL BREAKDOWN BOX - EXACT LAYOUT REQUESTED */}
-              <div className="bg-slate-950 rounded-2xl border-2 border-slate-800 p-5 space-y-3">
+              {/* FINANCIAL BREAKDOWN BOX */}
+              <div className="bg-[#0e1938] rounded-2xl border-2 border-blue-500/30 p-5 space-y-3">
                 <div className="flex justify-between items-center text-sm">
                   <span className="font-semibold text-slate-300">Subtotal</span>
                   <span className="font-mono font-bold text-white text-base">
@@ -696,7 +696,7 @@ export const QuotationsManager: React.FC = () => {
                 </div>
 
                 {/* Discount Row */}
-                <div className="flex justify-between items-center text-sm py-1 border-t border-slate-800/80">
+                <div className="flex justify-between items-center text-sm py-1 border-t border-slate-800">
                   <div className="flex items-center space-x-2">
                     <span className="font-semibold text-slate-300">Discount</span>
                     <div className="flex items-center space-x-1 bg-slate-900 rounded-lg p-0.5 border border-slate-700">
@@ -730,7 +730,7 @@ export const QuotationsManager: React.FC = () => {
                 </div>
 
                 {/* Taxable Amount Row */}
-                <div className="flex justify-between items-center text-sm py-1 border-t border-slate-800/80">
+                <div className="flex justify-between items-center text-sm py-1 border-t border-slate-800">
                   <span className="font-bold text-slate-200">Taxable Amount</span>
                   <span className="font-mono font-bold text-white text-base">
                     ₹ {taxableAmount.toLocaleString('en-IN')}
@@ -738,16 +738,16 @@ export const QuotationsManager: React.FC = () => {
                 </div>
 
                 {/* GST Row */}
-                <div className="flex justify-between items-center text-sm py-1 border-t border-slate-800/80">
+                <div className="flex justify-between items-center text-sm py-1 border-t border-slate-800">
                   <div className="flex items-center space-x-2">
                     <span className="font-semibold text-slate-300">
                       GST ({effectiveGstRate}%)
                     </span>
-                    <span className="text-[11px] text-slate-500">
+                    <span className="text-[11px] text-slate-400">
                       {gstType === 'cgst_sgst' ? '(CGST 9% + SGST 9%)' : gstType === 'igst' ? '(IGST 18%)' : '(Exempt)'}
                     </span>
                   </div>
-                  <span className="font-mono font-bold text-blue-300">
+                  <span className="font-mono font-bold text-blue-400">
                     ₹ {(cgstAmount + sgstAmount + igstAmount).toLocaleString('en-IN')}
                   </span>
                 </div>
@@ -761,7 +761,7 @@ export const QuotationsManager: React.FC = () => {
                 </div>
               </div>
 
-              {/* ACTION BUTTONS - [Save Draft] [Generate PDF] [Send] */}
+              {/* ACTION BUTTONS */}
               <div className="flex flex-col sm:flex-row justify-between items-center gap-3 pt-4 border-t border-slate-800">
                 <button
                   type="button"
@@ -777,7 +777,7 @@ export const QuotationsManager: React.FC = () => {
                     id="btn-save-draft"
                     type="button"
                     onClick={() => handleSaveQuotation('draft')}
-                    className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-xs font-bold flex items-center space-x-1.5 transition-all shadow cursor-pointer"
+                    className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-xs font-bold flex items-center space-x-1.5 transition-all shadow-xs cursor-pointer"
                   >
                     <Save className="w-4 h-4 text-slate-400" />
                     <span>Save Draft</span>
@@ -788,7 +788,7 @@ export const QuotationsManager: React.FC = () => {
                     id="btn-generate-pdf"
                     type="button"
                     onClick={handleGeneratePDFFromModal}
-                    className="px-4 py-2.5 rounded-xl bg-cyan-600/20 hover:bg-cyan-600 text-cyan-300 hover:text-white border border-cyan-500/40 text-xs font-bold flex items-center space-x-1.5 transition-all shadow cursor-pointer"
+                    className="px-4 py-2.5 rounded-xl bg-cyan-500/20 hover:bg-cyan-600 text-cyan-300 hover:text-white border border-cyan-500/30 text-xs font-bold flex items-center space-x-1.5 transition-all shadow-xs cursor-pointer"
                   >
                     <Download className="w-4 h-4" />
                     <span>Generate PDF</span>
@@ -799,7 +799,7 @@ export const QuotationsManager: React.FC = () => {
                     id="btn-send-quote"
                     type="button"
                     onClick={() => handleSaveQuotation('sent')}
-                    className="px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-black flex items-center space-x-2 transition-all shadow-lg shadow-blue-600/30 hover:scale-[1.02] cursor-pointer"
+                    className="px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-black flex items-center space-x-2 transition-all shadow-md shadow-blue-600/30 hover:scale-[1.02] cursor-pointer"
                   >
                     <Send className="w-4 h-4" />
                     <span>Send</span>
@@ -815,12 +815,12 @@ export const QuotationsManager: React.FC = () => {
       {/* QUOTATION PREVIEW MODAL */}
       {previewQuote && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-[#0f172a] border border-slate-700 rounded-3xl w-full max-w-2xl p-6 sm:p-8 shadow-2xl text-slate-200 max-h-[90vh] overflow-y-auto">
+          <div className="bg-[#0b132c] border border-blue-500/30 rounded-3xl w-full max-w-2xl p-6 sm:p-8 shadow-2xl text-slate-200 max-h-[90vh] overflow-y-auto">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-800 mb-6">
               <BrandLogo size="md" variant="full" theme="dark" />
               <div className="flex items-center gap-3">
                 <div className="text-right">
-                  <span className="text-[10px] font-black tracking-widest text-blue-400 uppercase bg-blue-500/10 px-2.5 py-1 rounded-full border border-blue-500/20">
+                  <span className="text-[10px] font-bold tracking-widest text-blue-400 uppercase bg-blue-500/10 px-2.5 py-1 rounded-full border border-blue-500/30">
                     Commercial Estimate
                   </span>
                   <div className="font-mono text-xs font-bold text-blue-400 mt-1">{previewQuote.quoteNumber}</div>
@@ -835,19 +835,28 @@ export const QuotationsManager: React.FC = () => {
             </div>
 
             <div className="space-y-5">
-              {/* Meta Grid */}
-              <div className="grid grid-cols-2 gap-4 p-4 rounded-xl bg-slate-900 border border-slate-800 text-xs">
+              {/* Seller & Client Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 rounded-xl bg-[#0e1938] border border-blue-500/20 text-xs">
                 <div>
-                  <div className="text-slate-400 font-bold uppercase text-[10px]">Client:</div>
-                  <div className="text-white font-bold text-sm">{previewQuote.clientCompany}</div>
-                  <div className="text-slate-300">Attn: {previewQuote.clientName}</div>
-                  <div className="text-slate-400">{previewQuote.clientEmail}</div>
+                  <div className="text-cyan-400 font-bold uppercase text-[10px] tracking-wider mb-1 flex items-center justify-between">
+                    <span>Seller / Agency (Live Compliance)</span>
+                    <span className="font-mono text-[9px] text-slate-400">SAC: {agencyConfig.sacCode || '998314'}</span>
+                  </div>
+                  <div className="text-white font-bold text-sm">{agencyConfig.company_name || agencyConfig.name || 'Fusion Forge Creation'}</div>
+                  <div className="text-slate-300 text-[11px] mt-0.5">{agencyConfig.address}</div>
+                  <div className="text-slate-400 text-[11px] font-mono mt-1">
+                    GSTIN: <strong className="text-slate-200">{agencyConfig.gstin}</strong> | PAN: <strong className="text-slate-200">{agencyConfig.pan}</strong>
+                  </div>
                 </div>
-                <div className="text-right">
-                  <div className="text-slate-400 font-bold uppercase text-[10px]">Dates:</div>
-                  <div>Issue Date: <span className="font-mono font-bold text-white">{previewQuote.issueDate}</span></div>
-                  <div>Valid Until: <span className="font-mono font-bold text-white">{previewQuote.validUntil}</span></div>
-                  <div className="mt-1 text-blue-400 font-semibold">{previewQuote.title}</div>
+
+                <div className="sm:border-l sm:border-slate-800 sm:pl-4">
+                  <div className="text-blue-400 font-bold uppercase text-[10px] tracking-wider mb-1">Client:</div>
+                  <div className="text-white font-bold text-sm">{previewQuote.clientCompany || previewQuote.clientName}</div>
+                  <div className="text-slate-300 text-[11px]">Attn: {previewQuote.clientName}</div>
+                  <div className="text-slate-400 text-[11px]">{previewQuote.clientEmail}</div>
+                  <div className="text-slate-400 text-[10px] mt-1">
+                    Issue: <span className="font-mono text-white font-bold">{previewQuote.issueDate}</span> • Valid: <span className="font-mono text-white font-bold">{previewQuote.validUntil}</span>
+                  </div>
                 </div>
               </div>
 
@@ -861,20 +870,20 @@ export const QuotationsManager: React.FC = () => {
                     <th className="py-2.5 px-2 text-right">Amount</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800/60 font-mono">
+                <tbody className="divide-y divide-slate-800 font-mono">
                   {previewQuote.items.map((item, idx) => (
                     <tr key={idx} className="hover:bg-slate-900/50">
-                      <td className="py-3 px-2 font-sans font-semibold text-white">{item.description}</td>
+                      <td className="py-3 px-2 font-sans font-semibold text-slate-200">{item.description}</td>
                       <td className="py-3 px-2 text-center text-slate-300">{item.quantity}</td>
                       <td className="py-3 px-2 text-right text-slate-300">₹ {item.rate.toLocaleString('en-IN')}</td>
-                      <td className="py-3 px-2 text-right font-bold text-white">₹ {item.amount.toLocaleString('en-IN')}</td>
+                      <td className="py-3 px-2 text-right font-bold text-cyan-400">₹ {item.amount.toLocaleString('en-IN')}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
 
               {/* Summary Card */}
-              <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-2 text-xs">
+              <div className="p-4 rounded-xl bg-[#0e1938] border border-blue-500/20 space-y-2 text-xs">
                 <div className="flex justify-between">
                   <span className="text-slate-400">Subtotal:</span>
                   <span className="font-mono font-bold text-white">₹ {previewQuote.subtotal.toLocaleString('en-IN')}</span>
@@ -889,7 +898,7 @@ export const QuotationsManager: React.FC = () => {
                   <span className="text-slate-300">Taxable Amount:</span>
                   <span className="font-mono text-white">₹ {(previewQuote.taxableAmount || (previewQuote.subtotal - previewQuote.discountAmount)).toLocaleString('en-IN')}</span>
                 </div>
-                <div className="flex justify-between text-blue-300">
+                <div className="flex justify-between text-blue-400">
                   <span>GST ({previewQuote.gstRate || 18}%):</span>
                   <span className="font-mono font-bold">₹ {((previewQuote.cgstAmount || 0) + (previewQuote.sgstAmount || 0) + (previewQuote.igstAmount || 0)).toLocaleString('en-IN')}</span>
                 </div>
@@ -902,8 +911,8 @@ export const QuotationsManager: React.FC = () => {
               {/* Actions */}
               <div className="flex justify-end space-x-3 pt-4 border-t border-slate-800">
                 <button
-                  onClick={() => generateQuotationPDF(previewQuote)}
-                  className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold flex items-center space-x-2 transition-all shadow cursor-pointer"
+                  onClick={() => generateQuotationPDF(previewQuote, agencyConfig)}
+                  className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold flex items-center space-x-2 transition-all shadow-sm cursor-pointer"
                 >
                   <Download className="w-4 h-4" />
                   <span>Download PDF Document</span>

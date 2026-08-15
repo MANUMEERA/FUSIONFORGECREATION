@@ -377,14 +377,15 @@ export const InvoicesManager: React.FC = () => {
       {/* ========================================================================= */}
       {/* HEADER & ROLE AWARENESS BANNER                                           */}
       {/* ========================================================================= */}
+      {/* Header and Controls */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center space-x-3">
             <h1 className="text-2xl font-black text-white flex items-center space-x-2.5">
-              <Receipt className="w-7 h-7 text-blue-400" />
+              <Receipt className="w-7 h-7 text-cyan-400" />
               <span>Tax Invoices & GST Engine</span>
             </h1>
-            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-blue-500/10 text-blue-400 border border-blue-500/30">
+            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-gradient-to-r from-blue-500/20 to-cyan-500/20 text-cyan-300 border border-cyan-500/30">
               SAC 998314
             </span>
           </div>
@@ -399,8 +400,8 @@ export const InvoicesManager: React.FC = () => {
             onClick={() => setShowGstSimulator(!showGstSimulator)}
             className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-all flex items-center space-x-1.5 ${
               showGstSimulator
-                ? 'bg-blue-600 text-white border-blue-500 shadow-lg shadow-blue-500/20'
-                : 'bg-slate-800/80 text-blue-400 border-blue-500/30 hover:bg-slate-800'
+                ? 'bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-600 text-white border-blue-400 shadow-lg shadow-blue-500/25'
+                : 'bg-gradient-to-r from-slate-900 to-slate-800 text-cyan-400 border-blue-500/30 hover:border-cyan-400 hover:from-slate-850 hover:to-slate-750 shadow-sm'
             }`}
           >
             <Zap className="w-3.5 h-3.5" />
@@ -408,16 +409,16 @@ export const InvoicesManager: React.FC = () => {
           </button>
 
           {/* Super Admin Status Badge & Switcher */}
-          <div className="flex items-center space-x-2 bg-slate-900 border border-slate-800 rounded-xl p-1 px-2.5 text-xs">
+          <div className="flex items-center space-x-2 bg-gradient-to-r from-slate-900 to-slate-800 border border-slate-700/80 rounded-xl p-1 px-2.5 text-xs shadow-sm">
             <ShieldCheck className={`w-4 h-4 ${isSuperAdmin ? 'text-amber-400' : 'text-slate-500'}`} />
             <span className="text-slate-400 text-[11px]">Role:</span>
-            <span className={`font-bold text-[11px] uppercase ${isSuperAdmin ? 'text-amber-400' : 'text-blue-400'}`}>
+            <span className={`font-bold text-[11px] uppercase ${isSuperAdmin ? 'text-amber-400' : 'text-cyan-400'}`}>
               {currentUser.role.replace('_', ' ')}
             </span>
             {!isSuperAdmin && (
               <button
                 onClick={() => switchRole('super_admin')}
-                className="ml-2 text-[10px] text-amber-400 underline hover:text-amber-300 font-semibold"
+                className="ml-2 text-[10px] text-amber-400 underline hover:text-amber-300 font-semibold cursor-pointer"
               >
                 Switch to Super Admin
               </button>
@@ -428,7 +429,7 @@ export const InvoicesManager: React.FC = () => {
           {isAccountantOrSuper && (
             <button
               onClick={handleOpenCreate}
-              className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs flex items-center space-x-1.5 shadow-lg shadow-blue-500/20 transition-all active:scale-95"
+              className="px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-600 hover:from-blue-500 hover:via-indigo-500 hover:to-cyan-500 text-white font-bold text-xs flex items-center space-x-1.5 shadow-lg shadow-blue-500/25 transition-all active:scale-95 cursor-pointer border border-blue-400/30"
             >
               <Plus className="w-4 h-4" />
               <span>Create Tax Invoice</span>
@@ -441,21 +442,21 @@ export const InvoicesManager: React.FC = () => {
       {/* 7. GST ENGINE: AUTHORITATIVE RULE SIMULATOR / INSPECTOR                   */}
       {/* ========================================================================= */}
       {showGstSimulator && (
-        <div className="bg-gradient-to-r from-slate-950 via-[#0b1324] to-slate-950 rounded-2xl border-2 border-blue-500/40 p-5 space-y-4 shadow-2xl">
-          <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div className="bg-gradient-to-r from-[#070e24] via-[#0d1c44] to-[#070e24] rounded-2xl border-2 border-blue-500/40 p-5 space-y-4 shadow-2xl">
+          <div className="flex items-center justify-between border-b border-blue-500/20 pb-3">
             <div className="flex items-center space-x-2.5">
-              <div className="p-1.5 rounded-lg bg-blue-500/20 text-blue-400 border border-blue-500/30">
+              <div className="p-1.5 rounded-lg bg-gradient-to-br from-blue-500/30 to-cyan-500/30 text-cyan-300 border border-cyan-500/40">
                 <Zap className="w-4 h-4" />
               </div>
               <div>
                 <h2 className="text-sm font-bold text-white flex items-center gap-2">
                   <span>Supabase GST Engine: Authoritative Calculation Sandbox</span>
-                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-mono">
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-mono">
                     PostgreSQL PL/pgSQL Function
                   </span>
                 </h2>
-                <p className="text-[11px] text-slate-400">
-                  Strict Rule: The frontend is strictly forbidden from independently calculating totals. Supabase executes calculation trigger <code className="text-cyan-400">trg_invoice_authoritative_gst</code>.
+                <p className="text-[11px] text-slate-300">
+                  Strict Rule: The frontend is strictly forbidden from independently calculating totals. Supabase executes calculation trigger <code className="text-cyan-300">trg_invoice_authoritative_gst</code>.
                 </p>
               </div>
             </div>
@@ -627,15 +628,15 @@ export const InvoicesManager: React.FC = () => {
       {/* ========================================================================= */}
       {/* SEARCH, STATUS FILTER & TABS                                             */}
       {/* ========================================================================= */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-900/60 p-3 rounded-2xl border border-slate-800">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-gradient-to-r from-[#09132e]/90 via-[#0d1c44]/90 to-[#09132e]/90 p-3.5 rounded-2xl border border-blue-500/20 shadow-lg">
         
         {/* Active vs Trash Tabs */}
-        <div className="flex items-center space-x-1.5 bg-slate-950 p-1 rounded-xl border border-slate-800">
+        <div className="flex items-center space-x-1.5 bg-[#050b1a] p-1 rounded-xl border border-blue-500/20 shadow-inner">
           <button
             onClick={() => setActiveTab('active')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
               activeTab === 'active'
-                ? 'bg-blue-600 text-white shadow'
+                ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-500/20 border border-blue-400/30'
                 : 'text-slate-400 hover:text-slate-200'
             }`}
           >
@@ -643,9 +644,9 @@ export const InvoicesManager: React.FC = () => {
           </button>
           <button
             onClick={() => setActiveTab('trash')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
               activeTab === 'trash'
-                ? 'bg-rose-600 text-white shadow'
+                ? 'bg-gradient-to-r from-rose-600 to-pink-600 text-white shadow-md shadow-rose-500/20 border border-rose-400/30'
                 : 'text-slate-400 hover:text-slate-200'
             }`}
           >
@@ -656,20 +657,20 @@ export const InvoicesManager: React.FC = () => {
         {/* Search & Status Filter */}
         <div className="flex items-center space-x-2 flex-1 sm:max-w-md">
           <div className="relative flex-1">
-            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <Search className="w-3.5 h-3.5 text-cyan-400 absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
               placeholder="Search by invoice #, client, GSTIN..."
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-8 pr-3 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500 placeholder:text-slate-500"
+              className="w-full bg-[#050b1a] border border-blue-500/25 rounded-xl pl-8 pr-3 py-1.5 text-xs text-white focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-500/30 placeholder:text-slate-500 shadow-inner"
             />
           </div>
 
           <select
             value={statusFilter}
             onChange={e => setStatusFilter(e.target.value)}
-            className="bg-slate-950 border border-slate-800 rounded-xl px-2.5 py-1.5 text-xs text-slate-300 focus:outline-none focus:border-blue-500"
+            className="bg-[#050b1a] border border-blue-500/25 rounded-xl px-2.5 py-1.5 text-xs text-slate-300 focus:outline-none focus:border-cyan-400 shadow-inner cursor-pointer"
           >
             <option value="all">All Statuses</option>
             <option value="paid">Paid</option>
@@ -684,10 +685,10 @@ export const InvoicesManager: React.FC = () => {
       {/* ========================================================================= */}
       {/* INVOICE MASTER TABLE                                                     */}
       {/* ========================================================================= */}
-      <div className="rounded-2xl border border-slate-800/80 bg-slate-900/40 overflow-hidden shadow-xl">
+      <div className="rounded-2xl border border-blue-500/20 bg-gradient-to-b from-[#08122c]/80 via-[#060e22]/80 to-[#040817]/90 overflow-hidden shadow-xl backdrop-blur-sm">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-slate-900/80 text-slate-400 uppercase text-[10px] tracking-wider border-b border-slate-800">
+            <thead className="bg-gradient-to-r from-[#0a1533] via-[#0e1d47] to-[#0a1533] text-slate-300 uppercase text-[10px] tracking-wider border-b border-blue-500/20">
               <tr>
                 <th className="py-3.5 px-4 font-semibold">Invoice # & Date</th>
                 <th className="py-3.5 px-4 font-semibold">Seller & Buyer</th>
@@ -812,18 +813,18 @@ export const InvoicesManager: React.FC = () => {
 
                           {/* Normal User & Super Admin Action 2: PDF */}
                           <button
-                            onClick={() => generateInvoicePDF(inv)}
+                            onClick={() => generateInvoicePDF(inv, agencyConfig)}
                             title="Download PDF"
-                            className="p-1.5 rounded-lg bg-slate-800 hover:bg-blue-600 text-slate-300 hover:text-white transition-colors"
+                            className="p-1.5 rounded-lg bg-slate-800 hover:bg-blue-600 text-slate-300 hover:text-white transition-colors cursor-pointer"
                           >
                             <Download className="w-3.5 h-3.5" />
                           </button>
 
                           {/* Normal User & Super Admin Action 3: Print */}
                           <button
-                            onClick={() => generateInvoicePDF(inv)}
+                            onClick={() => generateInvoicePDF(inv, agencyConfig)}
                             title="Print Invoice"
-                            className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors"
+                            className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors cursor-pointer"
                           >
                             <Printer className="w-3.5 h-3.5" />
                           </button>
@@ -918,15 +919,15 @@ export const InvoicesManager: React.FC = () => {
 
                 <div className="flex items-center space-x-2">
                   <button
-                    onClick={() => generateInvoicePDF(viewingInvoice)}
-                    className="px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold flex items-center space-x-1.5 transition-all shadow"
+                    onClick={() => generateInvoicePDF(viewingInvoice, agencyConfig)}
+                    className="px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold flex items-center space-x-1.5 transition-all shadow cursor-pointer"
                   >
                     <Download className="w-3.5 h-3.5" />
                     <span>PDF</span>
                   </button>
                   <button
-                    onClick={() => generateInvoicePDF(viewingInvoice)}
-                    className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold flex items-center space-x-1.5 transition-all"
+                    onClick={() => generateInvoicePDF(viewingInvoice, agencyConfig)}
+                    className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold flex items-center space-x-1.5 transition-all cursor-pointer"
                   >
                     <Printer className="w-3.5 h-3.5" />
                     <span>Print</span>

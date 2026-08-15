@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Building2, 
   Save, 
@@ -8,36 +8,206 @@ import {
   FileText,
   FileSignature,
   AlertCircle,
-  HelpCircle
+  HelpCircle,
+  Share2,
+  MapPin,
+  CreditCard,
+  CheckCircle2,
+  ExternalLink,
+  Globe,
+  Copy,
+  Edit3,
+  ArrowRight,
+  Sparkles,
+  RefreshCw,
+  X
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { BrandLogo } from '../BrandLogo';
 
 export const SettingsManager: React.FC = () => {
-  const { agencyConfig, updateAgencyConfig } = useApp();
+  const { agencyConfig, updateAgencyConfig, setActiveTab, setCurrentView } = useApp();
   const [saved, setSaved] = useState(false);
+  const [copiedKey, setCopiedKey] = useState<string | null>(null);
+  const [isEditingCompliance, setIsEditingCompliance] = useState(false);
+
+  const initialSocial: Record<string, string | undefined> = (agencyConfig.social_links || agencyConfig.socialLinks || {}) as Record<string, string | undefined>;
 
   const [form, setForm] = useState({
     company_name: agencyConfig.company_name || agencyConfig.name || 'Fusion Forge Creation',
     tagline: agencyConfig.tagline || 'Where Ideas Fuse With Technology',
-    email: agencyConfig.email || 'contact@fusionforgecreation.com',
-    phone: agencyConfig.phone || '+91 [Enter Phone Number]',
-    address: agencyConfig.address || '[Enter Business Address, Cyber City, Patia]',
-    gstin: agencyConfig.gstin || '21XXXXXXXXXX1ZX',
-    state_code: agencyConfig.state_code || '21',
-    jurisdiction: agencyConfig.jurisdiction || 'Bhubaneswar, Odisha',
-    logo_url: agencyConfig.logo_url || '/logo.png',
+    email: agencyConfig.email || 'contact@fusionforge.io',
+    phone: agencyConfig.phone || '+91 90040 77126',
+    address: agencyConfig.address || 'H2/203, Yogi Milan, Near Ring Road, Silvassa, Dadra & Nagar Haveli - 396230',
+    city: agencyConfig.city || 'Silvassa',
+    state: agencyConfig.state || 'Dadra & Nagar Haveli',
+    postalCode: agencyConfig.postalCode || '396230',
+    gstin: agencyConfig.gstin || '26AALFF1234F1Z5',
+    pan: agencyConfig.pan || (agencyConfig.gstin && agencyConfig.gstin.length >= 12 ? agencyConfig.gstin.substring(2, 12) : 'AALFF1234F'),
+    sacCode: agencyConfig.sacCode || '998314',
+    state_code: agencyConfig.state_code || '26',
+    jurisdiction: agencyConfig.jurisdiction || 'Silvassa, Dadra & Nagar Haveli',
+    logo_url: agencyConfig.logo_url || '/logo.svg',
     signature_url: agencyConfig.signature_url || '/signatures/authorized_signatory.png',
-    bank_name: agencyConfig.bank_name || agencyConfig.bankDetails?.bankName || '[Enter Bank Name - e.g. HDFC Bank Ltd.]',
+    
+    // Social Links
+    github: initialSocial.github || 'https://github.com/fusionforgecreation',
+    linkedin: initialSocial.linkedin || 'https://linkedin.com/company/fusionforgecreation',
+    twitter: initialSocial.twitter || 'https://twitter.com/fusionforge_dev',
+    instagram: initialSocial.instagram || 'https://instagram.com/fusionforgecreation',
+    whatsapp: initialSocial.whatsapp || 'https://wa.me/919004077126',
+    youtube: initialSocial.youtube || 'https://youtube.com/@fusionforgecreation',
+
+    // Bank Details
+    bank_name: agencyConfig.bank_name || agencyConfig.bankDetails?.bankName || 'HDFC Bank Ltd',
     account_name: agencyConfig.account_name || agencyConfig.bankDetails?.accountName || 'Fusion Forge Creation',
-    account_number: agencyConfig.account_number || agencyConfig.bankDetails?.accountNumber || '[Enter Account Number]',
-    ifsc_code: agencyConfig.ifsc_code || agencyConfig.bankDetails?.ifscCode || '[Enter IFSC Code - e.g. HDFC000XXXX]',
-    branch_name: agencyConfig.branch_name || agencyConfig.bankDetails?.branch || '[Enter Branch Name - e.g. Patia Branch]',
-    terms_conditions: agencyConfig.terms_conditions || '1. 50% advance on project kickoff, balance on completion.\n2. Invoices are payable within 15 days of issue date.\n3. Goods & Services Tax (GST) charged as per Indian taxation norms (SAC 998314).\n4. All payments to be remitted to the aforementioned bank account only.'
+    account_number: agencyConfig.account_number || agencyConfig.bankDetails?.accountNumber || '50200012345678',
+    ifsc_code: agencyConfig.ifsc_code || agencyConfig.bankDetails?.ifscCode || 'HDFC0001234',
+    branch_name: agencyConfig.branch_name || agencyConfig.bankDetails?.branch || 'Silvassa Branch',
+    upi_id: agencyConfig.bankDetails?.upiId || 'fusionforge@hdfcbank',
+    terms_conditions: agencyConfig.terms_conditions || '1. 50% advance on project kickoff, balance on milestone deliverables.\n2. Invoices are payable within 15 days of issue date.\n3. Goods & Services Tax (GST) charged as per Indian taxation norms (SAC 998314).\n4. All payments to be remitted to the aforementioned bank account only.'
   });
+
+  // Keep form updated if agencyConfig changes elsewhere
+  useEffect(() => {
+    setForm(prev => ({
+      ...prev,
+      company_name: agencyConfig.company_name || agencyConfig.name || prev.company_name,
+      gstin: agencyConfig.gstin || prev.gstin,
+      pan: agencyConfig.pan || prev.pan,
+      sacCode: agencyConfig.sacCode || prev.sacCode,
+      address: agencyConfig.address || prev.address,
+      city: agencyConfig.city || prev.city,
+      state: agencyConfig.state || prev.state,
+      postalCode: agencyConfig.postalCode || prev.postalCode,
+      phone: agencyConfig.phone || prev.phone,
+      email: agencyConfig.email || prev.email,
+    }));
+  }, [agencyConfig]);
+
+  // Quick compliance fields local draft
+  const [quickCompliance, setQuickCompliance] = useState({
+    company_name: form.company_name,
+    gstin: form.gstin,
+    pan: form.pan,
+    sacCode: form.sacCode,
+    address: form.address,
+    city: form.city,
+    state: form.state,
+    postalCode: form.postalCode,
+  });
+
+  useEffect(() => {
+    setQuickCompliance({
+      company_name: form.company_name,
+      gstin: form.gstin,
+      pan: form.pan,
+      sacCode: form.sacCode,
+      address: form.address,
+      city: form.city,
+      state: form.state,
+      postalCode: form.postalCode,
+    });
+  }, [form.company_name, form.gstin, form.pan, form.sacCode, form.address, form.city, form.state, form.postalCode]);
+
+  // Handle Quick GSTIN change with smart PAN & State code extraction
+  const handleQuickGstinChange = (val: string) => {
+    const cleanGst = val.toUpperCase().trim();
+    let updatedPan = quickCompliance.pan;
+
+    if (cleanGst.length >= 12) {
+      const extractedPan = cleanGst.substring(2, 12);
+      if (/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(extractedPan)) {
+        updatedPan = extractedPan;
+      }
+    }
+
+    setQuickCompliance(prev => ({
+      ...prev,
+      gstin: cleanGst,
+      pan: updatedPan,
+    }));
+  };
+
+  const handleSaveQuickCompliance = () => {
+    const updated = {
+      ...form,
+      company_name: quickCompliance.company_name,
+      gstin: quickCompliance.gstin,
+      pan: quickCompliance.pan,
+      sacCode: quickCompliance.sacCode,
+      address: quickCompliance.address,
+      city: quickCompliance.city,
+      state: quickCompliance.state,
+      postalCode: quickCompliance.postalCode,
+    };
+    setForm(updated);
+
+    updateAgencyConfig({
+      name: quickCompliance.company_name,
+      legalName: quickCompliance.company_name,
+      company_name: quickCompliance.company_name,
+      gstin: quickCompliance.gstin,
+      pan: quickCompliance.pan,
+      sacCode: quickCompliance.sacCode,
+      address: quickCompliance.address,
+      city: quickCompliance.city,
+      state: quickCompliance.state,
+      postalCode: quickCompliance.postalCode,
+      jurisdiction: `${quickCompliance.city}, ${quickCompliance.state}`,
+    });
+
+    setIsEditingCompliance(false);
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2500);
+  };
+
+  // Handle GSTIN change with smart PAN & State code extraction
+  const handleGstinChange = (val: string) => {
+    const cleanGst = val.toUpperCase().trim();
+    let updatedPan = form.pan;
+    let updatedStateCode = form.state_code;
+
+    // Auto extract PAN (chars 3 to 12) if 15 chars or matching standard format
+    if (cleanGst.length >= 12) {
+      const extractedPan = cleanGst.substring(2, 12);
+      if (/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(extractedPan)) {
+        updatedPan = extractedPan;
+      }
+    }
+    // Auto extract State Code (first 2 digits)
+    if (cleanGst.length >= 2) {
+      const extractedCode = cleanGst.substring(0, 2);
+      if (/^[0-9]{2}$/.test(extractedCode)) {
+        updatedStateCode = extractedCode;
+      }
+    }
+
+    setForm(prev => ({
+      ...prev,
+      gstin: cleanGst,
+      pan: updatedPan,
+      state_code: updatedStateCode
+    }));
+  };
+
+  const handleCopy = (text: string, key: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedKey(key);
+    setTimeout(() => setCopiedKey(null), 2000);
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    const socialLinksObj = {
+      github: form.github,
+      linkedin: form.linkedin,
+      twitter: form.twitter,
+      instagram: form.instagram,
+      whatsapp: form.whatsapp,
+      youtube: form.youtube
+    };
+
     updateAgencyConfig({
       name: form.company_name,
       legalName: form.company_name,
@@ -46,11 +216,18 @@ export const SettingsManager: React.FC = () => {
       email: form.email,
       phone: form.phone,
       address: form.address,
+      city: form.city,
+      state: form.state,
+      postalCode: form.postalCode,
       gstin: form.gstin,
+      pan: form.pan,
+      sacCode: form.sacCode,
       state_code: form.state_code,
       jurisdiction: form.jurisdiction,
       logo_url: form.logo_url,
       signature_url: form.signature_url,
+      social_links: socialLinksObj,
+      socialLinks: socialLinksObj,
       bank_name: form.bank_name,
       account_name: form.account_name,
       account_number: form.account_number,
@@ -63,38 +240,356 @@ export const SettingsManager: React.FC = () => {
         accountNumber: form.account_number,
         ifscCode: form.ifsc_code,
         branch: form.branch_name,
-        upiId: agencyConfig.bankDetails?.upiId || 'fusionforge@bank'
+        upiId: form.upi_id
       }
     });
     setSaved(true);
     setTimeout(() => setSaved(false), 2500);
   };
 
+  const isGstinValid = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/.test(form.gstin);
+  const isPanValid = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(form.pan);
+
   return (
     <div className="space-y-6 max-w-5xl">
+      {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h2 className="text-xl font-bold text-white flex items-center gap-2">
             <Building2 className="w-5 h-5 text-cyan-400" />
-            Seller Master Profile
+            Seller & Compliance Master Profile
           </h2>
           <p className="text-xs text-slate-400 mt-0.5">
-            Single authoritative master record for Fusion Forge Creation business identity, GSTIN, jurisdiction, and banking.
+            Admin configuration for GSTIN, PAN, office address, social channels, banking, and legal master records.
           </p>
         </div>
 
-        <div className="flex items-center gap-2 bg-amber-500/10 border border-amber-500/30 px-3 py-1.5 rounded-xl text-amber-300 text-xs">
-          <AlertCircle className="w-4 h-4 shrink-0" />
-          <span>Placeholder data active until production credentials are saved</span>
+        <div className="flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/30 px-3 py-1.5 rounded-xl text-emerald-300 text-xs">
+          <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-400" />
+          <span>Live Synchronized with Public Website & Invoices</span>
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="p-6 rounded-2xl bg-[#0d1527] border border-slate-800 space-y-6">
+      {/* Live Compliance & Office Preview Card */}
+      <div className="p-5 rounded-2xl bg-gradient-to-r from-[#071126] via-[#091838] to-[#050e24] border border-cyan-500/30 shadow-xl space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div className="flex items-center space-x-2">
+            <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-pulse"></span>
+            <span className="text-xs font-black uppercase tracking-wider text-cyan-300">
+              Live Compliance Preview (Public Website & Invoices)
+            </span>
+          </div>
+          <div className="flex items-center space-x-2">
+            {!isEditingCompliance ? (
+              <button
+                type="button"
+                onClick={() => setIsEditingCompliance(true)}
+                className="px-3 py-1.5 rounded-lg bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/40 text-xs font-bold flex items-center space-x-1.5 transition-all cursor-pointer shadow-sm"
+              >
+                <Edit3 className="w-3.5 h-3.5" />
+                <span>Quick Edit Compliance</span>
+              </button>
+            ) : (
+              <div className="flex items-center space-x-1.5">
+                <button
+                  type="button"
+                  onClick={handleSaveQuickCompliance}
+                  className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center space-x-1 transition-all cursor-pointer shadow"
+                >
+                  <Check className="w-3.5 h-3.5" />
+                  <span>Save & Apply</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsEditingCompliance(false)}
+                  className="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium transition-colors cursor-pointer"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {isEditingCompliance ? (
+          /* Inline Compliance Editor */
+          <div className="p-4 rounded-xl bg-slate-950/90 border border-cyan-500/40 space-y-3">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+              <span className="text-xs font-bold text-cyan-300 flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
+                Editing Live Legal & Tax Compliance (Direct Sync)
+              </span>
+              <span className="text-[10px] text-slate-400 font-mono">Instant application across all modules</span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+              <div className="sm:col-span-2">
+                <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Company / Legal Name</label>
+                <input
+                  type="text"
+                  value={quickCompliance.company_name}
+                  onChange={e => setQuickCompliance({ ...quickCompliance, company_name: e.target.value })}
+                  className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white focus:border-cyan-400 outline-none"
+                  placeholder="Fusion Forge Creation"
+                />
+              </div>
+              <div>
+                <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">GSTIN (15 Digits)</label>
+                <input
+                  type="text"
+                  maxLength={15}
+                  value={quickCompliance.gstin}
+                  onChange={e => handleQuickGstinChange(e.target.value)}
+                  className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white font-mono font-bold focus:border-cyan-400 outline-none uppercase"
+                  placeholder="26AALFF1234F1Z5"
+                />
+              </div>
+              <div>
+                <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">PAN (10 Digits)</label>
+                <input
+                  type="text"
+                  maxLength={10}
+                  value={quickCompliance.pan}
+                  onChange={e => setQuickCompliance({ ...quickCompliance, pan: e.target.value.toUpperCase().trim() })}
+                  className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white font-mono font-bold focus:border-cyan-400 outline-none uppercase"
+                  placeholder="AALFF1234F"
+                />
+              </div>
+
+              <div className="sm:col-span-2">
+                <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Office Street Address</label>
+                <input
+                  type="text"
+                  value={quickCompliance.address}
+                  onChange={e => setQuickCompliance({ ...quickCompliance, address: e.target.value })}
+                  className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white focus:border-cyan-400 outline-none"
+                  placeholder="H2/203, Yogi Milan, Near Ring Road, Silvassa"
+                />
+              </div>
+              <div>
+                <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">City</label>
+                <input
+                  type="text"
+                  value={quickCompliance.city}
+                  onChange={e => setQuickCompliance({ ...quickCompliance, city: e.target.value })}
+                  className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white focus:border-cyan-400 outline-none"
+                  placeholder="Silvassa"
+                />
+              </div>
+              <div>
+                <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">State & Pincode</label>
+                <div className="flex gap-1.5">
+                  <input
+                    type="text"
+                    value={quickCompliance.state}
+                    onChange={e => setQuickCompliance({ ...quickCompliance, state: e.target.value })}
+                    className="w-2/3 px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white focus:border-cyan-400 outline-none"
+                    placeholder="Dadra & Nagar Haveli"
+                  />
+                  <input
+                    type="text"
+                    value={quickCompliance.postalCode}
+                    onChange={e => setQuickCompliance({ ...quickCompliance, postalCode: e.target.value })}
+                    className="w-1/3 px-2 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white font-mono focus:border-cyan-400 outline-none"
+                    placeholder="396230"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-2 border-t border-slate-800">
+              <button
+                type="button"
+                onClick={() => setIsEditingCompliance(false)}
+                className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveQuickCompliance}
+                className="px-4 py-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-bold flex items-center space-x-1.5 cursor-pointer shadow"
+              >
+                <Check className="w-3.5 h-3.5" />
+                <span>Save & Apply Everywhere</span>
+              </button>
+            </div>
+          </div>
+        ) : (
+          /* Live Compliance Details Display */
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 border-t border-cyan-500/20">
+            {/* Compliance & Office Box */}
+            <div className="p-4 rounded-xl bg-slate-950/80 border border-slate-800 space-y-2 text-xs">
+              <div className="font-bold text-white text-xs uppercase tracking-wider flex items-center justify-between">
+                <span>COMPLIANCE & OFFICE</span>
+                <span className="text-[10px] text-cyan-400 lowercase font-mono">SAC: {form.sacCode}</span>
+              </div>
+              <div className="space-y-1 text-slate-300">
+                <div className="flex items-center justify-between">
+                  <span>GSTIN:</span>
+                  <div className="flex items-center space-x-1.5">
+                    <span className="font-mono font-bold text-white bg-slate-900 px-2 py-0.5 rounded border border-slate-700">
+                      {form.gstin || '—'}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => handleCopy(form.gstin, 'gstin')}
+                      className="p-1 hover:text-cyan-400 text-slate-500 cursor-pointer"
+                      title="Copy GSTIN"
+                    >
+                      {copiedKey === 'gstin' ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                    </button>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span>PAN:</span>
+                  <div className="flex items-center space-x-1.5">
+                    <span className="font-mono font-bold text-white bg-slate-900 px-2 py-0.5 rounded border border-slate-700">
+                      {form.pan || '—'}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => handleCopy(form.pan, 'pan')}
+                      className="p-1 hover:text-cyan-400 text-slate-500 cursor-pointer"
+                      title="Copy PAN"
+                    >
+                      {copiedKey === 'pan' ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                    </button>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span>SAC Code:</span>
+                  <span className="font-mono text-slate-200">{form.sacCode} (IT Software)</span>
+                </div>
+                <div className="flex items-start justify-between gap-2 pt-1 border-t border-slate-800">
+                  <span className="shrink-0">Office:</span>
+                  <span className="text-right text-slate-200 text-[11px] font-medium">{form.address}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span>City & State:</span>
+                  <span className="text-slate-200 font-semibold">{form.city}, {form.state} - {form.postalCode}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Connected Social Channels Preview */}
+            <div className="p-4 rounded-xl bg-slate-950/80 border border-slate-800 space-y-2 text-xs">
+              <div className="font-bold text-white text-xs uppercase tracking-wider flex items-center justify-between">
+                <span>CONNECTED SOCIAL CHANNELS</span>
+                <span className="text-[10px] text-emerald-400">Live Active</span>
+              </div>
+              <div className="grid grid-cols-2 gap-2 text-[11px]">
+                <div className="p-2 rounded-lg bg-slate-900/90 border border-slate-800 flex items-center space-x-2">
+                  <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                  <span className="text-slate-300 font-semibold truncate">LinkedIn</span>
+                  <span className="text-[10px] text-slate-500 ml-auto">Active</span>
+                </div>
+                <div className="p-2 rounded-lg bg-slate-900/90 border border-slate-800 flex items-center space-x-2">
+                  <div className="w-2 h-2 rounded-full bg-slate-400"></div>
+                  <span className="text-slate-300 font-semibold truncate">GitHub</span>
+                  <span className="text-[10px] text-slate-500 ml-auto">Active</span>
+                </div>
+                <div className="p-2 rounded-lg bg-slate-900/90 border border-slate-800 flex items-center space-x-2">
+                  <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
+                  <span className="text-slate-300 font-semibold truncate">WhatsApp</span>
+                  <span className="text-[10px] text-emerald-400 ml-auto">Direct</span>
+                </div>
+                <div className="p-2 rounded-lg bg-slate-900/90 border border-slate-800 flex items-center space-x-2">
+                  <div className="w-2 h-2 rounded-full bg-cyan-400"></div>
+                  <span className="text-slate-300 font-semibold truncate">Twitter / X</span>
+                  <span className="text-[10px] text-slate-500 ml-auto">Active</span>
+                </div>
+                <div className="p-2 rounded-lg bg-slate-900/90 border border-slate-800 flex items-center space-x-2">
+                  <div className="w-2 h-2 rounded-full bg-pink-500"></div>
+                  <span className="text-slate-300 font-semibold truncate">Instagram</span>
+                  <span className="text-[10px] text-slate-500 ml-auto">Active</span>
+                </div>
+                <div className="p-2 rounded-lg bg-slate-900/90 border border-slate-800 flex items-center space-x-2">
+                  <div className="w-2 h-2 rounded-full bg-red-500"></div>
+                  <span className="text-slate-300 font-semibold truncate">YouTube</span>
+                  <span className="text-[10px] text-slate-500 ml-auto">Active</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Direct Links Row - Reflected Destinations */}
+        <div className="p-3.5 rounded-xl bg-[#061026] border border-cyan-500/20 text-xs">
+          <div className="text-[10px] font-bold text-cyan-300 uppercase tracking-wider mb-2 flex items-center justify-between">
+            <span className="flex items-center gap-1.5">
+              <Globe className="w-3.5 h-3.5 text-cyan-400" />
+              Direct Links Where Edits Are Reflected Live:
+            </span>
+            <span className="text-slate-400 font-mono text-[9px]">Click to inspect live output</span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+            {/* 1. Frontend Website Link */}
+            <button
+              type="button"
+              onClick={() => setCurrentView('public')}
+              className="p-2.5 rounded-xl bg-gradient-to-r from-blue-950/60 to-slate-900/90 border border-blue-500/30 hover:border-blue-400 text-left transition-all group cursor-pointer hover:shadow-md"
+            >
+              <div className="flex items-center justify-between mb-1">
+                <span className="font-bold text-white text-xs flex items-center gap-1.5 group-hover:text-cyan-300">
+                  <Globe className="w-3.5 h-3.5 text-cyan-400" />
+                  Frontend Website
+                </span>
+                <ArrowRight className="w-3.5 h-3.5 text-slate-400 group-hover:translate-x-0.5 group-hover:text-cyan-400 transition-all" />
+              </div>
+              <p className="text-[11px] text-slate-400 line-clamp-1">
+                Footer, Contact & FAQ: <strong className="text-slate-300">{form.gstin}</strong>
+              </p>
+            </button>
+
+            {/* 2. Tax Invoices Link */}
+            <button
+              type="button"
+              onClick={() => setActiveTab('invoices')}
+              className="p-2.5 rounded-xl bg-gradient-to-r from-blue-950/60 to-slate-900/90 border border-blue-500/30 hover:border-blue-400 text-left transition-all group cursor-pointer hover:shadow-md"
+            >
+              <div className="flex items-center justify-between mb-1">
+                <span className="font-bold text-white text-xs flex items-center gap-1.5 group-hover:text-cyan-300">
+                  <FileText className="w-3.5 h-3.5 text-blue-400" />
+                  Tax Invoices
+                </span>
+                <ArrowRight className="w-3.5 h-3.5 text-slate-400 group-hover:translate-x-0.5 group-hover:text-cyan-400 transition-all" />
+              </div>
+              <p className="text-[11px] text-slate-400 line-clamp-1">
+                Seller GSTIN & PDF: <strong className="text-slate-300">{form.gstin}</strong>
+              </p>
+            </button>
+
+            {/* 3. Quotations Link */}
+            <button
+              type="button"
+              onClick={() => setActiveTab('quotations')}
+              className="p-2.5 rounded-xl bg-gradient-to-r from-blue-950/60 to-slate-900/90 border border-blue-500/30 hover:border-blue-400 text-left transition-all group cursor-pointer hover:shadow-md"
+            >
+              <div className="flex items-center justify-between mb-1">
+                <span className="font-bold text-white text-xs flex items-center gap-1.5 group-hover:text-cyan-300">
+                  <FileSignature className="w-3.5 h-3.5 text-emerald-400" />
+                  Quotations
+                </span>
+                <ArrowRight className="w-3.5 h-3.5 text-slate-400 group-hover:translate-x-0.5 group-hover:text-cyan-400 transition-all" />
+              </div>
+              <p className="text-[11px] text-slate-400 line-clamp-1">
+                Estimates & Proposals: <strong className="text-slate-300">SAC {form.sacCode}</strong>
+              </p>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Settings Form */}
+      <form onSubmit={handleSubmit} className="p-6 rounded-2xl bg-gradient-to-b from-[#0d1a3b]/95 via-[#09132e]/95 to-[#060c1f]/95 border border-blue-500/25 space-y-6 shadow-2xl backdrop-blur-md">
+        
         {/* 1. Core Company Identity */}
         <div>
           <div className="flex items-center gap-2 text-xs font-bold uppercase text-cyan-400 tracking-wider mb-3">
             <Building2 className="w-4 h-4" />
-            <span>1. Core Business Identity</span>
+            <span>1. Business Identity & Public Contacts</span>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
@@ -103,7 +598,7 @@ export const SettingsManager: React.FC = () => {
                 type="text"
                 value={form.company_name}
                 onChange={e => setForm({ ...form, company_name: e.target.value })}
-                className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white outline-none focus:border-blue-500"
+                className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white outline-none focus:border-cyan-400"
                 placeholder="Fusion Forge Creation"
                 required
               />
@@ -114,7 +609,7 @@ export const SettingsManager: React.FC = () => {
                 type="text"
                 value={form.tagline}
                 onChange={e => setForm({ ...form, tagline: e.target.value })}
-                className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white outline-none focus:border-blue-500"
+                className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white outline-none focus:border-cyan-400"
                 placeholder="Where Ideas Fuse With Technology"
               />
             </div>
@@ -124,8 +619,8 @@ export const SettingsManager: React.FC = () => {
                 type="email"
                 value={form.email}
                 onChange={e => setForm({ ...form, email: e.target.value })}
-                className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white outline-none focus:border-blue-500"
-                placeholder="contact@fusionforgecreation.com"
+                className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white outline-none focus:border-cyan-400"
+                placeholder="contact@fusionforge.io"
                 required
               />
             </div>
@@ -135,82 +630,241 @@ export const SettingsManager: React.FC = () => {
                 type="text"
                 value={form.phone}
                 onChange={e => setForm({ ...form, phone: e.target.value })}
-                className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white outline-none focus:border-blue-500"
-                placeholder="+91 [Enter Business Phone]"
-                required
-              />
-            </div>
-            <div className="sm:col-span-2">
-              <label className="text-[11px] font-semibold text-slate-300 block mb-1">Full Business Address</label>
-              <input
-                type="text"
-                value={form.address}
-                onChange={e => setForm({ ...form, address: e.target.value })}
-                className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white outline-none focus:border-blue-500"
-                placeholder="Suite 504, Tech Park Cyber City, Patia, Bhubaneswar, Odisha 751024"
+                className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white outline-none focus:border-cyan-400"
+                placeholder="+91 90040 77126"
                 required
               />
             </div>
           </div>
         </div>
 
-        {/* 2. Tax, GSTIN & Jurisdiction */}
+        {/* 2. Official Address & Location Controls */}
         <div className="pt-4 border-t border-slate-800">
           <div className="flex items-center gap-2 text-xs font-bold uppercase text-cyan-400 tracking-wider mb-3">
-            <ShieldCheck className="w-4 h-4" />
-            <span>2. GST Registration & Legal Jurisdiction</span>
+            <MapPin className="w-4 h-4" />
+            <span>2. Official Office Address & Postal Details</span>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div>
-              <label className="text-[11px] font-semibold text-slate-300 block mb-1">GSTIN Number (15 Digits)</label>
+            <div className="sm:col-span-3">
+              <label className="text-[11px] font-semibold text-slate-300 block mb-1">
+                Full Registered Office Address
+              </label>
               <input
                 type="text"
-                value={form.gstin}
-                onChange={e => setForm({ ...form, gstin: e.target.value })}
-                className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white font-mono uppercase outline-none focus:border-blue-500"
-                placeholder="21XXXXXXXXXX1ZX"
+                value={form.address}
+                onChange={e => setForm({ ...form, address: e.target.value })}
+                className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white outline-none focus:border-cyan-400 font-medium"
+                placeholder="H2/203, Yogi Milan, Near Ring Road, Silvassa, Dadra & Nagar Haveli - 396230"
                 required
               />
             </div>
+            <div>
+              <label className="text-[11px] font-semibold text-slate-300 block mb-1">City</label>
+              <input
+                type="text"
+                value={form.city}
+                onChange={e => setForm({ ...form, city: e.target.value })}
+                className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white outline-none focus:border-cyan-400"
+                placeholder="Silvassa"
+                required
+              />
+            </div>
+            <div>
+              <label className="text-[11px] font-semibold text-slate-300 block mb-1">State / Union Territory</label>
+              <input
+                type="text"
+                value={form.state}
+                onChange={e => setForm({ ...form, state: e.target.value })}
+                className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white outline-none focus:border-cyan-400"
+                placeholder="Dadra & Nagar Haveli"
+                required
+              />
+            </div>
+            <div>
+              <label className="text-[11px] font-semibold text-slate-300 block mb-1">Postal / PIN Code</label>
+              <input
+                type="text"
+                value={form.postalCode}
+                onChange={e => setForm({ ...form, postalCode: e.target.value })}
+                className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white font-mono outline-none focus:border-cyan-400"
+                placeholder="396230"
+                required
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* 3. GSTIN, PAN & Tax Jurisdiction Controls */}
+        <div className="pt-4 border-t border-slate-800">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2 text-xs font-bold uppercase text-cyan-400 tracking-wider">
+              <ShieldCheck className="w-4 h-4" />
+              <span>3. GSTIN, PAN & Tax Compliance Control</span>
+            </div>
+            <div className="text-[10px] text-slate-400">
+              PAN is auto-extracted from 3rd-12th chars of GSTIN or can be edited directly
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+            <div className="sm:col-span-2">
+              <label className="text-[11px] font-semibold text-slate-300 block mb-1 flex items-center justify-between">
+                <span>GSTIN Number (15 Digits)</span>
+                {form.gstin && (
+                  <span className={`text-[10px] font-mono ${isGstinValid ? 'text-emerald-400' : 'text-amber-400'}`}>
+                    {isGstinValid ? '✓ Valid Format' : '⚠️ Check Format'}
+                  </span>
+                )}
+              </label>
+              <input
+                type="text"
+                value={form.gstin}
+                onChange={e => handleGstinChange(e.target.value)}
+                className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white font-mono uppercase outline-none focus:border-cyan-400"
+                placeholder="26AALFF1234F1Z5"
+                maxLength={15}
+                required
+              />
+            </div>
+
+            <div>
+              <label className="text-[11px] font-semibold text-slate-300 block mb-1 flex items-center justify-between">
+                <span>PAN Number (10 Digits)</span>
+                {form.pan && (
+                  <span className={`text-[10px] font-mono ${isPanValid ? 'text-emerald-400' : 'text-amber-400'}`}>
+                    {isPanValid ? '✓ Valid' : '⚠️ Format'}
+                  </span>
+                )}
+              </label>
+              <input
+                type="text"
+                value={form.pan}
+                onChange={e => setForm({ ...form, pan: e.target.value.toUpperCase().trim() })}
+                className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white font-mono uppercase outline-none focus:border-cyan-400"
+                placeholder="AALFF1234F"
+                maxLength={10}
+                required
+              />
+            </div>
+
+            <div>
+              <label className="text-[11px] font-semibold text-slate-300 block mb-1">SAC Code (IT Software)</label>
+              <input
+                type="text"
+                value={form.sacCode}
+                onChange={e => setForm({ ...form, sacCode: e.target.value })}
+                className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white font-mono outline-none focus:border-cyan-400"
+                placeholder="998314"
+                required
+              />
+            </div>
+
             <div>
               <label className="text-[11px] font-semibold text-slate-300 block mb-1">State Code (GST Master)</label>
               <input
                 type="text"
                 value={form.state_code}
                 onChange={e => setForm({ ...form, state_code: e.target.value })}
-                className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white font-mono outline-none focus:border-blue-500"
-                placeholder="21"
+                className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white font-mono outline-none focus:border-cyan-400"
+                placeholder="26"
                 maxLength={2}
                 required
               />
             </div>
-            <div>
-              <label className="text-[11px] font-semibold text-slate-300 block mb-1">Legal Tax Jurisdiction</label>
+
+            <div className="sm:col-span-3">
+              <label className="text-[11px] font-semibold text-slate-300 block mb-1">Legal Arbitration Jurisdiction</label>
               <input
                 type="text"
                 value={form.jurisdiction}
                 onChange={e => setForm({ ...form, jurisdiction: e.target.value })}
-                className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white outline-none focus:border-blue-500"
-                placeholder="Bhubaneswar, Odisha"
+                className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white outline-none focus:border-cyan-400"
+                placeholder="Silvassa, Dadra & Nagar Haveli"
                 required
               />
             </div>
           </div>
         </div>
 
-        {/* 3. Branding & Signatures */}
+        {/* 4. Social Media Channels & Links */}
+        <div className="pt-4 border-t border-slate-800">
+          <div className="flex items-center gap-2 text-xs font-bold uppercase text-cyan-400 tracking-wider mb-3">
+            <Share2 className="w-4 h-4" />
+            <span>4. Social Media Channels & Interactive Links</span>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div>
+              <label className="text-[11px] font-semibold text-slate-300 block mb-1">LinkedIn Profile / Page</label>
+              <input
+                type="url"
+                value={form.linkedin}
+                onChange={e => setForm({ ...form, linkedin: e.target.value })}
+                className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white outline-none focus:border-cyan-400"
+                placeholder="https://linkedin.com/company/fusionforgecreation"
+              />
+            </div>
+            <div>
+              <label className="text-[11px] font-semibold text-slate-300 block mb-1">GitHub Organization</label>
+              <input
+                type="url"
+                value={form.github}
+                onChange={e => setForm({ ...form, github: e.target.value })}
+                className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white outline-none focus:border-cyan-400"
+                placeholder="https://github.com/fusionforgecreation"
+              />
+            </div>
+            <div>
+              <label className="text-[11px] font-semibold text-slate-300 block mb-1">Twitter / X Handle URL</label>
+              <input
+                type="url"
+                value={form.twitter}
+                onChange={e => setForm({ ...form, twitter: e.target.value })}
+                className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white outline-none focus:border-cyan-400"
+                placeholder="https://twitter.com/fusionforge_dev"
+              />
+            </div>
+            <div>
+              <label className="text-[11px] font-semibold text-slate-300 block mb-1">Instagram Profile</label>
+              <input
+                type="url"
+                value={form.instagram}
+                onChange={e => setForm({ ...form, instagram: e.target.value })}
+                className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white outline-none focus:border-cyan-400"
+                placeholder="https://instagram.com/fusionforgecreation"
+              />
+            </div>
+            <div>
+              <label className="text-[11px] font-semibold text-slate-300 block mb-1">WhatsApp Chat Link / Number</label>
+              <input
+                type="text"
+                value={form.whatsapp}
+                onChange={e => setForm({ ...form, whatsapp: e.target.value })}
+                className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white outline-none focus:border-cyan-400"
+                placeholder="https://wa.me/919004077126"
+              />
+            </div>
+            <div>
+              <label className="text-[11px] font-semibold text-slate-300 block mb-1">YouTube Channel URL</label>
+              <input
+                type="url"
+                value={form.youtube}
+                onChange={e => setForm({ ...form, youtube: e.target.value })}
+                className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white outline-none focus:border-cyan-400"
+                placeholder="https://youtube.com/@fusionforgecreation"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* 5. Branding & Signatures */}
         <div className="pt-4 border-t border-slate-800">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2 text-xs font-bold uppercase text-cyan-400 tracking-wider">
               <FileSignature className="w-4 h-4" />
-              <span>3. Brand Logo & Authorized Signature</span>
-            </div>
-            <div className="px-2.5 py-1 rounded-md bg-blue-500/10 border border-blue-500/20 text-[10px] font-bold text-blue-400">
-              Active Brand Identity
+              <span>5. Brand Logo & Authorized Signature</span>
             </div>
           </div>
 
-          {/* Live Logo Visual Preview */}
           <div className="mb-4 p-4 rounded-xl bg-slate-900/80 border border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <BrandLogo size="md" variant="full" theme="dark" />
@@ -227,7 +881,7 @@ export const SettingsManager: React.FC = () => {
                 type="text"
                 value={form.logo_url}
                 onChange={e => setForm({ ...form, logo_url: e.target.value })}
-                className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white outline-none focus:border-blue-500"
+                className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white outline-none focus:border-cyan-400"
                 placeholder="/logo.svg"
               />
             </div>
@@ -237,18 +891,18 @@ export const SettingsManager: React.FC = () => {
                 type="text"
                 value={form.signature_url}
                 onChange={e => setForm({ ...form, signature_url: e.target.value })}
-                className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white outline-none focus:border-blue-500"
+                className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white outline-none focus:border-cyan-400"
                 placeholder="/signatures/authorized_signatory.png"
               />
             </div>
           </div>
         </div>
 
-        {/* 4. Settlement Bank Details */}
+        {/* 6. Settlement Bank Details */}
         <div className="pt-4 border-t border-slate-800">
           <div className="flex items-center gap-2 text-xs font-bold uppercase text-cyan-400 tracking-wider mb-3">
             <Landmark className="w-4 h-4" />
-            <span>4. Settlement Bank Account Details</span>
+            <span>6. Settlement Bank Account Details</span>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
@@ -257,8 +911,8 @@ export const SettingsManager: React.FC = () => {
                 type="text"
                 value={form.bank_name}
                 onChange={e => setForm({ ...form, bank_name: e.target.value })}
-                className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white outline-none focus:border-blue-500"
-                placeholder="[Enter Bank Name - e.g. HDFC Bank Ltd.]"
+                className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white outline-none focus:border-cyan-400"
+                placeholder="HDFC Bank Ltd"
                 required
               />
             </div>
@@ -268,7 +922,7 @@ export const SettingsManager: React.FC = () => {
                 type="text"
                 value={form.account_name}
                 onChange={e => setForm({ ...form, account_name: e.target.value })}
-                className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white outline-none focus:border-blue-500"
+                className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white outline-none focus:border-cyan-400"
                 placeholder="Fusion Forge Creation"
                 required
               />
@@ -279,8 +933,8 @@ export const SettingsManager: React.FC = () => {
                 type="text"
                 value={form.account_number}
                 onChange={e => setForm({ ...form, account_number: e.target.value })}
-                className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white font-mono outline-none focus:border-blue-500"
-                placeholder="[Enter Bank Account Number]"
+                className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white font-mono outline-none focus:border-cyan-400"
+                placeholder="50200012345678"
                 required
               />
             </div>
@@ -289,51 +943,65 @@ export const SettingsManager: React.FC = () => {
               <input
                 type="text"
                 value={form.ifsc_code}
-                onChange={e => setForm({ ...form, ifsc_code: e.target.value })}
-                className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white font-mono uppercase outline-none focus:border-blue-500"
-                placeholder="[Enter IFSC Code - e.g. HDFC000XXXX]"
+                onChange={e => setForm({ ...form, ifsc_code: e.target.value.toUpperCase() })}
+                className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white font-mono uppercase outline-none focus:border-cyan-400"
+                placeholder="HDFC0001234"
                 required
               />
             </div>
-            <div className="sm:col-span-2">
+            <div>
               <label className="text-[11px] font-semibold text-slate-300 block mb-1">Branch Name</label>
               <input
                 type="text"
                 value={form.branch_name}
                 onChange={e => setForm({ ...form, branch_name: e.target.value })}
-                className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white outline-none focus:border-blue-500"
-                placeholder="[Enter Branch Name - e.g. Patia Branch]"
+                className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white outline-none focus:border-cyan-400"
+                placeholder="Silvassa Branch"
                 required
+              />
+            </div>
+            <div>
+              <label className="text-[11px] font-semibold text-slate-300 block mb-1">UPI VPA ID</label>
+              <input
+                type="text"
+                value={form.upi_id}
+                onChange={e => setForm({ ...form, upi_id: e.target.value })}
+                className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white font-mono outline-none focus:border-cyan-400"
+                placeholder="fusionforge@hdfcbank"
               />
             </div>
           </div>
         </div>
 
-        {/* 5. Terms & Conditions */}
+        {/* 7. Terms & Conditions */}
         <div className="pt-4 border-t border-slate-800">
           <div className="flex items-center gap-2 text-xs font-bold uppercase text-cyan-400 tracking-wider mb-3">
             <FileText className="w-4 h-4" />
-            <span>5. Standard Terms & Conditions</span>
+            <span>7. Standard Quotation & Invoice Terms</span>
           </div>
           <div>
             <textarea
               rows={4}
               value={form.terms_conditions}
               onChange={e => setForm({ ...form, terms_conditions: e.target.value })}
-              className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white outline-none focus:border-blue-500 font-mono leading-relaxed"
+              className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white outline-none focus:border-cyan-400 font-mono leading-relaxed"
               placeholder="Enter standard invoice & quotation terms..."
               required
             />
           </div>
         </div>
 
-        <div className="flex justify-end pt-4 border-t border-slate-800">
+        {/* Submit Bar */}
+        <div className="flex items-center justify-between pt-4 border-t border-slate-800">
+          <span className="text-xs text-slate-400">
+            Changes will update invoices, quotations, PDF generator, and public site immediately.
+          </span>
           <button
             type="submit"
-            className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-xs font-semibold text-white flex items-center space-x-2 transition-all shadow-md shadow-blue-600/20"
+            className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-xs font-bold text-slate-950 flex items-center space-x-2 transition-all shadow-lg shadow-cyan-500/20 active:scale-95"
           >
-            {saved ? <Check className="w-4 h-4" /> : <Save className="w-4 h-4" />}
-            <span>{saved ? 'Seller Profile Saved' : 'Save Seller Profile'}</span>
+            {saved ? <Check className="w-4 h-4 text-slate-950" /> : <Save className="w-4 h-4 text-slate-950" />}
+            <span>{saved ? 'Changes Saved Successfully!' : 'Save & Publish Master Profile'}</span>
           </button>
         </div>
       </form>

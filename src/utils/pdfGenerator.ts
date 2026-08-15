@@ -2,31 +2,51 @@ import { Quotation, Invoice } from '../types';
 import { AGENCY_CONFIG } from '../mockData';
 import { numberToWordsIndian } from './numberToWords';
 
+function getActiveAgencyConfig(customConfig?: any) {
+  if (customConfig && (customConfig.gstin || customConfig.name || customConfig.company_name)) {
+    return customConfig;
+  }
+  try {
+    const saved = localStorage.getItem('fusion_forge_agency_config');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (parsed && typeof parsed === 'object') {
+        return { ...AGENCY_CONFIG, ...parsed };
+      }
+    }
+  } catch {
+    // ignore
+  }
+  return AGENCY_CONFIG;
+}
+
 const BRAND_LOGO_SVG_HTML = `
   <div style="display: flex; align-items: center; gap: 14px;">
-    <svg width="48" height="48" viewBox="0 0 160 160" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <linearGradient id="pdfNavy" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stop-color="#08143d"/>
-          <stop offset="60%" stop-color="#0d2466"/>
-          <stop offset="100%" stop-color="#13368a"/>
-        </linearGradient>
-        <linearGradient id="pdfCyan" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stop-color="#0056d6"/>
-          <stop offset="45%" stop-color="#0088ff"/>
-          <stop offset="100%" stop-color="#00d2ff"/>
-        </linearGradient>
-      </defs>
-      <g transform="translate(10, 4) scale(0.9)">
-        <path d="M 32 15 C 22 15 15 22 15 32 L 15 140 L 40 120 L 40 85 L 68 85 L 82 65 L 40 65 L 40 40 L 105 40 L 125 15 Z" fill="url(#pdfNavy)"/>
-        <rect x="132" y="10" width="13" height="13" rx="1.5" fill="#00d2ff"/>
-        <rect x="114" y="24" width="13" height="13" rx="1.5" fill="#00a2ff"/>
-        <rect x="132" y="27" width="13" height="13" rx="1.5" fill="#0088ff"/>
-        <rect x="114" y="41" width="13" height="13" rx="1.5" fill="#0066ee"/>
-        <path d="M 52 48 C 65 48 85 45 110 45 C 118 45 125 50 115 62 L 68 62 L 68 85 L 102 85 C 108 85 112 90 105 100 L 68 100 L 68 145 L 44 145 L 44 68 C 44 56 48 48 52 48 Z" fill="url(#pdfCyan)"/>
-        <path d="M 44 68 L 68 62 L 68 100 L 44 92 Z" fill="#003899" opacity="0.45"/>
-      </g>
-    </svg>
+    <div style="position: relative; width: 48px; height: 48px; border-radius: 12px; background: #ffffff; padding: 4px; box-shadow: 0 0 12px rgba(0, 180, 255, 0.4), 0 2px 6px rgba(0,0,0,0.1); border: 1.5px solid #00d2ff; display: flex; align-items: center; justify-content: center;">
+      <svg width="40" height="40" viewBox="0 0 160 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="pdfNavy" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#051033"/>
+            <stop offset="50%" stop-color="#0a2166"/>
+            <stop offset="100%" stop-color="#123d9e"/>
+          </linearGradient>
+          <linearGradient id="pdfCyan" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#0055ff"/>
+            <stop offset="45%" stop-color="#0099ff"/>
+            <stop offset="100%" stop-color="#00e5ff"/>
+          </linearGradient>
+        </defs>
+        <g transform="translate(10, 8) scale(0.88)">
+          <path d="M 28 14 C 18 14 12 20 12 30 L 12 142 L 38 122 L 38 86 L 68 86 L 82 66 L 38 66 L 38 40 L 106 40 L 124 14 Z" fill="url(#pdfNavy)"/>
+          <rect x="132" y="10" width="13" height="13" rx="2" fill="#00e5ff"/>
+          <rect x="114" y="24" width="13" height="13" rx="2" fill="#00b4d8"/>
+          <rect x="132" y="27" width="13" height="13" rx="2" fill="#0096ff"/>
+          <rect x="114" y="41" width="13" height="13" rx="2" fill="#0066ee"/>
+          <path d="M 52 48 C 66 48 88 45 112 45 C 120 45 125 50 116 63 L 68 63 L 68 85 L 103 85 C 109 85 113 90 106 101 L 68 101 L 68 144 L 43 144 L 43 68 C 43 56 47 48 52 48 Z" fill="url(#pdfCyan)"/>
+          <path d="M 43 68 L 68 63 L 68 101 L 43 93 Z" fill="#051b4d" opacity="0.55"/>
+        </g>
+      </svg>
+    </div>
     <div>
       <div style="font-size: 20px; font-weight: 900; color: #08143d; letter-spacing: 0.5px; line-height: 1.1; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
         <span>FUSION </span><span style="color: #0088ff;">FORGE</span>
@@ -38,7 +58,8 @@ const BRAND_LOGO_SVG_HTML = `
   </div>
 `;
 
-export function generateQuotationPDF(quote: Quotation) {
+export function generateQuotationPDF(quote: Quotation, customAgencyConfig?: any) {
+  const cfg = getActiveAgencyConfig(customAgencyConfig);
   const printWindow = window.open('', '_blank');
   if (!printWindow) {
     alert('Please allow popups to view/print the official quotation document.');
@@ -52,7 +73,7 @@ export function generateQuotationPDF(quote: Quotation) {
     <!DOCTYPE html>
     <html>
       <head>
-        <title>Quotation ${quote.quoteNumber} - Fusion Forge Creation</title>
+        <title>Quotation ${quote.quoteNumber} - ${cfg.company_name || cfg.name || 'Fusion Forge Creation'}</title>
         <style>
           body { 
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
@@ -189,8 +210,8 @@ export function generateQuotationPDF(quote: Quotation) {
           <div>
             ${BRAND_LOGO_SVG_HTML}
             <div style="font-size: 11px; color: #64748b; margin-top: 8px; line-height: 1.4;">
-              ${AGENCY_CONFIG.address}, ${AGENCY_CONFIG.city}, ${AGENCY_CONFIG.state} - ${AGENCY_CONFIG.postalCode}<br/>
-              GSTIN: <strong>${AGENCY_CONFIG.gstin}</strong> | PAN: <strong>${AGENCY_CONFIG.pan}</strong> | Email: ${AGENCY_CONFIG.email}
+              ${cfg.address || 'H2/203, Yogi Milan, Near Ring Road, Silvassa'}, ${cfg.city || 'Silvassa'}, ${cfg.state || 'Dadra & Nagar Haveli'} - ${cfg.postalCode || '396230'}<br/>
+              GSTIN: <strong>${cfg.gstin || '26AALFF1234F1Z5'}</strong> | PAN: <strong>${cfg.pan || 'AALFF1234F'}</strong> | SAC Code: <strong>${cfg.sacCode || '998314'}</strong> | Email: ${cfg.email || 'contact@fusionforge.io'}
             </div>
           </div>
           <div class="meta-box">
@@ -315,7 +336,8 @@ export function generateQuotationPDF(quote: Quotation) {
   printWindow.document.close();
 }
 
-export function generateInvoicePDF(invoice: Invoice) {
+export function generateInvoicePDF(invoice: Invoice, customAgencyConfig?: any) {
+  const cfg = getActiveAgencyConfig(customAgencyConfig);
   const printWindow = window.open('', '_blank');
   if (!printWindow) {
     alert('Please allow popups to view/print the official tax invoice.');
@@ -325,11 +347,11 @@ export function generateInvoicePDF(invoice: Invoice) {
   const taxableAmount = invoice.taxableAmount ?? (invoice.subtotal - (invoice.discountAmount || 0));
   const amountWords = invoice.amountInWords || numberToWordsIndian(invoice.totalAmount, invoice.currency || 'INR');
 
-  // Seller values
-  const sellerName = invoice.sellerName || 'Fusion Forge Creation';
-  const sellerAddress = invoice.sellerAddress || `${AGENCY_CONFIG.address}, ${AGENCY_CONFIG.city}, ${AGENCY_CONFIG.state} - ${AGENCY_CONFIG.postalCode}`;
-  const sellerGstin = invoice.sellerGstin || AGENCY_CONFIG.gstin;
-  const sellerState = invoice.sellerState || 'Odisha [21]';
+  // Seller values (dynamically from cfg and invoice)
+  const sellerName = invoice.sellerName || cfg.company_name || cfg.name || 'Fusion Forge Creation';
+  const sellerAddress = invoice.sellerAddress || `${cfg.address || 'H2/203, Yogi Milan, Near Ring Road, Silvassa'}, ${cfg.city || 'Silvassa'}, ${cfg.state || 'Dadra & Nagar Haveli'} - ${cfg.postalCode || '396230'}`;
+  const sellerGstin = invoice.sellerGstin || cfg.gstin || '26AALFF1234F1Z5';
+  const sellerState = invoice.sellerState || `${cfg.state || 'Dadra & Nagar Haveli'} [${cfg.state_code || '26'}]`;
 
   // Buyer values
   const buyerCompany = invoice.buyerCompany || invoice.clientCompany || invoice.clientName || 'JP MODATEX LLP';
@@ -337,11 +359,16 @@ export function generateInvoicePDF(invoice: Invoice) {
   const buyerGstin = invoice.buyerGstin || invoice.clientGstin || '—';
   const buyerState = invoice.buyerState || (invoice.buyerStateCode ? `${invoice.buyerState} [${invoice.buyerStateCode}]` : 'Gujarat [24]');
 
+  const bankName = invoice.bankDetails?.bankName || cfg.bank_name || cfg.bankDetails?.bankName || 'HDFC Bank Ltd';
+  const accountNumber = invoice.bankDetails?.accountNumber || cfg.account_number || cfg.bankDetails?.accountNumber || '50200012345678';
+  const ifscCode = invoice.bankDetails?.ifscCode || cfg.ifsc_code || cfg.bankDetails?.ifscCode || 'HDFC0001234';
+  const upiId = invoice.bankDetails?.upiId || cfg.upi_id || cfg.bankDetails?.upiId || 'fusionforge@hdfcbank';
+
   const htmlContent = `
     <!DOCTYPE html>
     <html>
       <head>
-        <title>INVOICE ${invoice.invoiceNumber} - Fusion Forge Creation</title>
+        <title>INVOICE ${invoice.invoiceNumber} - ${sellerName}</title>
         <style>
           @page {
             size: A4;

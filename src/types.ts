@@ -34,6 +34,16 @@ export interface StateUtMasterItem {
   updated_at?: string;
 }
 
+export interface SocialChannelItem {
+  id: string;
+  platform: 'linkedin' | 'github' | 'whatsapp' | 'twitter' | 'instagram' | 'youtube' | 'facebook' | 'discord' | 'telegram' | 'medium' | 'twitch' | 'custom' | string;
+  name: string;
+  url: string;
+  active: boolean;
+  color?: string;
+  customIcon?: string;
+}
+
 export interface WebsiteSettings {
   id: string;
   site_name: string;
@@ -50,6 +60,7 @@ export interface WebsiteSettings {
     linkedin?: string;
     twitter?: string;
   };
+  social_channels?: SocialChannelItem[];
   maintenance_mode: boolean;
   updated_at: string;
 }
@@ -81,8 +92,39 @@ export interface SellerProfile {
   address_line1?: string;
   address_line2?: string;
   city?: string;
+  state?: string;
+  postalCode?: string;
   pincode?: string;
   sac_code?: string;
+  sacCode?: string;
+  social_channels?: SocialChannelItem[];
+  socialChannels?: SocialChannelItem[];
+  social_links?: {
+    github?: string;
+    linkedin?: string;
+    twitter?: string;
+    instagram?: string;
+    youtube?: string;
+    whatsapp?: string;
+    facebook?: string;
+    discord?: string;
+    telegram?: string;
+    medium?: string;
+    [key: string]: string | undefined;
+  };
+  socialLinks?: {
+    github?: string;
+    linkedin?: string;
+    twitter?: string;
+    instagram?: string;
+    youtube?: string;
+    whatsapp?: string;
+    facebook?: string;
+    discord?: string;
+    telegram?: string;
+    medium?: string;
+    [key: string]: string | undefined;
+  };
   default_bank_account?: {
     account_name: string;
     bank_name: string;
@@ -235,7 +277,7 @@ export interface QuotationItem {
   created_at: string;
 }
 
-export type InvoiceStatus = 'draft' | 'issued' | 'partially_paid' | 'paid' | 'overdue';
+export type InvoiceStatus = 'draft' | 'issued' | 'partially_paid' | 'paid' | 'overdue' | 'cancelled';
 
 export interface Invoice {
   id: string;
@@ -304,6 +346,7 @@ export interface Invoice {
   buyer_gstin?: string;
   buyer_state_code?: string;
   place_of_supply?: string;
+  placeOfSupply?: string;
   cgst_amount?: number;
   sgst_amount?: number;
   utgst_amount?: number;
@@ -317,8 +360,8 @@ export interface Invoice {
   created_at?: string;
   updated_at?: string;
 
-  paymentTerms: string;
-  bankDetails: {
+  paymentTerms?: string;
+  bankDetails?: {
     accountName: string;
     bankName: string;
     accountNumber: string;
@@ -326,7 +369,7 @@ export interface Invoice {
     branch: string;
     upiId: string;
   };
-  notes: string;
+  notes?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -339,14 +382,16 @@ export interface Payment {
   invoiceId: string;
   invoiceNumber: string;
   clientId: string;
+  clientCompany?: string;
   clientName: string;
   amount: number;
   currency: string;
   paymentDate: string;
-  paymentMethod: PaymentMethod;
-  transactionReference: string;
+  paymentMethod: PaymentMethod | string;
+  transactionReference?: string;
+  transactionRef?: string;
   notes?: string;
-  recordedBy: string;
+  recordedBy?: string;
   createdBy?: string;
   createdAt: string;
   updatedAt?: string;
@@ -356,12 +401,13 @@ export interface Payment {
   payment_date?: string;
   payment_method?: string;
   reference_number?: string;
+  transaction_ref?: string;
   created_by?: string;
   created_at?: string;
   updated_at?: string;
 }
 
-export type EnquiryStatus = 'New' | 'Contacted' | 'In Progress' | 'Converted' | 'Closed' | 'new' | 'contacted' | 'in_review' | 'quoted' | 'won' | 'lost' | 'closed';
+export type EnquiryStatus = 'New' | 'Contacted' | 'In Progress' | 'Converted' | 'Closed' | 'new' | 'contacted' | 'in_discussion' | 'in_review' | 'quoted' | 'proposal_sent' | 'won' | 'lost' | 'closed';
 
 export interface ProjectEnquiry {
   id: string;
@@ -371,13 +417,14 @@ export interface ProjectEnquiry {
   company?: string;
   company_name?: string;
   service?: string;
-  serviceCategory?: 'web_development' | 'mobile_app' | 'backend_api' | 'database_solutions' | 'ui_ux_design' | 'full_stack_enterprise';
+  serviceCategory?: 'web_development' | 'mobile_app' | 'backend_api' | 'database_solutions' | 'ui_ux_design' | 'full_stack_enterprise' | string;
   message?: string;
   budgetRange?: string;
+  timeline?: string;
   estimatedTimeline?: string;
   projectDescription?: string;
   featuresRequired?: string[];
-  source?: 'website_form' | 'cost_estimator';
+  source?: 'website_form' | 'cost_estimator' | string;
   status: EnquiryStatus;
   priority?: 'low' | 'medium' | 'high' | 'urgent';
   assigned_to?: string;
@@ -390,12 +437,16 @@ export interface ProjectEnquiry {
 export interface PortfolioProject {
   id: string;
   title: string;
+  slug?: string;
   clientName: string;
   category: string;
   summary: string;
   deliverables: string[];
   techStack: string[];
-  bannerGradient: string;
+  bannerGradient?: string;
+  bannerImage?: string;
+  featured?: boolean;
+  liveUrl?: string;
 }
 
 export interface AgencyService {
@@ -406,7 +457,11 @@ export interface AgencyService {
   description: string;
   icon?: string;
   image_url?: string;
+  features?: string[];
+  order_index?: number;
+  orderIndex?: number;
   is_active?: boolean;
+  isActive?: boolean;
   sort_order?: number;
   category?: string;
   startingPrice?: number;
@@ -451,7 +506,9 @@ export interface TechnologyItem {
   name: string;
   category: string;
   logo_url?: string;
+  logoUrl?: string;
   is_active?: boolean;
+  isActive?: boolean;
   sort_order?: number;
   description?: string;
   proficiency?: number; // 0 - 100
@@ -463,17 +520,22 @@ export interface TechnologyItem {
 export interface TestimonialItem {
   id: string;
   client_name?: string;
+  client_title?: string;
   company_name?: string;
   content?: string;
   rating: number;
   image_url?: string;
   is_featured?: boolean;
+  isFeatured?: boolean;
   is_active?: boolean;
+  name?: string;
   clientName?: string;
   role?: string;
   company?: string;
   quote?: string;
+  avatar?: string;
   avatarUrl?: string;
+  avatar_url?: string;
   projectName?: string;
   isApproved?: boolean;
   created_at?: string;
@@ -485,10 +547,43 @@ export interface FaqItem {
   question: string;
   answer: string;
   is_active?: boolean;
+  isActive?: boolean;
   sort_order?: number;
+  order_index?: number;
+  orderIndex?: number;
   category?: 'General' | 'Pricing & GST' | 'Technical' | 'Support' | string;
   order?: number;
   isPublished?: boolean;
   created_at?: string;
   updated_at?: string;
 }
+
+export interface ChatbotQAItem {
+  id: string;
+  question: string;
+  answer: string;
+  category: 'General' | 'Services' | 'Pricing & Quotes' | 'Tech Stack' | 'GST & Invoicing' | 'Contact & Support' | string;
+  keywords: string[];
+  suggestedFollowUps?: string[];
+  actionLink?: string;
+  actionLabel?: string;
+  isActive: boolean;
+  orderIndex: number;
+  matchCount?: number;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface ChatbotSettings {
+  botName: string;
+  botSubtitle: string;
+  avatarUrl?: string;
+  welcomeMessage: string;
+  fallbackMessage: string;
+  quickPrompts: string[];
+  enableBot: boolean;
+  contactEmail?: string;
+  contactPhone?: string;
+  updatedAt?: string;
+}
+

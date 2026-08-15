@@ -5,8 +5,20 @@ import {
   Invoice, 
   Payment, 
   ProjectEnquiry, 
-  PortfolioProject 
+  PortfolioProject,
+  ChatbotQAItem,
+  ChatbotSettings,
+  SocialChannelItem
 } from './types';
+
+export const INITIAL_SOCIAL_CHANNELS: SocialChannelItem[] = [
+  { id: 'linkedin', platform: 'linkedin', name: 'LinkedIn', url: 'https://linkedin.com/company/fusionforgecreation', active: true, color: '#0A66C2' },
+  { id: 'github', platform: 'github', name: 'GitHub', url: 'https://github.com/fusionforgecreation', active: true, color: '#6e5494' },
+  { id: 'whatsapp', platform: 'whatsapp', name: 'WhatsApp', url: 'https://wa.me/919004077126', active: true, color: '#25D366' },
+  { id: 'twitter', platform: 'twitter', name: 'Twitter / X', url: 'https://twitter.com/fusionforge_dev', active: true, color: '#1DA1F2' },
+  { id: 'instagram', platform: 'instagram', name: 'Instagram', url: 'https://instagram.com/fusionforgecreation', active: true, color: '#E1306C' },
+  { id: 'youtube', platform: 'youtube', name: 'YouTube', url: 'https://youtube.com/@fusionforgecreation', active: true, color: '#FF0000' }
+];
 
 export const AGENCY_CONFIG = {
   name: 'Fusion Forge Creation',
@@ -16,17 +28,35 @@ export const AGENCY_CONFIG = {
   motto: 'INNOVATE • BUILD • AUTOMATE • GROW',
   email: 'contact@fusionforge.io',
   phone: '+91 90040 77126',
-  address: 'Survey No. 274, Athal Village, Silvassa, Dadra & Nagar Haveli - 396230',
+  address: 'H2/203, Yogi Milan, Near Ring Road, Silvassa, Dadra & Nagar Haveli - 396230',
   city: 'Silvassa',
-  state: 'Dadra and Nagar Haveli and Daman and Diu',
+  state: 'Dadra & Nagar Haveli',
   state_code: '26',
   postalCode: '396230',
   gstin: '26AALFF1234F1Z5',
   pan: 'AALFF1234F',
-  jurisdiction: 'Silvassa Jurisdiction',
+  jurisdiction: 'Silvassa, Dadra & Nagar Haveli',
   sacCode: '998314',
   logo_url: '/logo.svg',
   signature_url: '/signatures/authorized_signatory.png',
+  social_channels: INITIAL_SOCIAL_CHANNELS,
+  socialChannels: INITIAL_SOCIAL_CHANNELS,
+  social_links: {
+    github: 'https://github.com/fusionforgecreation',
+    linkedin: 'https://linkedin.com/company/fusionforgecreation',
+    twitter: 'https://twitter.com/fusionforge_dev',
+    instagram: 'https://instagram.com/fusionforgecreation',
+    youtube: 'https://youtube.com/@fusionforgecreation',
+    whatsapp: 'https://wa.me/919004077126'
+  },
+  socialLinks: {
+    github: 'https://github.com/fusionforgecreation',
+    linkedin: 'https://linkedin.com/company/fusionforgecreation',
+    twitter: 'https://twitter.com/fusionforge_dev',
+    instagram: 'https://instagram.com/fusionforgecreation',
+    youtube: 'https://youtube.com/@fusionforgecreation',
+    whatsapp: 'https://wa.me/919004077126'
+  },
   bankDetails: {
     accountName: 'Fusion Forge Creation',
     bankName: 'HDFC Bank Ltd',
@@ -343,10 +373,10 @@ export const INITIAL_INVOICES: Invoice[] = [
     
     // Seller Details
     sellerName: 'Fusion Forge Creation',
-    sellerAddress: 'Suite 504, Tech Park Cyber City, Patia, Bhubaneswar, Odisha - 751024',
-    sellerGstin: '21AAACF9876B1Z5',
-    sellerState: 'Odisha',
-    sellerStateCode: '21',
+    sellerAddress: 'H2/203, Yogi Milan, Near Ring Road, Silvassa, Dadra & Nagar Haveli - 396230',
+    sellerGstin: '26AALFF1234F1Z5',
+    sellerState: 'Dadra & Nagar Haveli',
+    sellerStateCode: '26',
 
     // Buyer Details
     buyerCompany: 'JP MODATEX LLP',
@@ -398,10 +428,10 @@ export const INITIAL_INVOICES: Invoice[] = [
     clientGstin: '27AABCA1234F1ZM',
     clientAddress: 'Tower B, 14th Floor, BKC, Mumbai, Maharashtra 400051',
     sellerName: 'Fusion Forge Creation',
-    sellerAddress: 'Suite 504, Tech Park Cyber City, Patia, Bhubaneswar, Odisha - 751024',
-    sellerGstin: '21AAACF9876B1Z5',
-    sellerState: 'Odisha',
-    sellerStateCode: '21',
+    sellerAddress: 'H2/203, Yogi Milan, Near Ring Road, Silvassa, Dadra & Nagar Haveli - 396230',
+    sellerGstin: '26AALFF1234F1Z5',
+    sellerState: 'Dadra & Nagar Haveli',
+    sellerStateCode: '26',
     buyerCompany: 'Apex Fintech Solutions Pvt. Ltd.',
     buyerName: 'Arvind Kapoor',
     buyerAddress: 'Tower B, 14th Floor, BKC, Mumbai, Maharashtra 400051',
@@ -449,10 +479,10 @@ export const INITIAL_INVOICES: Invoice[] = [
     clientGstin: '29AAACN8877K1Z3',
     clientAddress: '45 Koramangala 5th Block, Bengaluru, Karnataka 560095',
     sellerName: 'Fusion Forge Creation',
-    sellerAddress: 'Suite 504, Tech Park Cyber City, Patia, Bhubaneswar, Odisha - 751024',
-    sellerGstin: '21AAACF9876B1Z5',
-    sellerState: 'Odisha',
-    sellerStateCode: '21',
+    sellerAddress: 'H2/203, Yogi Milan, Near Ring Road, Silvassa, Dadra & Nagar Haveli - 396230',
+    sellerGstin: '26AALFF1234F1Z5',
+    sellerState: 'Dadra & Nagar Haveli',
+    sellerStateCode: '26',
     buyerCompany: 'Nexus HealthTech India',
     buyerName: 'Dr. Sameer Sen',
     buyerAddress: '45 Koramangala 5th Block, Bengaluru, Karnataka 560095',
@@ -904,6 +934,145 @@ export const INITIAL_FAQS = [
     isPublished: true
   }
 ];
+
+export const INITIAL_CHATBOT_SETTINGS: ChatbotSettings = {
+  botName: 'ForgeBot AI',
+  botSubtitle: 'Fusion Forge Interactive Assistant',
+  avatarUrl: '',
+  welcomeMessage: 'Hello! 👋 Welcome to Fusion Forge Creation. I am your instant virtual advisor. Ask me about our software engineering services, tech stack, custom quotes, GST compliance, or timelines!',
+  fallbackMessage: "I couldn't find an exact match in our knowledge base, but our engineering directors can provide specific guidance. Would you like to submit a quick project enquiry or speak directly with our technical team?",
+  quickPrompts: [
+    'What services do you offer?',
+    'How much does a web app cost?',
+    'What is your tech stack?',
+    'Are your invoices GST compliant (SAC 998314)?',
+    'How to get a formal Quotation?'
+  ],
+  enableBot: true,
+  contactEmail: 'contact@fusionforge.io',
+  contactPhone: '+91 90040 77126'
+};
+
+export const INITIAL_CHATBOT_QA: ChatbotQAItem[] = [
+  {
+    id: 'cqa_1',
+    question: 'What core services does Fusion Forge Creation provide?',
+    answer: 'We engineer high-performance software solutions across 6 key pillars:\n\n1. Web Applications (React 19, Next.js, TypeScript)\n2. Mobile Applications (React Native iOS/Android)\n3. Full-Stack Enterprise Systems & Cloud Backends (Node.js, Go, REST/GraphQL)\n4. Database & Real-time Architectures (PostgreSQL, Supabase, Redis)\n5. GST-Compliant Billing & Accounting Engines (SAC 998314)\n6. UI/UX Design Systems & High-Fidelity Prototypes.',
+    category: 'Services',
+    keywords: ['service', 'services', 'offer', 'build', 'develop', 'what do you do', 'capabilities', 'features', 'solutions'],
+    suggestedFollowUps: ['How much does a web app cost?', 'What tech stack do you use?', 'View Project Portfolio'],
+    actionLink: '#services',
+    actionLabel: 'Explore Services Catalog',
+    isActive: true,
+    orderIndex: 1,
+    matchCount: 142
+  },
+  {
+    id: 'cqa_2',
+    question: 'How much does developing a custom web or mobile application cost?',
+    answer: 'Our project investments are transparent and milestone-based:\n\n• MVP / Rapid Prototypes: ₹50,000 – ₹1,50,000\n• Standard Web & Mobile Applications: ₹1,50,000 – ₹3,00,000\n• Enterprise Cloud Platforms & Multi-User Portals: ₹3,00,000 – ₹6,00,000+\n• High-Scale Distributed Systems: Custom Scope.\n\nAll estimates include 18% GST with formal SAC 998314 Tax Invoices. You can use our interactive ballpark estimator below!',
+    category: 'Pricing & Quotes',
+    keywords: ['price', 'pricing', 'cost', 'budget', 'rate', 'quote', 'quotation', 'how much', 'fee', 'charge', 'expensive', 'inr', 'rupees'],
+    suggestedFollowUps: ['Open Ballpark Cost Estimator', 'Are your invoices GST compliant?', 'How to get a formal quotation?'],
+    actionLink: '#contact',
+    actionLabel: 'Calculate Instant Ballpark Estimate',
+    isActive: true,
+    orderIndex: 2,
+    matchCount: 210
+  },
+  {
+    id: 'cqa_3',
+    question: 'What technologies and frameworks do you build with?',
+    answer: 'We leverage modern, production-hardened technologies:\n\n• Frontend: React 19, Next.js, TypeScript, Tailwind CSS, Motion\n• Mobile: React Native, Expo, WebRTC\n• Backend: Node.js, Express, Go (Golang), Python\n• Databases: PostgreSQL, Supabase, Redis Caching, WebSockets\n• Cloud & DevOps: Docker, Google Cloud Platform, AWS, CI/CD pipelines\n• Compliance: Automated GST SAC 998314 billing engines.',
+    category: 'Tech Stack',
+    keywords: ['tech', 'technology', 'stack', 'languages', 'react', 'nextjs', 'typescript', 'node', 'postgres', 'database', 'docker', 'cloud', 'backend', 'frontend'],
+    suggestedFollowUps: ['View Technology Stack', 'View Project Portfolio', 'Do we own the source code?'],
+    actionLink: '#tech-stack',
+    actionLabel: 'View Detailed Technology Stack',
+    isActive: true,
+    orderIndex: 3,
+    matchCount: 95
+  },
+  {
+    id: 'cqa_4',
+    question: 'How do I request a formal project quotation and proposal?',
+    answer: 'You can submit your requirements directly through our online Project Scope form on this website. Our engineering team, led by Manoj Satapathy, will review your deliverables and send an official commercial Quotation with itemized milestone costs, tax breakdown (CGST/SGST/IGST), and timeline within 24 hours.',
+    category: 'Pricing & Quotes',
+    keywords: ['quotation', 'formal quote', 'proposal', 'estimate', 'enquiry', 'lead', 'hire', 'start project', 'consultation', 'book'],
+    suggestedFollowUps: ['Fill Project Scope Form', 'How long does development take?', 'What are your payment terms?'],
+    actionLink: '#contact',
+    actionLabel: 'Submit Project Scope Form',
+    isActive: true,
+    orderIndex: 4,
+    matchCount: 168
+  },
+  {
+    id: 'cqa_5',
+    question: 'Are your invoices GST compliant in India? What is SAC Code 998314?',
+    answer: 'Yes, 100%. Fusion Forge Creation is registered under GSTIN 26AALFF1234F1Z5 in Silvassa (Dadra & Nagar Haveli). We provide official B2B Tax Invoices under SAC 998314 (Information Technology Software Services), enabling your business to claim full Input Tax Credit (ITC). Intra-state deals receive CGST (9%) + SGST (9%), while inter-state deals receive IGST (18%).',
+    category: 'GST & Invoicing',
+    keywords: ['gst', 'gstin', 'sac', '998314', 'tax', 'invoice', 'itc', 'input tax credit', 'cgst', 'sgst', 'igst', 'hsn', 'compliance', 'b2b'],
+    suggestedFollowUps: ['What are your payment terms?', 'How much does a web app cost?'],
+    actionLink: '#contact',
+    actionLabel: 'Review Agency GST Information',
+    isActive: true,
+    orderIndex: 5,
+    matchCount: 88
+  },
+  {
+    id: 'cqa_6',
+    question: 'How long does a typical software project take to build and deploy?',
+    answer: 'Timelines depend on scope and milestone structure:\n\n• MVP / Rapid Prototype: 2 – 4 Weeks\n• Standard Web & Mobile App: 6 – 10 Weeks\n• Enterprise Platform & SaaS: 12 – 16 Weeks\n\nWe provide weekly staging preview links and live milestone demonstrations throughout every sprint.',
+    category: 'General',
+    keywords: ['timeline', 'duration', 'time', 'how long', 'weeks', 'months', 'deadline', 'delivery', 'turnaround', 'speed'],
+    suggestedFollowUps: ['What is your development workflow?', 'Do we own the source code?'],
+    actionLink: '#projects',
+    actionLabel: 'See Past Project Timelines',
+    isActive: true,
+    orderIndex: 6,
+    matchCount: 74
+  },
+  {
+    id: 'cqa_7',
+    question: 'Do we own 100% of the source code and intellectual property (IP)?',
+    answer: 'Yes, absolutely. Upon settlement of project milestones, 100% of the source code, repository commits, design files, database architectures, and intellectual property rights belong exclusively to your organization with zero vendor lock-in.',
+    category: 'General',
+    keywords: ['ip', 'intellectual property', 'code ownership', 'source code', 'ownership', 'copyright', 'github', 'repo', 'license'],
+    suggestedFollowUps: ['What post-launch support do you provide?', 'How to get a formal quote?'],
+    actionLink: '#faqs',
+    actionLabel: 'Read FAQs on IP Rights',
+    isActive: true,
+    orderIndex: 7,
+    matchCount: 62
+  },
+  {
+    id: 'cqa_8',
+    question: 'What post-launch warranty and technical maintenance do you provide?',
+    answer: 'Every deployment includes an inclusive 60-day post-launch warranty covering bug fixes, performance tuning, and cloud infrastructure monitoring. We also provide monthly SLA retainers for continuous feature rollouts and 24/7 uptime monitoring.',
+    category: 'Contact & Support',
+    keywords: ['warranty', 'maintenance', 'support', 'sla', 'bugs', 'post launch', 'updates', 'monitoring', 'hosting'],
+    suggestedFollowUps: ['Contact Support Team', 'What services do you offer?'],
+    actionLink: '#contact',
+    actionLabel: 'Contact Technical Support',
+    isActive: true,
+    orderIndex: 8,
+    matchCount: 45
+  },
+  {
+    id: 'cqa_9',
+    question: 'Where is Fusion Forge Creation located and how can I contact you directly?',
+    answer: 'Our headquarters is located at Survey No. 274, Athal Village, Silvassa, Dadra & Nagar Haveli (396230).\n\n• Email: contact@fusionforge.io / manojsatapathy.jp@gmail.com\n• Phone / WhatsApp: +91 90040 77126\n• Executive Lead: Manoj Satapathy\n\nYou can contact us directly or drop a message via the enquiry form below!',
+    category: 'Contact & Support',
+    keywords: ['location', 'address', 'where', 'city', 'silvassa', 'office', 'phone', 'whatsapp', 'email', 'contact', 'manoj', 'satapathy', 'call', 'talk'],
+    suggestedFollowUps: ['Fill Project Scope Form', 'How to get a formal quote?'],
+    actionLink: '#contact',
+    actionLabel: 'Reach Out via Phone / WhatsApp',
+    isActive: true,
+    orderIndex: 9,
+    matchCount: 119
+  }
+];
+
 
 export const INITIAL_STATE_UT_MASTER = [
   { code: '01', name: 'Jammu and Kashmir', is_ut_without_legislature: false, is_union_territory: true, selectable: true, is_legacy: false },
