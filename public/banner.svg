@@ -1,0 +1,299 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 600" width="100%" height="100%">
+  <defs>
+    <!-- Background Gradient -->
+    <linearGradient id="bgLightGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="60%" stop-color="#f8fafc" />
+      <stop offset="100%" stop-color="#f1f5f9" />
+    </linearGradient>
+
+    <!-- Top Left & Bottom Right Dynamic Geometric Accents -->
+    <linearGradient id="geomBlueGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0052cc" />
+      <stop offset="50%" stop-color="#0066ff" />
+      <stop offset="100%" stop-color="#00b4d8" />
+    </linearGradient>
+
+    <!-- Logo Gradients -->
+    <linearGradient id="bannerNavy" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#08143d" />
+      <stop offset="60%" stop-color="#0d2466" />
+      <stop offset="100%" stop-color="#13368a" />
+    </linearGradient>
+
+    <linearGradient id="bannerCyan" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0056d6" />
+      <stop offset="45%" stop-color="#0088ff" />
+      <stop offset="100%" stop-color="#00d2ff" />
+    </linearGradient>
+
+    <linearGradient id="bannerWordForge" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#0055d4" />
+      <stop offset="60%" stop-color="#0099ff" />
+      <stop offset="100%" stop-color="#00d4ff" />
+    </linearGradient>
+
+    <!-- Bottom Bar Gradient -->
+    <linearGradient id="bottomBarGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#061238" />
+      <stop offset="60%" stop-color="#0a2266" />
+      <stop offset="100%" stop-color="#0066ff" />
+    </linearGradient>
+
+    <!-- Drop Shadows -->
+    <filter id="softShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#08143d" flood-opacity="0.15" />
+    </filter>
+    <filter id="laptopShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="16" stdDeviation="20" flood-color="#08143d" flood-opacity="0.22" />
+    </filter>
+  </defs>
+
+  <!-- Background Base -->
+  <rect width="1440" height="600" fill="url(#bgLightGrad)" />
+
+  <!-- Dot Matrix Pattern on White Canvas (Right Top & Left Center) -->
+  <g opacity="0.12" fill="#0052cc">
+    <!-- Top right dots -->
+    <circle cx="1320" cy="50" r="3" /><circle cx="1350" cy="50" r="3" /><circle cx="1380" cy="50" r="3" /><circle cx="1410" cy="50" r="3" />
+    <circle cx="1320" cy="75" r="3" /><circle cx="1350" cy="75" r="3" /><circle cx="1380" cy="75" r="3" /><circle cx="1410" cy="75" r="3" />
+    <circle cx="1320" cy="100" r="3" /><circle cx="1350" cy="100" r="3" /><circle cx="1380" cy="100" r="3" /><circle cx="1410" cy="100" r="3" />
+    <circle cx="1320" cy="125" r="3" /><circle cx="1350" cy="125" r="3" /><circle cx="1380" cy="125" r="3" /><circle cx="1410" cy="125" r="3" />
+    <!-- Left dots -->
+    <circle cx="340" cy="40" r="2.5" /><circle cx="365" cy="40" r="2.5" /><circle cx="390" cy="40" r="2.5" /><circle cx="415" cy="40" r="2.5" />
+    <circle cx="340" cy="65" r="2.5" /><circle cx="365" cy="65" r="2.5" /><circle cx="390" cy="65" r="2.5" /><circle cx="415" cy="65" r="2.5" />
+    <circle cx="340" cy="90" r="2.5" /><circle cx="365" cy="90" r="2.5" /><circle cx="390" cy="90" r="2.5" /><circle cx="415" cy="90" r="2.5" />
+  </g>
+
+  <!-- Top-Left Corner Geometric Slanted Tech Shapes -->
+  <path d="M -20 -20 L 220 -20 L 70 210 L -20 120 Z" fill="url(#geomBlueGrad)" />
+  <path d="M 120 -20 L 190 -20 L 40 180 L -10 180 Z" fill="#ffffff" opacity="0.3" />
+  <path d="M -20 150 L 50 220 L 20 250 L -20 210 Z" fill="#0099ff" opacity="0.5" />
+
+  <!-- Bottom-Right Geometric Slanted Tech Shapes -->
+  <path d="M 1260 620 L 1460 620 L 1460 380 L 1380 480 Z" fill="url(#geomBlueGrad)" />
+  <path d="M 1290 620 L 1360 620 L 1460 500 L 1460 460 Z" fill="#ffffff" opacity="0.3" />
+
+  <!-- ================= LEFT COLUMN (Typography & Service Grid) ================= -->
+  <g transform="translate(80, 110)">
+    <!-- Tagline: WHERE IDEAS -->
+    <text x="0" y="0" font-family="-apple-system, BlinkMacSystemFont, 'Montserrat', 'Inter', sans-serif" font-size="18" font-weight="800" fill="#08143d" letter-spacing="4">
+      WHERE IDEAS
+    </text>
+    <!-- FUSE WITH -->
+    <text x="0" y="38" font-family="-apple-system, BlinkMacSystemFont, 'Montserrat', 'Inter', sans-serif" font-size="34" font-weight="900" fill="#0052cc" letter-spacing="1">
+      FUSE WITH
+    </text>
+    <!-- TECHNOLOGY -->
+    <text x="0" y="74" font-family="-apple-system, BlinkMacSystemFont, 'Montserrat', 'Inter', sans-serif" font-size="34" font-weight="900" fill="#0052cc" letter-spacing="1">
+      TECHNOLOGY
+    </text>
+
+    <!-- Subtitle description -->
+    <text x="0" y="115" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="13" font-weight="500" fill="#64748b">
+      We build powerful web applications, mobile apps,
+    </text>
+    <text x="0" y="135" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="13" font-weight="500" fill="#64748b">
+      and business software that transform ideas into
+    </text>
+    <text x="0" y="155" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="13" font-weight="500" fill="#64748b">
+      digital success.
+    </text>
+
+    <!-- 6-Item Service Pill Grid -->
+    <g transform="translate(0, 190)">
+      <!-- Row 1: Web Dev, Mobile App, Backend Dev -->
+      <g transform="translate(0, 0)">
+        <rect x="0" y="0" width="105" height="34" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5" />
+        <text x="52" y="21" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="9" font-weight="700" fill="#0f172a" letter-spacing="0.5">&lt;/&gt; WEB DEV</text>
+      </g>
+      <g transform="translate(115, 0)">
+        <rect x="0" y="0" width="105" height="34" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5" />
+        <text x="52" y="21" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="9" font-weight="700" fill="#0f172a" letter-spacing="0.5">📱 MOBILE APP</text>
+      </g>
+      <g transform="translate(230, 0)">
+        <rect x="0" y="0" width="105" height="34" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5" />
+        <text x="52" y="21" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="9" font-weight="700" fill="#0f172a" letter-spacing="0.5">☁️ BACKEND</text>
+      </g>
+
+      <!-- Row 2: API Integration, Database, UI/UX -->
+      <g transform="translate(0, 42)">
+        <rect x="0" y="0" width="105" height="34" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5" />
+        <text x="52" y="21" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="9" font-weight="700" fill="#0f172a" letter-spacing="0.5">⚙️ API DEV</text>
+      </g>
+      <g transform="translate(115, 42)">
+        <rect x="0" y="0" width="105" height="34" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5" />
+        <text x="52" y="21" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="9" font-weight="700" fill="#0f172a" letter-spacing="0.5">🗄️ DATABASE</text>
+      </g>
+      <g transform="translate(230, 42)">
+        <rect x="0" y="0" width="105" height="34" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5" />
+        <text x="52" y="21" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="9" font-weight="700" fill="#0f172a" letter-spacing="0.5">🎨 UI/UX DESIGN</text>
+      </g>
+
+      <!-- Row 3: Business Solution, Cloud Deploy, Maintenance -->
+      <g transform="translate(0, 84)">
+        <rect x="0" y="0" width="105" height="34" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5" />
+        <text x="52" y="21" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="8.5" font-weight="700" fill="#0f172a" letter-spacing="0.5">📊 BUSINESS SW</text>
+      </g>
+      <g transform="translate(115, 84)">
+        <rect x="0" y="0" width="105" height="34" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5" />
+        <text x="52" y="21" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="8.5" font-weight="700" fill="#0f172a" letter-spacing="0.5">🚀 CLOUD / DEPLOY</text>
+      </g>
+      <g transform="translate(230, 84)">
+        <rect x="0" y="0" width="105" height="34" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5" />
+        <text x="52" y="21" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="8.5" font-weight="700" fill="#0f172a" letter-spacing="0.5">🛠️ MAINTENANCE</text>
+      </g>
+    </g>
+  </g>
+
+  <!-- ================= CENTER (Large High-Res Brand Emblem & Wordmark) ================= -->
+  <g transform="translate(580, 110)">
+    <!-- Big Official Double-F Emblem -->
+    <g transform="translate(60, 0) scale(1.45)">
+      <!-- Main Navy Left 'F' -->
+      <path d="M 32 15 C 22 15 15 22 15 32 L 15 140 L 40 120 L 40 85 L 68 85 L 82 65 L 40 65 L 40 40 L 105 40 L 125 15 Z" 
+            fill="url(#bannerNavy)" 
+            filter="url(#softShadow)" />
+
+      <!-- 4 Digital Square Pixels at Top Right -->
+      <rect x="132" y="10" width="13" height="13" rx="1.5" fill="#00d2ff" />
+      <rect x="114" y="24" width="13" height="13" rx="1.5" fill="#00a2ff" />
+      <rect x="132" y="27" width="13" height="13" rx="1.5" fill="#0088ff" />
+      <rect x="114" y="41" width="13" height="13" rx="1.5" fill="#0066ee" />
+
+      <!-- Dynamic Overlapping Right 'F' in Bright Cyan / Electric Blue -->
+      <path d="M 52 48 C 65 48 85 45 110 45 C 118 45 125 50 115 62 L 68 62 L 68 85 L 102 85 C 108 85 112 90 105 100 L 68 100 L 68 145 L 44 145 L 44 68 C 44 56 48 48 52 48 Z" 
+            fill="url(#bannerCyan)" 
+            filter="url(#softShadow)" />
+            
+      <!-- 3D Fold highlight accent -->
+      <path d="M 44 68 L 68 62 L 68 100 L 44 92 Z" fill="#003899" opacity="0.45" />
+    </g>
+
+    <!-- FUSION FORGE -->
+    <text x="170" y="250" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Montserrat', 'Inter', sans-serif" font-weight="900" font-size="34" letter-spacing="3">
+      <tspan fill="#08143d">FUSION </tspan>
+      <tspan fill="url(#bannerWordForge)">FORGE</tspan>
+    </text>
+
+    <!-- — C R E A T I O N S — -->
+    <g transform="translate(170, 276)">
+      <line x1="-160" y1="-4" x2="-80" y2="-4" stroke="#475569" stroke-width="1.5" stroke-linecap="round" />
+      <text x="0" y="0" text-anchor="middle" fill="#1e293b" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-weight="700" font-size="13" letter-spacing="8">
+        CREATIONS
+      </text>
+      <line x1="80" y1="-4" x2="160" y2="-4" stroke="#475569" stroke-width="1.5" stroke-linecap="round" />
+    </g>
+
+    <!-- Slogan: WHERE IDEAS FUSE WITH TECHNOLOGY -->
+    <text x="170" y="306" text-anchor="middle" fill="#0066cc" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-weight="700" font-size="10" letter-spacing="3">
+      WHERE IDEAS FUSE WITH TECHNOLOGY
+    </text>
+  </g>
+
+  <!-- ================= RIGHT COLUMN (Modern Digital Solutions Laptop / Tech Showcase) ================= -->
+  <g transform="translate(1000, 120)">
+    <!-- Floating Glowing Cloud Icon Background -->
+    <g transform="translate(20, 20)" opacity="0.9">
+      <rect x="0" y="0" width="70" height="50" rx="25" fill="#0088ff" opacity="0.15" />
+      <path d="M 22 32 C 18 32 15 29 15 25 C 15 21 18 18 22 18 C 23 14 27 11 32 11 C 37 11 41 14 42 18 C 45 18 48 21 48 24 C 48 28 45 32 41 32 Z" fill="#0088ff" />
+    </g>
+
+    <!-- Code Editor Window in Top Right Background -->
+    <g transform="translate(140, 20)" filter="url(#softShadow)">
+      <rect x="0" y="0" width="180" height="120" rx="8" fill="#0a0f1d" stroke="#1e293b" stroke-width="1" />
+      <!-- Window Controls -->
+      <circle cx="14" cy="12" r="3.5" fill="#ef4444" />
+      <circle cx="24" cy="12" r="3.5" fill="#eab308" />
+      <circle cx="34" cy="12" r="3.5" fill="#22c55e" />
+      <!-- Code lines -->
+      <line x1="14" y1="30" x2="80" y2="30" stroke="#00d2ff" stroke-width="2.5" stroke-linecap="round" />
+      <line x1="24" y1="42" x2="140" y2="42" stroke="#60a5fa" stroke-width="2" stroke-linecap="round" />
+      <line x1="24" y1="54" x2="110" y2="54" stroke="#a78bfa" stroke-width="2" stroke-linecap="round" />
+      <line x1="24" y1="66" x2="130" y2="66" stroke="#34d399" stroke-width="2" stroke-linecap="round" />
+      <line x1="14" y1="78" x2="40" y2="78" stroke="#00d2ff" stroke-width="2.5" stroke-linecap="round" />
+    </g>
+
+    <!-- Mobile Phone Floating Screen -->
+    <g transform="translate(260, 80)" filter="url(#softShadow)">
+      <rect x="0" y="0" width="80" height="150" rx="14" fill="#0b1120" stroke="#334155" stroke-width="2" />
+      <!-- Phone Screen -->
+      <rect x="5" y="10" width="70" height="130" rx="8" fill="#0f172a" />
+      <rect x="12" y="20" width="56" height="8" rx="2" fill="#0088ff" />
+      <rect x="12" y="34" width="40" height="6" rx="2" fill="#94a3b8" />
+      <!-- Chart -->
+      <path d="M 15 75 L 28 65 L 42 70 L 58 55 L 65 60" fill="none" stroke="#00d2ff" stroke-width="2" />
+    </g>
+
+    <!-- Main Laptop Mockup (We Build Digital Solutions) -->
+    <g transform="translate(0, 110)" filter="url(#laptopShadow)">
+      <!-- Laptop Screen Shell -->
+      <rect x="0" y="0" width="280" height="175" rx="10" fill="#0a0f1d" stroke="#334155" stroke-width="2" />
+      <!-- Display Bezel / Screen -->
+      <rect x="8" y="8" width="264" height="159" rx="6" fill="#080e1a" />
+      
+      <!-- Top Bar in App -->
+      <rect x="16" y="16" width="248" height="14" fill="#0f172a" rx="3" />
+      <text x="24" y="26" font-family="sans-serif" font-size="7" font-weight="700" fill="#38bdf8">Your Brand</text>
+      <text x="180" y="26" font-family="sans-serif" font-size="6" fill="#94a3b8">Home  About  Services  Portfolio  Contact</text>
+
+      <!-- Hero inside Mockup -->
+      <text x="24" y="55" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="14" font-weight="900" fill="#ffffff">
+        We Build
+      </text>
+      <text x="24" y="72" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="14" font-weight="900" fill="#0088ff">
+        Digital Solutions
+      </text>
+      <rect x="24" y="82" width="60" height="16" rx="4" fill="#0066ff" />
+      <text x="54" y="93" text-anchor="middle" font-family="sans-serif" font-size="7" font-weight="700" fill="#ffffff">Get Started</text>
+
+      <!-- 3 Feature Cards at bottom of laptop screen -->
+      <g transform="translate(20, 114)">
+        <rect x="0" y="0" width="74" height="38" rx="4" fill="#1e293b" />
+        <text x="37" y="22" text-anchor="middle" font-family="sans-serif" font-size="6" font-weight="700" fill="#ffffff">Fast Performance</text>
+        <rect x="80" y="0" width="74" height="38" rx="4" fill="#1e293b" />
+        <text x="117" y="22" text-anchor="middle" font-family="sans-serif" font-size="6" font-weight="700" fill="#ffffff">Secure &amp; Scalable</text>
+        <rect x="160" y="0" width="74" height="38" rx="4" fill="#1e293b" />
+        <text x="197" y="22" text-anchor="middle" font-family="sans-serif" font-size="6" font-weight="700" fill="#ffffff">Modern Design</text>
+      </g>
+
+      <!-- Laptop Base / Keyboard Hinge -->
+      <path d="M -25 175 L 305 175 L 290 190 L -10 190 Z" fill="#cbd5e1" stroke="#94a3b8" stroke-width="1" />
+      <!-- Trackpad notch -->
+      <rect x="115" y="175" width="50" height="4" rx="2" fill="#94a3b8" />
+    </g>
+
+    <!-- Cloud Server Stack & API Node on Far Right -->
+    <g transform="translate(305, 190)">
+      <rect x="0" y="0" width="40" height="16" rx="3" fill="#0f172a" stroke="#0088ff" stroke-width="1" />
+      <rect x="0" y="20" width="40" height="16" rx="3" fill="#0f172a" stroke="#0088ff" stroke-width="1" />
+      <rect x="0" y="40" width="40" height="16" rx="3" fill="#0f172a" stroke="#0088ff" stroke-width="1" />
+      <!-- Pulsing API Badge -->
+      <rect x="25" y="-30" width="38" height="24" rx="6" fill="#0066ff" />
+      <text x="44" y="-14" text-anchor="middle" font-family="sans-serif" font-size="9" font-weight="800" fill="#ffffff">API</text>
+    </g>
+  </g>
+
+  <!-- ================= BOTTOM BANNER STRIP (INNOVATE | BUILD | AUTOMATE | GROW) ================= -->
+  <g transform="translate(0, 545)">
+    <!-- Blue Gradient Bar -->
+    <rect width="1440" height="55" fill="url(#bottomBarGrad)" />
+
+    <g transform="translate(720, 32)" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Montserrat', sans-serif" font-weight="700" font-size="13" letter-spacing="3" fill="#ffffff">
+      <!-- Item 1: INNOVATE -->
+      <text x="-360" y="0">&lt;/&gt;  INNOVATE</text>
+      <!-- Separator -->
+      <text x="-210" y="0" fill="#38bdf8" opacity="0.6">|</text>
+      <!-- Item 2: BUILD -->
+      <text x="-90" y="0">💡  BUILD</text>
+      <!-- Separator -->
+      <text x="30" y="0" fill="#38bdf8" opacity="0.6">|</text>
+      <!-- Item 3: AUTOMATE -->
+      <text x="160" y="0">⚙️  AUTOMATE</text>
+      <!-- Separator -->
+      <text x="290" y="0" fill="#38bdf8" opacity="0.6">|</text>
+      <!-- Item 4: GROW -->
+      <text x="380" y="0">📈  GROW</text>
+    </g>
+  </g>
+</svg>

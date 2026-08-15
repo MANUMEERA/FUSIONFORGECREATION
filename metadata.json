@@ -1,0 +1,6 @@
+{
+  "name": "Fusion Forge Creation",
+  "description": "Where ideas fuse with technology — modern web development, mobile apps, and custom digital software solutions.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

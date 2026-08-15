@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400" width="100%" height="100%">
+  <defs>
+    <!-- Deep Navy / Royal Blue Gradient for First F -->
+    <linearGradient id="navyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#061033" />
+      <stop offset="50%" stop-color="#0a1d56" />
+      <stop offset="100%" stop-color="#10328a" />
+    </linearGradient>
+
+    <!-- Electric Cyan / Azure Gradient for Second F -->
+    <linearGradient id="cyanGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0062ff" />
+      <stop offset="40%" stop-color="#0099ff" />
+      <stop offset="100%" stop-color="#00e5ff" />
+    </linearGradient>
+
+    <!-- Forge Gradient for Wordmark -->
+    <linearGradient id="forgeTextGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#0055d4" />
+      <stop offset="60%" stop-color="#0099ff" />
+      <stop offset="100%" stop-color="#00d4ff" />
+    </linearGradient>
+  </defs>
+
+  <!-- ================= EMBLEM ================= -->
+  <g transform="translate(285, 25) scale(1.2)">
+    <!-- Main Left 'F' in Deep Navy -->
+    <path d="M 28 14 C 18 14 12 20 12 30 L 12 142 L 38 122 L 38 86 L 68 86 L 82 66 L 38 66 L 38 40 L 106 40 L 124 14 Z" 
+          fill="url(#navyGrad)" />
+
+    <!-- 4 Digital Square Pixels at Top Right -->
+    <rect x="132" y="10" width="13" height="13" rx="2" fill="#00e5ff" />
+    <rect x="114" y="24" width="13" height="13" rx="2" fill="#00b4d8" />
+    <rect x="132" y="27" width="13" height="13" rx="2" fill="#0096ff" />
+    <rect x="114" y="41" width="13" height="13" rx="2" fill="#0066ee" />
+
+    <!-- Dynamic Overlapping Right 'F' in Bright Cyan / Electric Blue -->
+    <path d="M 52 48 C 66 48 88 45 112 45 C 120 45 125 50 116 63 L 68 63 L 68 85 L 103 85 C 109 85 113 90 106 101 L 68 101 L 68 144 L 43 144 L 43 68 C 43 56 47 48 52 48 Z" 
+          fill="url(#cyanGrad)" />
+          
+    <!-- Overlap Fold shadow -->
+    <path d="M 43 68 L 68 63 L 68 101 L 43 93 Z" fill="#051b4d" opacity="0.5" />
+  </g>
+
+  <!-- ================= TYPOGRAPHY ================= -->
+  <!-- FUSION FORGE -->
+  <g id="brand-title">
+    <text x="400" y="270" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Montserrat', 'Inter', 'Segoe UI', sans-serif" font-weight="900" font-size="52" letter-spacing="4">
+      <tspan fill="#08143d">FUSION </tspan>
+      <tspan fill="url(#forgeTextGrad)">FORGE</tspan>
+    </text>
+  </g>
+
+  <!-- — C R E A T I O N — Divider line with spaced subtitle -->
+  <g id="brand-subtitle" transform="translate(400, 305)">
+    <!-- Left Divider Line -->
+    <line x1="-280" y1="-5" x2="-140" y2="-5" stroke="#334155" stroke-width="2" stroke-linecap="round" />
+    
+    <!-- Spaced Word CREATION -->
+    <text x="0" y="0" text-anchor="middle" fill="#1e293b" font-family="-apple-system, BlinkMacSystemFont, 'Montserrat', 'Inter', 'Segoe UI', sans-serif" font-weight="700" font-size="20" letter-spacing="14">
+      CREATION
+    </text>
+    
+    <!-- Right Divider Line -->
+    <line x1="140" y1="-5" x2="280" y2="-5" stroke="#334155" stroke-width="2" stroke-linecap="round" />
+  </g>
+
+  <!-- Slogan: WHERE IDEAS FUSE WITH TECHNOLOGY -->
+  <text x="400" y="348" text-anchor="middle" fill="#0077c8" font-family="-apple-system, BlinkMacSystemFont, 'Montserrat', 'Inter', 'Segoe UI', sans-serif" font-weight="700" font-size="14" letter-spacing="5">
+    WHERE IDEAS FUSE WITH TECHNOLOGY
+  </text>
+</svg>
