@@ -26,11 +26,18 @@ import {
   ShieldAlert,
   Info,
   ExternalLink,
-  ChevronDown
+  ChevronDown,
+  Truck
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { Client, Quotation, Invoice } from '../../types';
-import { INDIAN_STATES, getStateCodeByName, formatPlaceOfSupply } from '../../data/indianStates';
+import { 
+  INDIAN_STATES, 
+  getStateCodeByName, 
+  getStateNameByCode, 
+  formatPlaceOfSupply, 
+  validateAndDeriveGstin 
+} from '../../data/indianStates';
 
 export const ClientsManager: React.FC = () => {
   const { 
@@ -68,6 +75,7 @@ export const ClientsManager: React.FC = () => {
     name: '', // contact person
     email: '',
     phone: '',
+    // Billing Details
     address: '',
     city: '',
     state: 'Gujarat',
@@ -76,6 +84,18 @@ export const ClientsManager: React.FC = () => {
     gstin: '',
     pan: '',
     placeOfSupply: '24-Gujarat',
+    placeOfSupplyCode: '24',
+    // Shipping Details
+    sameAsBilling: true,
+    shippingName: '',
+    shippingCompany: '',
+    shippingPhone: '',
+    shippingAddress: '',
+    shippingCity: '',
+    shippingState: 'Gujarat',
+    shippingStateCode: '24',
+    shippingPincode: '',
+    shippingGstin: '',
     status: 'active' as 'active' | 'disabled',
     notes: ''
   };
@@ -83,7 +103,12 @@ export const ClientsManager: React.FC = () => {
   const [form, setForm] = useState(initialFormState);
   const [formError, setFormError] = useState('');
 
-  // Handle State selection change and auto-fill state code and place of supply
+  // Derived GST validation status for live feedback
+  const gstValidation = useMemo(() => {
+    return validateAndDeriveGstin(form.gstin);
+  }, [form.gstin]);
+
+  // Handle Billing State selection change and auto-fill state code and place of supply
   const handleStateChange = (selectedState: string) => {
     const code = getStateCodeByName(selectedState);
     const pos = formatPlaceOfSupply(selectedState, code);
@@ -91,46 +116,66 @@ export const ClientsManager: React.FC = () => {
       ...prev,
       state: selectedState,
       stateCode: code,
-      placeOfSupply: pos
+      placeOfSupply: pos,
+      placeOfSupplyCode: code,
+      // If shipping is same as billing, update shipping state too
+      ...(prev.sameAsBilling ? { shippingState: selectedState, shippingStateCode: code } : {})
     }));
   };
 
-  // Handle GSTIN change with auto state code & PAN extraction
-  const handleGstinChange = (gstinInput: string) => {
-    const upperGstin = gstinInput.toUpperCase().trim();
-    let stateCodeUpdate = form.stateCode;
-    let panUpdate = form.pan;
-
-    if (upperGstin.length >= 2) {
-      const codeFromGst = upperGstin.substring(0, 2);
-      const matchedState = INDIAN_STATES.find(s => s.code === codeFromGst);
-      if (matchedState && !form.state) {
-        stateCodeUpdate = codeFromGst;
-        setForm(prev => ({
-          ...prev,
-          state: matchedState.name,
-          stateCode: codeFromGst,
-          placeOfSupply: `${codeFromGst}-${matchedState.name}`
-        }));
-      }
-    }
-
-    if (upperGstin.length >= 12) {
-      // PAN is characters 3 to 10 in standard 15-character GSTIN
-      panUpdate = upperGstin.substring(2, 12);
-    }
-
+  // Handle Shipping State selection change
+  const handleShippingStateChange = (selectedState: string) => {
+    const code = getStateCodeByName(selectedState);
     setForm(prev => ({
       ...prev,
-      gstin: upperGstin,
-      stateCode: stateCodeUpdate,
-      pan: panUpdate || prev.pan
+      shippingState: selectedState,
+      shippingStateCode: code
     }));
+  };
+
+  // Handle GSTIN change with auto state code, place of supply, and PAN extraction
+  const handleGstinChange = (gstinInput: string) => {
+    const upperGstin = gstinInput.toUpperCase().trim();
+    const result = validateAndDeriveGstin(upperGstin);
+
+    if (upperGstin === '' || result.isUrp) {
+      // GSTIN removed or URP: keep current state/address intact (do not overwrite valid manual entries)
+      setForm(prev => ({
+        ...prev,
+        gstin: upperGstin
+      }));
+      return;
+    }
+
+    if (result.stateName && result.stateCode) {
+      // Auto populate Place of Supply, Place of Supply Code, State, State Code, and PAN
+      setForm(prev => ({
+        ...prev,
+        gstin: upperGstin,
+        state: result.stateName,
+        stateCode: result.stateCode,
+        placeOfSupply: result.placeOfSupply,
+        placeOfSupplyCode: result.stateCode,
+        pan: result.pan || prev.pan,
+        // If same as billing, also mirror shipping state
+        ...(prev.sameAsBilling ? { shippingState: result.stateName, shippingStateCode: result.stateCode } : {})
+      }));
+    } else {
+      setForm(prev => ({
+        ...prev,
+        gstin: upperGstin,
+        pan: upperGstin.length >= 12 ? upperGstin.substring(2, 12) : prev.pan
+      }));
+    }
   };
 
   // Open Edit modal with prefilled data
   const handleOpenEdit = (client: Client) => {
     setEditingClient(client);
+    const clientState = client.state || client.billingAddress?.state || 'Gujarat';
+    const clientStateCode = client.stateCode || client.billingAddress?.stateCode || getStateCodeByName(clientState) || '24';
+    const sameAsBilling = client.sameAsBilling !== false;
+
     setForm({
       companyName: client.companyName || '',
       name: client.name || client.contactPerson || '',
@@ -138,12 +183,23 @@ export const ClientsManager: React.FC = () => {
       phone: client.phone || '',
       address: client.address || client.billingAddress?.street || '',
       city: client.city || client.billingAddress?.city || '',
-      state: client.state || client.billingAddress?.state || 'Gujarat',
-      stateCode: client.stateCode || client.billingAddress?.stateCode || '24',
+      state: clientState,
+      stateCode: clientStateCode,
       pincode: client.pincode || client.postalCode || client.billingAddress?.postalCode || '',
       gstin: client.gstin || '',
-      pan: client.pan || '',
-      placeOfSupply: client.placeOfSupply || (client.state ? formatPlaceOfSupply(client.state, client.stateCode) : '24-Gujarat'),
+      pan: client.pan || (client.gstin && client.gstin.length >= 12 ? client.gstin.substring(2, 12) : ''),
+      placeOfSupply: client.placeOfSupply || formatPlaceOfSupply(clientState, clientStateCode),
+      placeOfSupplyCode: client.placeOfSupplyCode || clientStateCode,
+      sameAsBilling,
+      shippingName: client.shippingName || client.contactPerson || client.name || '',
+      shippingCompany: client.shippingCompany || client.companyName || '',
+      shippingPhone: client.shippingPhone || client.phone || '',
+      shippingAddress: client.shippingAddress || client.address || client.billingAddress?.street || '',
+      shippingCity: client.shippingCity || client.city || client.billingAddress?.city || '',
+      shippingState: client.shippingState || clientState,
+      shippingStateCode: client.shippingStateCode || clientStateCode,
+      shippingPincode: client.shippingPincode || client.pincode || client.postalCode || '',
+      shippingGstin: client.shippingGstin || client.gstin || '',
       status: client.status === 'disabled' ? 'disabled' : 'active',
       notes: client.notes || ''
     });
@@ -167,11 +223,8 @@ export const ClientsManager: React.FC = () => {
       return;
     }
 
-    // Optional GSTIN format check
-    if (form.gstin.trim() && form.gstin.trim().length !== 15) {
-      setFormError('GSTIN should ideally be a 15-character identifier (or leave empty if unregistered).');
-      // allow save but show warning or continue
-    }
+    const isGstRegistered = Boolean(form.gstin.trim() && form.gstin.trim().length === 15);
+    const isUrp = !form.gstin.trim() || form.gstin.trim().toUpperCase() === 'URP';
 
     const clientPayload = {
       name: form.name.trim() || form.companyName.trim(),
@@ -188,6 +241,9 @@ export const ClientsManager: React.FC = () => {
       gstin: form.gstin.trim() || undefined,
       pan: form.pan.trim() || (form.gstin.trim().length >= 12 ? form.gstin.trim().substring(2, 12) : undefined),
       placeOfSupply: form.placeOfSupply.trim() || (form.state ? formatPlaceOfSupply(form.state, form.stateCode) : undefined),
+      placeOfSupplyCode: form.placeOfSupplyCode.trim() || form.stateCode.trim() || undefined,
+      isGstRegistered,
+      isUrp,
       billingAddress: {
         street: form.address.trim(),
         city: form.city.trim(),
@@ -196,6 +252,16 @@ export const ClientsManager: React.FC = () => {
         postalCode: form.pincode.trim(),
         country: 'India'
       },
+      sameAsBilling: form.sameAsBilling,
+      shippingName: form.sameAsBilling ? (form.name.trim() || form.companyName.trim()) : (form.shippingName.trim() || form.name.trim() || form.companyName.trim()),
+      shippingCompany: form.sameAsBilling ? form.companyName.trim() : (form.shippingCompany.trim() || form.companyName.trim()),
+      shippingPhone: form.sameAsBilling ? form.phone.trim() : form.shippingPhone.trim(),
+      shippingAddress: form.sameAsBilling ? form.address.trim() : form.shippingAddress.trim(),
+      shippingCity: form.sameAsBilling ? form.city.trim() : form.shippingCity.trim(),
+      shippingState: form.sameAsBilling ? form.state.trim() : form.shippingState.trim(),
+      shippingStateCode: form.sameAsBilling ? form.stateCode.trim() : form.shippingStateCode.trim(),
+      shippingPincode: form.sameAsBilling ? form.pincode.trim() : form.shippingPincode.trim(),
+      shippingGstin: form.sameAsBilling ? form.gstin.trim() : form.shippingGstin.trim(),
       currency: 'INR' as const,
       status: form.status,
       isDeleted: false,
@@ -912,177 +978,395 @@ export const ClientsManager: React.FC = () => {
               </div>
             )}
 
-            <form onSubmit={handleSaveClient} className="space-y-4">
-              {/* Row 1: Company Name & Contact Person */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="text-[11px] font-semibold text-slate-300 block mb-1">
-                    Company Name * <span className="text-slate-400 font-normal">(e.g. JP MODATEX LLP)</span>
-                  </label>
-                  <input
-                    required
-                    type="text"
-                    placeholder="Legal Entity Name"
-                    value={form.companyName}
-                    onChange={e => setForm({ ...form, companyName: e.target.value })}
-                    className="w-full px-3.5 py-2 rounded-xl bg-[#091129] border border-slate-700 text-xs text-white placeholder-slate-500 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                  />
+            <form onSubmit={handleSaveClient} className="space-y-5">
+              {/* ========================================================= */}
+              {/* SECTION 1: BILLED TO / LEGAL ENTITY & GST COMPLIANCE */}
+              {/* ========================================================= */}
+              <div className="p-4 rounded-xl bg-[#091129] border border-slate-700/80 space-y-3.5">
+                <div className="flex items-center space-x-2 pb-2 border-b border-slate-800">
+                  <Building2 className="w-4 h-4 text-blue-400" />
+                  <h4 className="text-xs font-bold text-white uppercase tracking-wider">
+                    Billed To / Legal Entity & Compliance
+                  </h4>
                 </div>
-                <div>
-                  <label className="text-[11px] font-semibold text-slate-300 block mb-1">
-                    Contact Person <span className="text-slate-400 font-normal">(Primary Liaison)</span>
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="Full Name (e.g. Manoj Satapathy)"
-                    value={form.name}
-                    onChange={e => setForm({ ...form, name: e.target.value })}
-                    className="w-full px-3.5 py-2 rounded-xl bg-[#091129] border border-slate-700 text-xs text-white placeholder-slate-500 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                  />
-                </div>
-              </div>
 
-              {/* Row 2: Email & Phone */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="text-[11px] font-semibold text-slate-300 block mb-1">
-                    Official Email <span className="text-slate-400 font-normal">(Invoicing & Notices)</span>
-                  </label>
-                  <div className="relative">
-                    <Mail className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+                {/* Row 1: Company Name & Contact Person */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                  <div>
+                    <label className="text-[11px] font-semibold text-slate-300 block mb-1">
+                      Company Name * <span className="text-slate-400 font-normal">(e.g. JP MODATEX LLP)</span>
+                    </label>
                     <input
-                      type="email"
-                      placeholder="billing@company.com"
-                      value={form.email}
-                      onChange={e => setForm({ ...form, email: e.target.value })}
-                      className="w-full pl-9 pr-3.5 py-2 rounded-xl bg-[#091129] border border-slate-700 text-xs text-white placeholder-slate-500 outline-none focus:border-blue-500"
+                      required
+                      type="text"
+                      placeholder="Legal Entity Name"
+                      value={form.companyName}
+                      onChange={e => setForm({ ...form, companyName: e.target.value })}
+                      className="w-full px-3.5 py-2 rounded-xl bg-[#0c1633] border border-slate-700 text-xs text-white placeholder-slate-500 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                     />
                   </div>
-                </div>
-                <div>
-                  <label className="text-[11px] font-semibold text-slate-300 block mb-1">
-                    Phone Number <span className="text-slate-400 font-normal">(Mobile / Landline)</span>
-                  </label>
-                  <div className="relative">
-                    <Phone className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+                  <div>
+                    <label className="text-[11px] font-semibold text-slate-300 block mb-1">
+                      Contact Person <span className="text-slate-400 font-normal">(Primary Liaison)</span>
+                    </label>
                     <input
                       type="text"
-                      placeholder="+91 98765 00112"
-                      value={form.phone}
-                      onChange={e => setForm({ ...form, phone: e.target.value })}
-                      className="w-full pl-9 pr-3.5 py-2 rounded-xl bg-[#091129] border border-slate-700 text-xs text-white placeholder-slate-500 outline-none focus:border-blue-500"
+                      placeholder="Full Name (e.g. Manoj Satapathy)"
+                      value={form.name}
+                      onChange={e => setForm({ ...form, name: e.target.value })}
+                      className="w-full px-3.5 py-2 rounded-xl bg-[#0c1633] border border-slate-700 text-xs text-white placeholder-slate-500 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                     />
                   </div>
                 </div>
-              </div>
 
-              {/* Row 3: Address & City */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="sm:col-span-2">
-                  <label className="text-[11px] font-semibold text-slate-300 block mb-1">
-                    Address <span className="text-slate-400 font-normal">(Street / Office Address)</span>
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="Building, Street, Industrial Area..."
-                    value={form.address}
-                    onChange={e => setForm({ ...form, address: e.target.value })}
-                    className="w-full px-3.5 py-2 rounded-xl bg-[#091129] border border-slate-700 text-xs text-white placeholder-slate-500 outline-none focus:border-blue-500"
-                  />
+                {/* Row 2: Email & Phone */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                  <div>
+                    <label className="text-[11px] font-semibold text-slate-300 block mb-1">
+                      Official Email <span className="text-slate-400 font-normal">(Invoicing & Notices)</span>
+                    </label>
+                    <div className="relative">
+                      <Mail className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+                      <input
+                        type="email"
+                        placeholder="billing@company.com"
+                        value={form.email}
+                        onChange={e => setForm({ ...form, email: e.target.value })}
+                        className="w-full pl-9 pr-3.5 py-2 rounded-xl bg-[#0c1633] border border-slate-700 text-xs text-white placeholder-slate-500 outline-none focus:border-blue-500"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-[11px] font-semibold text-slate-300 block mb-1">
+                      Phone Number <span className="text-slate-400 font-normal">(Mobile / Landline)</span>
+                    </label>
+                    <div className="relative">
+                      <Phone className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+                      <input
+                        type="text"
+                        placeholder="+91 98765 00112"
+                        value={form.phone}
+                        onChange={e => setForm({ ...form, phone: e.target.value })}
+                        className="w-full pl-9 pr-3.5 py-2 rounded-xl bg-[#0c1633] border border-slate-700 text-xs text-white placeholder-slate-500 outline-none focus:border-blue-500"
+                      />
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <label className="text-[11px] font-semibold text-slate-300 block mb-1">City</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Surat, Mumbai, Bengaluru"
-                    value={form.city}
-                    onChange={e => setForm({ ...form, city: e.target.value })}
-                    className="w-full px-3.5 py-2 rounded-xl bg-[#091129] border border-slate-700 text-xs text-white placeholder-slate-500 outline-none focus:border-blue-500"
-                  />
-                </div>
-              </div>
 
-              {/* Row 4: State, State Code, Pincode */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div>
-                  <label className="text-[11px] font-semibold text-slate-300 block mb-1">State</label>
-                  <select
-                    value={form.state}
-                    onChange={e => handleStateChange(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl bg-[#091129] border border-slate-700 text-xs text-white focus:border-blue-500 outline-none"
-                  >
-                    {INDIAN_STATES.map(st => (
-                      <option key={st.code} value={st.name}>
-                        {st.name} ({st.code})
-                      </option>
-                    ))}
-                  </select>
+                {/* Row 3: Billing Address & City */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+                  <div className="sm:col-span-2">
+                    <label className="text-[11px] font-semibold text-slate-300 block mb-1">
+                      Billing Address <span className="text-slate-400 font-normal">(Street / Premises)</span>
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Building, Street, Industrial Area..."
+                      value={form.address}
+                      onChange={e => setForm({ ...form, address: e.target.value })}
+                      className="w-full px-3.5 py-2 rounded-xl bg-[#0c1633] border border-slate-700 text-xs text-white placeholder-slate-500 outline-none focus:border-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[11px] font-semibold text-slate-300 block mb-1">City</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Surat, Mumbai"
+                      value={form.city}
+                      onChange={e => setForm({ ...form, city: e.target.value })}
+                      className="w-full px-3.5 py-2 rounded-xl bg-[#0c1633] border border-slate-700 text-xs text-white placeholder-slate-500 outline-none focus:border-blue-500"
+                    />
+                  </div>
                 </div>
-                <div>
-                  <label className="text-[11px] font-semibold text-slate-300 block mb-1">State Code</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. 24"
-                    value={form.stateCode}
-                    onChange={e => {
-                      const val = e.target.value;
-                      setForm({
-                        ...form,
-                        stateCode: val,
-                        placeOfSupply: `${val}-${form.state}`
-                      });
-                    }}
-                    className="w-full px-3.5 py-2 rounded-xl bg-[#091129] border border-slate-700 text-xs text-white placeholder-slate-500 outline-none focus:border-blue-500 font-mono"
-                  />
-                </div>
-                <div>
-                  <label className="text-[11px] font-semibold text-slate-300 block mb-1">Pincode</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. 394230"
-                    value={form.pincode}
-                    onChange={e => setForm({ ...form, pincode: e.target.value })}
-                    className="w-full px-3.5 py-2 rounded-xl bg-[#091129] border border-slate-700 text-xs text-white placeholder-slate-500 outline-none focus:border-blue-500"
-                  />
-                </div>
-              </div>
 
-              {/* Row 5: GSTIN, Place of Supply, Status */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div>
-                  <label className="text-[11px] font-semibold text-slate-300 block mb-1">
-                    GSTIN <span className="text-slate-400 font-normal">(Leave blank if unregistered)</span>
-                  </label>
-                  <input
-                    type="text"
-                    maxLength={15}
-                    placeholder="e.g. 24AABCA1234F1ZM"
-                    value={form.gstin}
-                    onChange={e => handleGstinChange(e.target.value)}
-                    className="w-full px-3.5 py-2 rounded-xl bg-[#091129] border border-slate-700 text-xs text-cyan-400 placeholder-slate-500 outline-none focus:border-blue-500 font-mono uppercase"
-                  />
+                {/* Row 4: GSTIN & Place of Supply (Auto-derived) */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+                  <div>
+                    <label className="text-[11px] font-semibold text-slate-300 block mb-1">
+                      GSTIN <span className="text-slate-400 font-normal">(Leave blank if URP)</span>
+                    </label>
+                    <input
+                      type="text"
+                      maxLength={15}
+                      placeholder="e.g. 24AABCA1234F1ZM"
+                      value={form.gstin}
+                      onChange={e => handleGstinChange(e.target.value)}
+                      className="w-full px-3.5 py-2 rounded-xl bg-[#0c1633] border border-slate-700 text-xs text-cyan-400 placeholder-slate-500 outline-none focus:border-blue-500 font-mono uppercase font-semibold"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[11px] font-semibold text-slate-300 block mb-1">
+                      Place of Supply <span className="text-emerald-400 font-normal">(Auto-derived)</span>
+                    </label>
+                    <input
+                      type="text"
+                      readOnly
+                      placeholder="e.g. 24-Gujarat"
+                      value={form.placeOfSupply}
+                      className="w-full px-3.5 py-2 rounded-xl bg-[#060c1e] border border-slate-700/70 text-xs text-emerald-300 outline-none font-medium cursor-not-allowed"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[11px] font-semibold text-slate-300 block mb-1">
+                      PAN <span className="text-slate-400 font-normal">(Auto-extracted)</span>
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. AABCA1234F"
+                      value={form.pan}
+                      onChange={e => setForm({ ...form, pan: e.target.value.toUpperCase() })}
+                      className="w-full px-3.5 py-2 rounded-xl bg-[#0c1633] border border-slate-700 text-xs text-slate-200 placeholder-slate-500 outline-none focus:border-blue-500 font-mono uppercase"
+                    />
+                  </div>
                 </div>
-                <div>
-                  <label className="text-[11px] font-semibold text-slate-300 block mb-1">Place of Supply</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. 24-Gujarat"
-                    value={form.placeOfSupply}
-                    onChange={e => setForm({ ...form, placeOfSupply: e.target.value })}
-                    className="w-full px-3.5 py-2 rounded-xl bg-[#091129] border border-slate-700 text-xs text-white placeholder-slate-500 outline-none focus:border-blue-500"
-                  />
+
+                {/* GSTIN Live Validation Badge */}
+                <div className="px-3 py-1.5 rounded-lg bg-[#060e24] border border-slate-800 text-[11px] flex items-center space-x-2">
+                  {gstValidation.isValid ? (
+                    <div className="flex items-center space-x-1.5 text-emerald-400 font-medium">
+                      <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+                      <span>Valid GSTIN • State: {form.state} (Code: {form.stateCode}) • Place of Supply: {form.placeOfSupply}</span>
+                    </div>
+                  ) : form.gstin.trim().length > 0 && form.gstin.trim().length < 15 ? (
+                    <div className="flex items-center space-x-1.5 text-amber-400 font-medium">
+                      <Info className="w-3.5 h-3.5 shrink-0" />
+                      <span>Auto-detected State: {form.state} ({form.stateCode}) • Entering GSTIN ({form.gstin.trim().length}/15 chars)</span>
+                    </div>
+                  ) : form.gstin.trim().length >= 15 && !gstValidation.isValid ? (
+                    <div className="flex items-center space-x-1.5 text-rose-400 font-medium">
+                      <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+                      <span>Invalid GSTIN format or unrecognized State Code</span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center space-x-1.5 text-slate-400">
+                      <Info className="w-3.5 h-3.5 shrink-0 text-blue-400" />
+                      <span>Non-GST / Unregistered Person (URP) workflow active. State and Place of Supply derived from state selection.</span>
+                    </div>
+                  )}
                 </div>
+
+                {/* Row 5: State (Dropdown) & State Code & Pincode */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+                  <div>
+                    <label className="text-[11px] font-semibold text-slate-300 block mb-1">Billing State / UT</label>
+                    <select
+                      value={form.state}
+                      onChange={e => handleStateChange(e.target.value)}
+                      className="w-full px-3 py-2 rounded-xl bg-[#0c1633] border border-slate-700 text-xs text-white focus:border-blue-500 outline-none"
+                    >
+                      {INDIAN_STATES.map(st => (
+                        <option key={st.code} value={st.name}>
+                          {st.name} ({st.code})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-[11px] font-semibold text-slate-300 block mb-1">
+                      State Code <span className="text-emerald-400 font-normal">(Auto)</span>
+                    </label>
+                    <input
+                      type="text"
+                      readOnly
+                      placeholder="e.g. 24"
+                      value={form.stateCode}
+                      className="w-full px-3.5 py-2 rounded-xl bg-[#060c1e] border border-slate-700/70 text-xs text-cyan-300 outline-none font-mono font-bold cursor-not-allowed"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[11px] font-semibold text-slate-300 block mb-1">Pincode</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. 394230"
+                      value={form.pincode}
+                      onChange={e => setForm({ ...form, pincode: e.target.value })}
+                      className="w-full px-3.5 py-2 rounded-xl bg-[#0c1633] border border-slate-700 text-xs text-white placeholder-slate-500 outline-none focus:border-blue-500"
+                    />
+                  </div>
+                </div>
+
+                {/* Row 6: Account Status */}
                 <div>
                   <label className="text-[11px] font-semibold text-slate-300 block mb-1">Account Status</label>
                   <select
                     value={form.status}
                     onChange={e => setForm({ ...form, status: e.target.value as any })}
-                    className="w-full px-3 py-2 rounded-xl bg-[#091129] border border-slate-700 text-xs text-white focus:border-blue-500 outline-none"
+                    className="w-full px-3 py-2 rounded-xl bg-[#0c1633] border border-slate-700 text-xs text-white focus:border-blue-500 outline-none"
                   >
-                    <option value="active">Active</option>
-                    <option value="disabled">Disabled</option>
+                    <option value="active">Active (Permits Quotations & Invoices)</option>
+                    <option value="disabled">Disabled (Archived / Inactive)</option>
                   </select>
                 </div>
+              </div>
+
+              {/* ========================================================= */}
+              {/* SECTION 2: SHIPPED TO / DELIVERY DESTINATION */}
+              {/* ========================================================= */}
+              <div className="p-4 rounded-xl bg-[#091129] border border-slate-700/80 space-y-3.5">
+                <div className="flex items-center justify-between pb-2 border-b border-slate-800">
+                  <div className="flex items-center space-x-2">
+                    <Truck className="w-4 h-4 text-cyan-400" />
+                    <h4 className="text-xs font-bold text-white uppercase tracking-wider">
+                      Shipped To / Delivery Destination
+                    </h4>
+                  </div>
+                  <label className="flex items-center space-x-2 text-xs font-semibold text-cyan-300 cursor-pointer bg-cyan-500/10 px-2.5 py-1 rounded-lg border border-cyan-500/30 hover:bg-cyan-500/20 transition-colors">
+                    <input
+                      type="checkbox"
+                      checked={form.sameAsBilling}
+                      onChange={e => {
+                        const same = e.target.checked;
+                        setForm(prev => ({
+                          ...prev,
+                          sameAsBilling: same,
+                          ...(same ? {
+                            shippingName: prev.name || prev.companyName,
+                            shippingCompany: prev.companyName,
+                            shippingPhone: prev.phone,
+                            shippingAddress: prev.address,
+                            shippingCity: prev.city,
+                            shippingState: prev.state,
+                            shippingStateCode: prev.stateCode,
+                            shippingPincode: prev.pincode,
+                            shippingGstin: prev.gstin
+                          } : {})
+                        }));
+                      }}
+                      className="rounded border-slate-700 text-cyan-500 focus:ring-cyan-400 w-3.5 h-3.5 cursor-pointer"
+                    />
+                    <span>Shipped To Same as Billed To</span>
+                  </label>
+                </div>
+
+                {form.sameAsBilling ? (
+                  <div className="p-3 rounded-lg bg-[#060e24] border border-slate-800 text-xs text-slate-300 flex items-center space-x-2.5">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                    <span>
+                      Shipping destination automatically mirrors legal billing address: <strong className="text-white">{form.companyName || 'Client'}</strong>, {form.city || form.address ? `${form.city || ''} (${form.state})` : form.state}.
+                    </span>
+                  </div>
+                ) : (
+                  <div className="space-y-3.5 pt-1">
+                    {/* Different Shipping Address Fields */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                      <div>
+                        <label className="text-[11px] font-semibold text-slate-300 block mb-1">
+                          Shipping Attention / Recipient Name
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="e.g. Gurdeep Singh (Logistics Manager)"
+                          value={form.shippingName}
+                          onChange={e => setForm({ ...form, shippingName: e.target.value })}
+                          className="w-full px-3.5 py-2 rounded-xl bg-[#0c1633] border border-slate-700 text-xs text-white placeholder-slate-500 outline-none focus:border-blue-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[11px] font-semibold text-slate-300 block mb-1">
+                          Shipping Company / Unit / Hub Name
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="e.g. Ludhiana Hosiery Dispatch Centre"
+                          value={form.shippingCompany}
+                          onChange={e => setForm({ ...form, shippingCompany: e.target.value })}
+                          className="w-full px-3.5 py-2 rounded-xl bg-[#0c1633] border border-slate-700 text-xs text-white placeholder-slate-500 outline-none focus:border-blue-500"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                      <div>
+                        <label className="text-[11px] font-semibold text-slate-300 block mb-1">
+                          Shipping Contact Phone
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="+91 98140 99887"
+                          value={form.shippingPhone}
+                          onChange={e => setForm({ ...form, shippingPhone: e.target.value })}
+                          className="w-full px-3.5 py-2 rounded-xl bg-[#0c1633] border border-slate-700 text-xs text-white placeholder-slate-500 outline-none focus:border-blue-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[11px] font-semibold text-slate-300 block mb-1">
+                          Shipping / Branch GSTIN <span className="text-slate-400 font-normal">(Optional)</span>
+                        </label>
+                        <input
+                          type="text"
+                          maxLength={15}
+                          placeholder="e.g. 03AABCL5544K1Z8"
+                          value={form.shippingGstin}
+                          onChange={e => setForm({ ...form, shippingGstin: e.target.value.toUpperCase() })}
+                          className="w-full px-3.5 py-2 rounded-xl bg-[#0c1633] border border-slate-700 text-xs text-cyan-400 placeholder-slate-500 outline-none focus:border-blue-500 font-mono uppercase"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+                      <div className="sm:col-span-2">
+                        <label className="text-[11px] font-semibold text-slate-300 block mb-1">
+                          Shipping Address <span className="text-slate-400 font-normal">(Delivery Premises)</span>
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="Warehouse #, Plot / Street, Industrial Phase..."
+                          value={form.shippingAddress}
+                          onChange={e => setForm({ ...form, shippingAddress: e.target.value })}
+                          className="w-full px-3.5 py-2 rounded-xl bg-[#0c1633] border border-slate-700 text-xs text-white placeholder-slate-500 outline-none focus:border-blue-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[11px] font-semibold text-slate-300 block mb-1">Shipping City</label>
+                        <input
+                          type="text"
+                          placeholder="e.g. Jalandhar, Pune"
+                          value={form.shippingCity}
+                          onChange={e => setForm({ ...form, shippingCity: e.target.value })}
+                          className="w-full px-3.5 py-2 rounded-xl bg-[#0c1633] border border-slate-700 text-xs text-white placeholder-slate-500 outline-none focus:border-blue-500"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+                      <div>
+                        <label className="text-[11px] font-semibold text-slate-300 block mb-1">Shipping State</label>
+                        <select
+                          value={form.shippingState}
+                          onChange={e => handleShippingStateChange(e.target.value)}
+                          className="w-full px-3 py-2 rounded-xl bg-[#0c1633] border border-slate-700 text-xs text-white focus:border-blue-500 outline-none"
+                        >
+                          {INDIAN_STATES.map(st => (
+                            <option key={st.code} value={st.name}>
+                              {st.name} ({st.code})
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="text-[11px] font-semibold text-slate-300 block mb-1">
+                          Shipping State Code <span className="text-emerald-400 font-normal">(Auto)</span>
+                        </label>
+                        <input
+                          type="text"
+                          readOnly
+                          value={form.shippingStateCode}
+                          className="w-full px-3.5 py-2 rounded-xl bg-[#060c1e] border border-slate-700/70 text-xs text-cyan-300 outline-none font-mono font-bold cursor-not-allowed"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[11px] font-semibold text-slate-300 block mb-1">Shipping Pincode</label>
+                        <input
+                          type="text"
+                          placeholder="e.g. 144001"
+                          value={form.shippingPincode}
+                          onChange={e => setForm({ ...form, shippingPincode: e.target.value })}
+                          className="w-full px-3.5 py-2 rounded-xl bg-[#0c1633] border border-slate-700 text-xs text-white placeholder-slate-500 outline-none focus:border-blue-500"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Notes */}
@@ -1140,6 +1424,15 @@ export const ClientsManager: React.FC = () => {
                     }`}>
                       {viewingClient.status}
                     </span>
+                    {viewingClient.gstin ? (
+                      <span className="px-2 py-0.5 rounded text-[10px] font-semibold uppercase bg-cyan-500/20 text-cyan-300 border border-cyan-500/40">
+                        GST Registered
+                      </span>
+                    ) : (
+                      <span className="px-2 py-0.5 rounded text-[10px] font-semibold uppercase bg-slate-700 text-slate-300">
+                        URP (Non-GST)
+                      </span>
+                    )}
                   </div>
                   <p className="text-xs text-slate-400">
                     Contact: <span className="text-slate-200 font-medium">{viewingClient.contactPerson || viewingClient.name}</span>
@@ -1167,12 +1460,12 @@ export const ClientsManager: React.FC = () => {
             </div>
 
             {/* Client Master Details Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
               {/* Box 1: Compliance & GST Info */}
               <div className="p-4 rounded-xl bg-[#091129] border border-slate-700/80 space-y-2.5">
                 <h4 className="text-xs font-bold text-blue-400 uppercase tracking-wider flex items-center space-x-1.5">
                   <Receipt className="w-3.5 h-3.5" />
-                  <span>Tax & Compliance Master</span>
+                  <span>Tax & Compliance</span>
                 </h4>
                 
                 <div className="space-y-1.5 text-xs">
@@ -1181,12 +1474,12 @@ export const ClientsManager: React.FC = () => {
                     {viewingClient.gstin ? (
                       <span className="font-mono text-cyan-400 font-semibold">{viewingClient.gstin}</span>
                     ) : (
-                      <span className="text-slate-500 font-semibold">— (Unregistered)</span>
+                      <span className="text-slate-500 font-semibold">— (URP)</span>
                     )}
                   </div>
                   <div className="flex justify-between py-1 border-b border-slate-800">
                     <span className="text-slate-400">Place of Supply:</span>
-                    <span className="text-slate-200 font-medium">
+                    <span className="text-emerald-300 font-medium">
                       {viewingClient.placeOfSupply || formatPlaceOfSupply(viewingClient.state || viewingClient.billingAddress?.state || '', viewingClient.stateCode)}
                     </span>
                   </div>
@@ -1203,35 +1496,78 @@ export const ClientsManager: React.FC = () => {
                 </div>
               </div>
 
-              {/* Box 2: Contact & Address Coordinates */}
+              {/* Box 2: Billed To Details */}
               <div className="p-4 rounded-xl bg-[#091129] border border-slate-700/80 space-y-2.5">
                 <h4 className="text-xs font-bold text-indigo-400 uppercase tracking-wider flex items-center space-x-1.5">
                   <MapPin className="w-3.5 h-3.5" />
-                  <span>Contact & Billing Address</span>
+                  <span>Billed To (Legal)</span>
                 </h4>
 
                 <div className="space-y-1.5 text-xs">
                   <div className="flex justify-between py-1 border-b border-slate-800">
                     <span className="text-slate-400">Email:</span>
-                    <span className="text-slate-200">{viewingClient.email || '—'}</span>
+                    <span className="text-slate-200 truncate max-w-[130px]">{viewingClient.email || '—'}</span>
                   </div>
                   <div className="flex justify-between py-1 border-b border-slate-800">
                     <span className="text-slate-400">Phone:</span>
                     <span className="text-slate-200">{viewingClient.phone || '—'}</span>
                   </div>
                   <div className="flex justify-between py-1 border-b border-slate-800">
-                    <span className="text-slate-400">City / Pincode:</span>
+                    <span className="text-slate-400">City / Pin:</span>
                     <span className="text-slate-200">
                       {viewingClient.city || viewingClient.billingAddress?.city || '—'} {viewingClient.pincode || viewingClient.postalCode ? `- ${viewingClient.pincode || viewingClient.postalCode}` : ''}
                     </span>
                   </div>
                   <div className="py-1">
                     <span className="text-slate-400 block mb-0.5">Address:</span>
-                    <p className="text-slate-300 text-[11px]">
+                    <p className="text-slate-300 text-[11px] line-clamp-2">
                       {viewingClient.address || viewingClient.billingAddress?.street || '—'}
                     </p>
                   </div>
                 </div>
+              </div>
+
+              {/* Box 3: Shipped To / Delivery Destination */}
+              <div className="p-4 rounded-xl bg-[#091129] border border-slate-700/80 space-y-2.5">
+                <h4 className="text-xs font-bold text-cyan-400 uppercase tracking-wider flex items-center space-x-1.5">
+                  <Truck className="w-3.5 h-3.5" />
+                  <span>Shipped To (Delivery)</span>
+                </h4>
+
+                {viewingClient.sameAsBilling !== false ? (
+                  <div className="space-y-2 text-xs">
+                    <div className="p-2 rounded-lg bg-cyan-500/10 border border-cyan-500/30 text-[11px] text-cyan-300 flex items-center space-x-1.5">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+                      <span>Same as Billing Address</span>
+                    </div>
+                    <div className="text-[11px] text-slate-300 space-y-1">
+                      <p className="font-semibold text-white">{viewingClient.companyName}</p>
+                      <p>{viewingClient.address || viewingClient.billingAddress?.street || '—'}</p>
+                      <p>{viewingClient.city || viewingClient.billingAddress?.city || '—'}, {viewingClient.state || viewingClient.billingAddress?.state || '—'} - {viewingClient.pincode || viewingClient.postalCode || ''}</p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-1.5 text-xs">
+                    <div className="flex justify-between py-1 border-b border-slate-800">
+                      <span className="text-slate-400">Recipient:</span>
+                      <span className="text-slate-200 truncate max-w-[130px]">{viewingClient.shippingName || viewingClient.shippingCompany || '—'}</span>
+                    </div>
+                    <div className="flex justify-between py-1 border-b border-slate-800">
+                      <span className="text-slate-400">Ship City/State:</span>
+                      <span className="text-slate-200">{viewingClient.shippingCity || '—'}, {viewingClient.shippingState || '—'} ({viewingClient.shippingStateCode || '—'})</span>
+                    </div>
+                    <div className="flex justify-between py-1 border-b border-slate-800">
+                      <span className="text-slate-400">Ship Pincode:</span>
+                      <span className="text-slate-200">{viewingClient.shippingPincode || '—'}</span>
+                    </div>
+                    <div className="py-1">
+                      <span className="text-slate-400 block mb-0.5">Ship Address:</span>
+                      <p className="text-slate-300 text-[11px] line-clamp-2">
+                        {viewingClient.shippingAddress || '—'}
+                      </p>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 

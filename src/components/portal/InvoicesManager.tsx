@@ -38,6 +38,7 @@ import {
   getStateDetails,
   UT_WITHOUT_LEGISLATURE_CODES
 } from '../../utils/gstEngine';
+import { generateNextDocumentNumber, DEFAULT_INVOICE_NUMBERING } from '../../utils/documentNumbering';
 import { BrandLogo } from '../BrandLogo';
 
 export const InvoicesManager: React.FC = () => {
@@ -52,6 +53,8 @@ export const InvoicesManager: React.FC = () => {
     restoreInvoice, 
     recordPayment,
     agencyConfig,
+    pricePresets,
+    paymentTerms,
     switchRole
   } = useApp();
 
@@ -138,8 +141,10 @@ export const InvoicesManager: React.FC = () => {
   const handleOpenCreate = () => {
     setIsCreating(true);
     setEditingInvoice(null);
-    const nextNum = `FFC-2026-${String(invoices.length + 1).padStart(4, '0')}`;
-    setFormInvoiceNumber(nextNum);
+    const invConfig = agencyConfig.numbering_configs?.invoice || DEFAULT_INVOICE_NUMBERING;
+    const existingNums = invoices.map(i => i.invoiceNumber);
+    const { number } = generateNextDocumentNumber('invoice', invConfig, existingNums);
+    setFormInvoiceNumber(number);
 
     // Default to JP MODATEX LLP or first available client
     const defClient = clients.find(c => c.companyName.includes('JP MODATEX')) || clients[0];
@@ -147,9 +152,12 @@ export const InvoicesManager: React.FC = () => {
       setFormClientId(defClient.id);
       setFormClientCompany(defClient.companyName);
       setFormClientName(defClient.contactPerson || defClient.name);
-      setFormClientAddress(defClient.address || '');
+      const addr = defClient.billingAddress 
+        ? `${defClient.billingAddress.street}, ${defClient.billingAddress.city}, ${defClient.billingAddress.state} - ${defClient.billingAddress.postalCode}`
+        : (defClient.address || '');
+      setFormClientAddress(addr);
       setFormClientGstin(defClient.gstin || '—');
-      setFormBuyerStateCode(defClient.stateCode || '24');
+      setFormBuyerStateCode(defClient.placeOfSupplyCode || defClient.stateCode || extractStateCode(defClient.state) || '24');
     } else {
       setFormClientId('');
       setFormClientCompany('JP MODATEX LLP');
@@ -159,7 +167,7 @@ export const InvoicesManager: React.FC = () => {
       setFormBuyerStateCode('24');
     }
 
-    setFormSellerStateCode('21'); // Fusion Forge Creation default
+    setFormSellerStateCode(agencyConfig.state_code || '21'); // Fusion Forge Creation default
     setFormTitle('Textile ERP Workflow Automation & Inventory Engine');
     setFormIssueDate(new Date().toISOString().split('T')[0]);
     setFormDueDate(new Date(Date.now() + 15 * 86400000).toISOString().split('T')[0]);
@@ -173,7 +181,16 @@ export const InvoicesManager: React.FC = () => {
     setFormGstRate(18);
     setFormStatus('issued');
     setFormNotes('SAC 998314 - Information Technology software design and cloud configuration.');
-    setFormPaymentTerms('Payment due within 15 days.');
+    
+    // Set default payment terms
+    const defaultTerm = paymentTerms.find(t => t.is_default);
+    if (defaultTerm) {
+      setFormPaymentTerms(`${defaultTerm.name}: ${defaultTerm.description}`);
+    } else if (agencyConfig.invoice_terms) {
+      setFormPaymentTerms(Array.isArray(agencyConfig.invoice_terms) ? agencyConfig.invoice_terms.join('\n') : String(agencyConfig.invoice_terms));
+    } else {
+      setFormPaymentTerms('Payment due within 15 days.');
+    }
   };
 
   // Open Edit Modal (Super Admin only)
@@ -207,9 +224,25 @@ export const InvoicesManager: React.FC = () => {
     if (cl) {
       setFormClientCompany(cl.companyName);
       setFormClientName(cl.contactPerson || cl.name);
-      setFormClientAddress(cl.address || '');
+      const addr = cl.billingAddress 
+        ? `${cl.billingAddress.street}, ${cl.billingAddress.city}, ${cl.billingAddress.state} - ${cl.billingAddress.postalCode}`
+        : (cl.address || '');
+      setFormClientAddress(addr);
       setFormClientGstin(cl.gstin || '—');
-      setFormBuyerStateCode(cl.stateCode || extractStateCode(cl.state));
+      setFormBuyerStateCode(cl.placeOfSupplyCode || cl.stateCode || extractStateCode(cl.state) || (cl.gstin && cl.gstin.length >= 2 ? cl.gstin.slice(0, 2) : '24'));
+    }
+  };
+
+  // Live GSTIN input handler with automatic Place of Supply derivation
+  const handleFormGstinChange = (val: string) => {
+    const uppercaseVal = val.toUpperCase();
+    setFormClientGstin(uppercaseVal);
+    if (uppercaseVal.length >= 2) {
+      const code = uppercaseVal.slice(0, 2);
+      const match = INDIAN_GST_STATES.find(s => s.code === code);
+      if (match) {
+        setFormBuyerStateCode(match.code);
+      }
     }
   };
 
@@ -226,10 +259,18 @@ export const InvoicesManager: React.FC = () => {
     setFormItems(updated);
   };
 
-  const handleAddItem = () => {
+  const handleAddItem = (presetDesc?: string, presetRate?: number, presetSac?: string) => {
+    const rate = presetRate ?? 0;
     setFormItems(prev => [
       ...prev,
-      { id: String(Date.now()), description: '', sacCode: '998314', quantity: 1, rate: 0, amount: 0 }
+      { 
+        id: String(Date.now() + Math.random()), 
+        description: presetDesc ?? '', 
+        sacCode: presetSac ?? '998314', 
+        quantity: 1, 
+        rate: rate, 
+        amount: rate 
+      }
     ]);
   };
 
@@ -1309,11 +1350,13 @@ export const InvoicesManager: React.FC = () => {
                     />
                   </div>
                   <div>
-                    <label className="text-[11px] font-semibold text-slate-300 block mb-1">GSTIN</label>
+                    <label className="text-[11px] font-semibold text-slate-300 block mb-1">
+                      GSTIN <span className="text-[10px] text-cyan-400 font-normal">(Auto-derives State & POS)</span>
+                    </label>
                     <input
                       type="text"
                       value={formClientGstin}
-                      onChange={e => setFormClientGstin(e.target.value)}
+                      onChange={e => handleFormGstinChange(e.target.value)}
                       placeholder="e.g. 24AABCM1234F1Z1 or —"
                       className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-blue-500"
                     />
@@ -1361,13 +1404,38 @@ export const InvoicesManager: React.FC = () => {
                   </label>
                   <button
                     type="button"
-                    onClick={handleAddItem}
+                    onClick={() => handleAddItem()}
                     className="px-3 py-1 rounded-lg bg-blue-600/20 hover:bg-blue-600 text-blue-400 hover:text-white text-[11px] font-bold border border-blue-500/30 transition-all flex items-center space-x-1"
                   >
                     <Plus className="w-3 h-3" />
-                    <span>Add Item</span>
+                    <span>Add Blank Item</span>
                   </button>
                 </div>
+
+                {/* Quick Add Presets Bar */}
+                {pricePresets && pricePresets.filter(p => p.is_active).length > 0 && (
+                  <div className="p-2.5 rounded-xl bg-slate-950/80 border border-slate-800/80 space-y-1.5">
+                    <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                      <Sparkles className="w-3 h-3 text-cyan-400" />
+                      <span>Quick Add Service Presets (Supabase Master):</span>
+                    </div>
+                    <div className="flex flex-wrap gap-1.5">
+                      {pricePresets.filter(p => p.is_active).map(p => (
+                        <button
+                          key={p.id}
+                          type="button"
+                          onClick={() => handleAddItem(p.service_name, p.default_price, p.sac_code || '998314')}
+                          className="px-2.5 py-1 rounded-lg bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 text-[11px] font-medium text-cyan-300 transition-all cursor-pointer flex items-center gap-1.5"
+                          title={p.description || p.service_name}
+                        >
+                          <Plus className="w-2.5 h-2.5" />
+                          <span>{p.service_name}</span>
+                          <span className="font-mono font-bold text-white">₹{p.default_price.toLocaleString('en-IN')}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
                 <div className="space-y-2">
                   {formItems.map((item, idx) => (

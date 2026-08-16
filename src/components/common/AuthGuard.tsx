@@ -4,7 +4,8 @@ import { ShieldAlert, ArrowLeft } from 'lucide-react';
 
 interface AuthGuardProps {
   userRole: UserRole;
-  allowedRoles: UserRole[];
+  allowedRoles?: UserRole[];
+  requiredPermission?: string;
   children: React.ReactNode;
   fallbackMessage?: string;
   onNavigateHome?: () => void;
@@ -13,11 +14,19 @@ interface AuthGuardProps {
 export const AuthGuard: React.FC<AuthGuardProps> = ({
   userRole,
   allowedRoles,
+  requiredPermission,
   children,
   fallbackMessage,
   onNavigateHome
 }) => {
-  const isAuthorized = allowedRoles.includes(userRole);
+  const isSuperAdmin = userRole === 'super_admin';
+  
+  let isAuthorized = false;
+  if (isSuperAdmin) {
+    isAuthorized = true;
+  } else if (allowedRoles && allowedRoles.includes(userRole)) {
+    isAuthorized = true;
+  }
 
   if (!isAuthorized) {
     return (

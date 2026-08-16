@@ -44,6 +44,7 @@ import { AGENCY_CONFIG } from '../../mockData';
 import { useToast } from '../../context/ToastContext';
 import { BrandLogo } from '../BrandLogo';
 import { FrontendChatbot } from './FrontendChatbot';
+import { SupabaseAuthModal } from '../portal/SupabaseAuthModal';
 import { SocialIcon } from '../common/SocialIcon';
 import { formatSocialUrl } from '../../utils/socialPlatforms';
 import { SocialChannelItem } from '../../types';
@@ -70,7 +71,7 @@ export const PublicWebsite: React.FC = () => {
     if (config.socialChannels && Array.isArray(config.socialChannels) && config.socialChannels.length > 0) {
       return config.socialChannels.filter(c => c.active && c.url && c.url.trim().length > 0);
     }
-    const sl = config.social_links || config.socialLinks || {};
+    const sl = (config.social_links || config.socialLinks || {}) as Record<string, string>;
     const fallbackList: SocialChannelItem[] = [];
     if (sl.linkedin) fallbackList.push({ id: 'linkedin', platform: 'linkedin', name: 'LinkedIn', url: sl.linkedin, active: true });
     if (sl.github) fallbackList.push({ id: 'github', platform: 'github', name: 'GitHub', url: sl.github, active: true });
@@ -1473,74 +1474,12 @@ export const PublicWebsite: React.FC = () => {
       </footer>
 
       {/* ─────────────────────────────────────────────────────────────
-          MODAL: LOGIN MODAL (With 1-Click Role Switcher)
+          MODAL: SECURE SUPABASE AUTHENTICATION MODAL (MFA / 2FA & Password Recovery)
           ───────────────────────────────────────────────────────────── */}
-      {showLoginModal && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 animate-fadeIn">
-          <div className="bg-gradient-to-b from-[#111e47] to-[#0a1330] border border-blue-500/30 rounded-3xl w-full max-w-md p-6 sm:p-8 shadow-2xl text-white relative">
-            
-            <button
-              onClick={() => setShowLoginModal(false)}
-              className="absolute top-5 right-5 p-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors cursor-pointer"
-            >
-              <X className="w-4 h-4" />
-            </button>
-
-            <div className="text-center mb-6">
-              <div className="w-12 h-12 rounded-2xl bg-blue-500/15 border border-blue-500/30 flex items-center justify-center text-cyan-400 mx-auto mb-3 shadow-md">
-                <Lock className="w-6 h-6" />
-              </div>
-              <h3 className="text-xl font-black text-white">Portal & Management Login</h3>
-              <p className="text-xs text-slate-300 mt-1">
-                Access Quotations, Invoices, Client CRM, and Project Desks.
-              </p>
-            </div>
-
-            <div className="space-y-2.5 mb-6">
-              <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">
-                Select Profile to Login:
-              </div>
-
-              {users.map(u => (
-                <button
-                  key={u.id}
-                  onClick={() => handleLoginAs(u)}
-                  className="w-full p-3 rounded-xl bg-[#0e1938] hover:bg-blue-900/40 border border-blue-500/20 hover:border-blue-500/50 flex items-center justify-between text-left transition-all group cursor-pointer"
-                >
-                  <div className="flex items-center space-x-3">
-                    <div className="w-8 h-8 rounded-lg bg-[#08122c] border border-blue-500/30 flex items-center justify-center font-bold text-xs text-cyan-400 group-hover:bg-blue-600 group-hover:text-white transition-colors">
-                      {u.name[0]}
-                    </div>
-                    <div>
-                      <div className="text-xs font-bold text-white">{u.name}</div>
-                      <div className="text-[10px] text-slate-400">{u.company || 'Fusion Forge Creation'}</div>
-                    </div>
-                  </div>
-                  <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider ${
-                    u.role === 'admin' ? 'bg-red-950 text-red-300 border border-red-800' :
-                    u.role === 'project_manager' ? 'bg-amber-950 text-amber-300 border border-amber-800' :
-                    u.role === 'accountant' ? 'bg-blue-950 text-blue-300 border border-blue-800' :
-                    'bg-purple-950 text-purple-300 border border-purple-800'
-                  }`}>
-                    {u.role.replace('_', ' ')}
-                  </span>
-                </button>
-              ))}
-            </div>
-
-            <div className="pt-4 border-t border-blue-500/20 flex justify-between items-center text-xs">
-              <span className="text-slate-400">Default Admin:</span>
-              <button
-                onClick={() => handleLoginAs(users[0])}
-                className="font-bold text-cyan-400 hover:text-cyan-300 underline cursor-pointer"
-              >
-                Login as Manoj Satapathy (Admin) →
-              </button>
-            </div>
-
-          </div>
-        </div>
-      )}
+      <SupabaseAuthModal
+        isOpen={showLoginModal}
+        onClose={() => setShowLoginModal(false)}
+      />
 
       {/* ─────────────────────────────────────────────────────────────
           MODAL: PROJECT ARCHITECTURAL SPECS

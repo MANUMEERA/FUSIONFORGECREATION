@@ -79,61 +79,54 @@ export const AdminPortal: React.FC = () => {
   const newLeads = enquiries.filter(e => e.status === 'new');
   const newLeadsCount = newLeads.length;
 
-  // RBAC Permission Map
-  const roleAllowedTabs: Record<UserRole, string[]> = {
-    super_admin: ['dashboard', 'enquiries', 'clients', 'quotations', 'invoices', 'payments', 'accounting', 'services', 'projects', 'technologies', 'testimonials', 'faqs', 'chatbot', 'users', 'settings', 'database'],
-    admin: ['dashboard', 'enquiries', 'clients', 'quotations', 'invoices', 'payments', 'accounting', 'services', 'projects', 'technologies', 'testimonials', 'faqs', 'chatbot', 'settings', 'database'],
-    editor: ['dashboard', 'enquiries', 'services', 'projects', 'technologies', 'testimonials', 'faqs', 'chatbot', 'database'],
-    accountant: ['dashboard', 'clients', 'invoices', 'payments', 'accounting', 'database'],
-    staff: ['dashboard', 'enquiries', 'quotations', 'invoices', 'projects', 'faqs', 'chatbot', 'database'],
-    project_manager: ['dashboard', 'enquiries', 'clients', 'quotations', 'invoices', 'projects', 'technologies', 'chatbot', 'database'],
-    client: ['dashboard', 'quotations', 'invoices', 'payments']
-  };
+  const { roles, checkPermission } = useApp();
 
-  const allowedTabs = roleAllowedTabs[currentUser.role] || ['dashboard'];
-
-  // Categorized Navigation Items
+  // Categorized Navigation Items with granular RBAC permissions mapping
   const navSections = [
     {
       title: 'Operations',
       items: [
-        { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-        { id: 'enquiries', label: 'Lead Enquiries', icon: MessageSquare, badge: newLeadsCount },
-        { id: 'clients', label: 'Client Accounts', icon: Users }
+        { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, perm: 'module.dashboard' },
+        { id: 'enquiries', label: 'Lead Enquiries', icon: MessageSquare, badge: newLeadsCount, perm: 'module.enquiries' },
+        { id: 'clients', label: 'Client Accounts', icon: Users, perm: 'module.clients' }
       ]
     },
     {
       title: 'Financials & GST',
       items: [
-        { id: 'quotations', label: 'Quotations & Scopes', icon: FileText },
-        { id: 'invoices', label: 'Tax Invoices', icon: Receipt },
-        { id: 'payments', label: 'Payment Receipts', icon: CreditCard },
-        { id: 'accounting', label: 'GST & Accounting', icon: Calculator }
+        { id: 'quotations', label: 'Quotations & Scopes', icon: FileText, perm: 'module.quotations' },
+        { id: 'invoices', label: 'Tax Invoices', icon: Receipt, perm: 'module.invoices' },
+        { id: 'payments', label: 'Payment Receipts', icon: CreditCard, perm: 'module.payments' },
+        { id: 'accounting', label: 'GST & Accounting', icon: Calculator, perm: 'module.accounting' }
       ]
     },
     {
       title: 'Content & CMS',
       items: [
-        { id: 'services', label: 'Services Catalog', icon: Boxes },
-        { id: 'projects', label: 'Project Portfolio', icon: FolderKanban },
-        { id: 'technologies', label: 'Technology Stack', icon: Cpu },
-        { id: 'testimonials', label: 'Client Reviews', icon: MessageSquareQuote },
-        { id: 'faqs', label: 'Knowledge Base & FAQs', icon: HelpCircle },
-        { id: 'chatbot', label: 'Chatbot & Q&A Base', icon: Bot }
+        { id: 'services', label: 'Services Catalog', icon: Boxes, perm: 'module.services' },
+        { id: 'projects', label: 'Project Portfolio', icon: FolderKanban, perm: 'module.projects' },
+        { id: 'technologies', label: 'Technology Stack', icon: Cpu, perm: 'module.technologies' },
+        { id: 'testimonials', label: 'Client Reviews', icon: MessageSquareQuote, perm: 'module.testimonials' },
+        { id: 'faqs', label: 'Knowledge Base & FAQs', icon: HelpCircle, perm: 'module.faqs' },
+        { id: 'chatbot', label: 'Chatbot & Q&A Base', icon: Bot, perm: 'module.chatbot' }
       ]
     },
     {
       title: 'System & Governance',
       items: [
-        { id: 'users', label: 'Users & Roles', icon: ShieldCheck },
-        { id: 'settings', label: 'Agency Settings', icon: Settings },
-        { id: 'database', label: 'Supabase & RLS', icon: Database }
+        { id: 'users', label: 'Users & Roles', icon: ShieldCheck, perm: 'module.users' },
+        { id: 'settings', label: 'Agency Settings', icon: Settings, perm: 'module.settings' },
+        { id: 'database', label: 'Supabase & RLS', icon: Database, perm: 'module.database' }
       ]
     }
   ];
 
+  // Permitted items based on checkPermission
+  const allowedNavItems = navSections.flatMap(s => s.items).filter(item => checkPermission ? checkPermission(item.perm) : true);
+  const allowedTabs = allowedNavItems.map(item => item.id);
+
   // Auto-switch to dashboard or first allowed tab if current activeTab is not permitted for the role
-  const effectiveActiveTab = allowedTabs.includes(activeTab) ? activeTab : 'dashboard';
+  const effectiveActiveTab = allowedTabs.includes(activeTab) ? activeTab : (allowedTabs[0] || 'dashboard');
 
   // Get active tab label for breadcrumbs
   const getTabLabel = (id: string) => {
@@ -152,7 +145,7 @@ export const AdminPortal: React.FC = () => {
   const filteredSections = navSections.map(section => ({
     ...section,
     items: section.items.filter(item => 
-      allowedTabs.includes(item.id) &&
+      (checkPermission ? checkPermission(item.perm) : true) &&
       (searchQuery === '' || item.label.toLowerCase().includes(searchQuery.toLowerCase()))
     )
   })).filter(section => section.items.length > 0);
@@ -288,15 +281,25 @@ export const AdminPortal: React.FC = () => {
               <select
                 value={currentUser.role}
                 onChange={e => switchRole(e.target.value as UserRole)}
-                className="w-full px-2.5 py-1.5 rounded-xl bg-gradient-to-r from-[#0e1b40] to-[#0a1430] border border-blue-500/30 text-[11px] text-slate-200 outline-none cursor-pointer font-medium hover:border-cyan-400 transition-colors shadow-inner"
+                className="w-full px-2.5 py-1.5 rounded-xl bg-gradient-to-r from-[#0e1b40] to-[#0a1430] border border-blue-500/30 text-[11px] text-slate-200 outline-none cursor-pointer font-medium hover:border-cyan-400 transition-colors shadow-inner capitalize"
               >
-                <option value="super_admin">Role: Super Admin (Full Control)</option>
-                <option value="admin">Role: Admin (Operations & Financials)</option>
-                <option value="editor">Role: Editor (Content & Showcase)</option>
-                <option value="accountant">Role: Accountant (Financials Only)</option>
-                <option value="staff">Role: Staff (Operational Duties)</option>
-                <option value="project_manager">Role: Project Manager</option>
-                <option value="client">Role: Client (Customer Portal)</option>
+                {roles && roles.length > 0 ? (
+                  roles.map(r => (
+                    <option key={r.id} value={r.code}>
+                      Role: {r.name} {r.code === 'super_admin' ? '(Super Admin)' : ''}
+                    </option>
+                  ))
+                ) : (
+                  <>
+                    <option value="super_admin">Role: Super Admin (Full Control)</option>
+                    <option value="admin">Role: Admin (Operations & Financials)</option>
+                    <option value="editor">Role: Editor (Content & Showcase)</option>
+                    <option value="accountant">Role: Accountant (Financials Only)</option>
+                    <option value="staff">Role: Staff (Operational Duties)</option>
+                    <option value="project_manager">Role: Project Manager</option>
+                    <option value="client">Role: Client (Customer Portal)</option>
+                  </>
+                )}
               </select>
             </div>
           </div>

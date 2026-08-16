@@ -19,14 +19,15 @@ import {
   ShieldCheck
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
-import { Quotation, LineItem, GSTType } from '../../types';
+import { Quotation, LineItem, GSTType, ServicePricePreset } from '../../types';
 import { generateQuotationPDF } from '../../utils/pdfGenerator';
 import { AGENCY_CONFIG } from '../../mockData';
 import { calculateGstInvoiceTotals, INDIAN_GST_STATES, extractStateCode } from '../../utils/gstEngine';
+import { generateNextDocumentNumber, DEFAULT_QUOTATION_NUMBERING } from '../../utils/documentNumbering';
 import { BrandLogo } from '../BrandLogo';
 
 export const QuotationsManager: React.FC = () => {
-  const { quotations, clients, addQuotation, updateQuotation, convertQuoteToInvoice, addClient, agencyConfig } = useApp();
+  const { quotations, clients, addQuotation, updateQuotation, convertQuoteToInvoice, addClient, agencyConfig, pricePresets, setActiveTab } = useApp();
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [previewQuote, setPreviewQuote] = useState<Quotation | null>(null);
   const [editingQuoteId, setEditingQuoteId] = useState<string | null>(null);
@@ -36,7 +37,10 @@ export const QuotationsManager: React.FC = () => {
   const [clientId, setClientId] = useState(clients[0]?.id || '');
   const [title, setTitle] = useState('Website Design & Hosting Infrastructure');
   const [issueDate, setIssueDate] = useState(() => new Date().toISOString().split('T')[0]);
-  const [validUntil, setValidUntil] = useState(() => new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0]);
+  const [validUntil, setValidUntil] = useState(() => {
+    const days = agencyConfig?.default_quotation_validity_days || 30;
+    return new Date(Date.now() + days * 86400000).toISOString().split('T')[0];
+  });
   const [currency, setCurrency] = useState<'INR' | 'USD' | 'EUR'>('INR');
   const [gstType, setGstType] = useState<GSTType>('igst');
   const [gstRate, setGstRate] = useState<number>(18);
@@ -77,12 +81,15 @@ export const QuotationsManager: React.FC = () => {
 
   const openCreateModal = () => {
     setEditingQuoteId(null);
-    const nextNum = `QTN-2026-${String(quotations.length + 1).padStart(4, '0')}`;
-    setQuoteNumber(nextNum);
+    const quoteConfig = agencyConfig.numbering_configs?.quotation || DEFAULT_QUOTATION_NUMBERING;
+    const existingNums = quotations.map(q => q.quoteNumber);
+    const { number } = generateNextDocumentNumber('quotation', quoteConfig, existingNums);
+    setQuoteNumber(number);
     setClientId(clients[0]?.id || '');
     setTitle('Website Design & Hosting Infrastructure');
     setIssueDate(new Date().toISOString().split('T')[0]);
-    setValidUntil(new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0]);
+    const validityDays = agencyConfig.default_quotation_validity_days || 30;
+    setValidUntil(new Date(Date.now() + validityDays * 86400000).toISOString().split('T')[0]);
     setDiscountType('fixed');
     setDiscountValue(5000);
     setGstType('igst');
@@ -123,15 +130,16 @@ export const QuotationsManager: React.FC = () => {
     setItems(updated);
   };
 
-  const addItem = (presetDesc?: string, presetRate?: number) => {
+  const addItem = (presetDesc?: string, presetRate?: number, presetSac?: string) => {
     const newRate = presetRate ?? 10000;
     const newDesc = presetDesc ?? '';
+    const newSac = presetSac ?? '998314';
     setItems([
       ...items,
       {
         id: String(Date.now() + Math.random()),
         description: newDesc,
-        sacCode: '998314',
+        sacCode: newSac,
         quantity: 1,
         rate: newRate,
         amount: newRate
@@ -197,6 +205,21 @@ export const QuotationsManager: React.FC = () => {
       clientName: selClient.name,
       clientCompany: selClient.companyName,
       clientEmail: selClient.email,
+      clientAddress: selClient.billingAddress 
+        ? `${selClient.billingAddress.street}, ${selClient.billingAddress.city}, ${selClient.billingAddress.state} - ${selClient.billingAddress.postalCode}`
+        : (selClient.address || ''),
+      clientGstin: selClient.gstin || '—',
+      buyerStateCode: selClient.placeOfSupplyCode || selClient.stateCode || (selClient.gstin && selClient.gstin.length >= 2 ? selClient.gstin.slice(0, 2) : '24'),
+      placeOfSupply: selClient.placeOfSupply || (selClient.state ? `${selClient.stateCode || '24'}-${selClient.state}` : '24-Gujarat'),
+      sameAsBilling: selClient.sameAsBilling !== false,
+      shippingName: selClient.shippingName || selClient.name,
+      shippingCompany: selClient.shippingCompany || selClient.companyName,
+      shippingAddress: selClient.shippingAddress || selClient.address,
+      shippingCity: selClient.shippingCity || selClient.city,
+      shippingState: selClient.shippingState || selClient.state,
+      shippingStateCode: selClient.shippingStateCode || selClient.stateCode,
+      shippingPincode: selClient.shippingPincode || selClient.pincode,
+      shippingGstin: selClient.shippingGstin || selClient.gstin,
       title: title || 'Commercial Deliverables & Services',
       projectScope: 'Custom design, technical development, integration, and cloud deployment.',
       issueDate,
@@ -344,17 +367,40 @@ export const QuotationsManager: React.FC = () => {
                       )}
                     </td>
                     <td className="py-4 px-4 text-center">
-                      <span className={`inline-block px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-                        q.status === 'converted' 
-                          ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30'
-                          : q.status === 'approved'
-                          ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
-                          : q.status === 'sent'
-                          ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
-                          : 'bg-slate-700/50 text-slate-300 border border-slate-600'
-                      }`}>
-                        {q.status}
-                      </span>
+                      <select
+                        id={`select-status-${q.id}`}
+                        value={q.status}
+                        onChange={(e) => updateQuotation(q.id, { status: e.target.value as any })}
+                        className={`text-[11px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-lg border outline-none cursor-pointer ${
+                          q.status === 'converted' || q.status === 'Converted'
+                            ? 'bg-purple-500/20 text-purple-300 border-purple-500/30'
+                            : q.status === 'Order Received' || q.status === 'order_received'
+                            ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 font-black'
+                            : q.status === 'approved' || q.status === 'Approved'
+                            ? 'bg-teal-500/20 text-teal-300 border-teal-500/30'
+                            : q.status === 'sent' || q.status === 'Sent'
+                            ? 'bg-blue-500/20 text-blue-300 border-blue-500/30'
+                            : q.status === 'pending' || q.status === 'Pending'
+                            ? 'bg-amber-500/20 text-amber-300 border-amber-500/30'
+                            : q.status === 'rejected' || q.status === 'Rejected'
+                            ? 'bg-rose-500/20 text-rose-300 border-rose-500/30'
+                            : q.status === 'cancelled' || q.status === 'Cancelled'
+                            ? 'bg-red-500/20 text-red-300 border-red-500/30'
+                            : q.status === 'closed' || q.status === 'Closed'
+                            ? 'bg-slate-700/50 text-slate-400 border-slate-600'
+                            : 'bg-slate-800 text-slate-300 border-slate-700'
+                        }`}
+                      >
+                        <option value="draft" className="bg-[#0b132c] text-slate-200">Draft</option>
+                        <option value="sent" className="bg-[#0b132c] text-blue-300">Sent</option>
+                        <option value="Pending" className="bg-[#0b132c] text-amber-300">Pending</option>
+                        <option value="Order Received" className="bg-[#0b132c] text-emerald-300">Order Received</option>
+                        <option value="approved" className="bg-[#0b132c] text-teal-300">Approved</option>
+                        <option value="converted" className="bg-[#0b132c] text-purple-300">Converted to Invoice</option>
+                        <option value="Rejected" className="bg-[#0b132c] text-rose-300">Rejected</option>
+                        <option value="Cancelled" className="bg-[#0b132c] text-red-300">Cancelled</option>
+                        <option value="Closed" className="bg-[#0b132c] text-slate-400">Closed</option>
+                      </select>
                     </td>
                     <td className="py-4 px-4 text-right">
                       <div className="flex items-center justify-end space-x-1.5">
@@ -374,19 +420,24 @@ export const QuotationsManager: React.FC = () => {
                         >
                           <Download className="w-3.5 h-3.5" />
                         </button>
-                        <button
-                          id={`btn-edit-${q.id}`}
-                          onClick={() => openEditModal(q)}
-                          title="Edit Quotation"
-                          className="px-2.5 py-1.5 rounded-lg bg-[#142352] hover:bg-[#1d3275] text-slate-200 text-[11px] font-semibold border border-blue-500/20 transition-colors"
-                        >
-                          Edit
-                        </button>
-                        {q.status !== 'converted' && (
+                        {/* Only allow edit if not in final closed/converted/cancelled states */}
+                        {!['closed', 'Closed', 'cancelled', 'Cancelled'].includes(q.status) && (
+                          <button
+                            id={`btn-edit-${q.id}`}
+                            onClick={() => openEditModal(q)}
+                            title="Edit Quotation"
+                            className="px-2.5 py-1.5 rounded-lg bg-[#142352] hover:bg-[#1d3275] text-slate-200 text-[11px] font-semibold border border-blue-500/20 transition-colors"
+                          >
+                            Edit
+                          </button>
+                        )}
+                        {/* Only allow invoice conversion if not already converted and not in non-convertible final state (Closed/Rejected/Cancelled) */}
+                        {!['converted', 'Converted', 'closed', 'Closed', 'rejected', 'Rejected', 'cancelled', 'Cancelled'].includes(q.status) && (
                           <button
                             id={`btn-convert-${q.id}`}
                             onClick={() => convertQuoteToInvoice(q.id)}
                             className="px-2.5 py-1.5 rounded-lg bg-emerald-500/20 hover:bg-emerald-600 border border-emerald-500/30 text-[11px] font-bold text-emerald-300 hover:text-white transition-all flex items-center space-x-1"
+                            title="Progress Quotation to Tax Invoice"
                           >
                             <span>Invoice</span>
                             <ArrowRight className="w-3 h-3" />
@@ -569,45 +620,34 @@ export const QuotationsManager: React.FC = () => {
 
               {/* Quick Presets */}
               <div>
-                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">
-                  Quick Add Presets:
+                <div className="flex items-center justify-between mb-2">
+                  <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
+                    <span>Quick Add Service Presets (Supabase Master):</span>
+                  </div>
+                  <span className="text-[10px] text-slate-500">Click to insert line item</span>
                 </div>
+
                 <div className="flex flex-wrap gap-2">
-                  <button
-                    type="button"
-                    onClick={() => addItem('Website Design', 50000)}
-                    className="px-3 py-1.5 rounded-lg bg-blue-600/20 hover:bg-blue-600 border border-blue-500/30 text-[11px] font-semibold text-blue-300 hover:text-white transition-all cursor-pointer"
-                  >
-                    + Website Design (₹50,000)
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => addItem('Hosting', 10000)}
-                    className="px-3 py-1.5 rounded-lg bg-blue-600/20 hover:bg-blue-600 border border-blue-500/30 text-[11px] font-semibold text-blue-300 hover:text-white transition-all cursor-pointer"
-                  >
-                    + Hosting (₹10,000)
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => addItem('Full-Stack Web App Development', 150000)}
-                    className="px-3 py-1.5 rounded-lg bg-blue-600/20 hover:bg-blue-600 border border-blue-500/30 text-[11px] font-semibold text-blue-300 hover:text-white transition-all cursor-pointer"
-                  >
-                    + Full-Stack Web App (₹1,50,000)
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => addItem('UI/UX Interactive Prototyping', 25000)}
-                    className="px-3 py-1.5 rounded-lg bg-blue-600/20 hover:bg-blue-600 border border-blue-500/30 text-[11px] font-semibold text-blue-300 hover:text-white transition-all cursor-pointer"
-                  >
-                    + UI/UX Design (₹25,000)
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => addItem('Backend API & Supabase Cluster', 45000)}
-                    className="px-3 py-1.5 rounded-lg bg-blue-600/20 hover:bg-blue-600 border border-blue-500/30 text-[11px] font-semibold text-blue-300 hover:text-white transition-all cursor-pointer"
-                  >
-                    + Backend & DB (₹45,000)
-                  </button>
+                  {pricePresets.filter(p => p.is_active).map(preset => (
+                    <button
+                      key={preset.id}
+                      type="button"
+                      onClick={() => addItem(preset.service_name, preset.default_price, preset.sac_code || '998314')}
+                      className="px-3 py-1.5 rounded-lg bg-blue-600/20 hover:bg-blue-600 border border-blue-500/30 text-[11px] font-semibold text-blue-300 hover:text-white transition-all cursor-pointer flex items-center space-x-1.5"
+                      title={preset.description ? `${preset.description} (SAC: ${preset.sac_code || '998314'})` : `SAC: ${preset.sac_code || '998314'}`}
+                    >
+                      <Plus className="w-3 h-3 text-cyan-400" />
+                      <span>{preset.service_name}</span>
+                      <span className="font-mono text-cyan-300 font-bold">₹{preset.default_price.toLocaleString('en-IN')}</span>
+                    </button>
+                  ))}
+
+                  {pricePresets.filter(p => p.is_active).length === 0 && (
+                    <div className="text-xs text-slate-400 italic">
+                      No active presets found. Configure price presets in Agency Settings.
+                    </div>
+                  )}
                 </div>
               </div>
 

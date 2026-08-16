@@ -5,7 +5,27 @@ export type UserRole =
   | 'accountant' 
   | 'staff' 
   | 'project_manager' 
-  | 'client';
+  | 'client'
+  | string;
+
+export interface PermissionDefinition {
+  code: string;
+  name: string;
+  category: 'Core' | 'Financials' | 'Content' | 'System' | 'Security';
+  description: string;
+}
+
+export interface RoleDefinition {
+  id: string;
+  name: string;
+  code: string;
+  description: string;
+  isSystem: boolean;
+  permissions: string[]; // list of permission codes
+  userCount?: number;
+  createdAt: string;
+  updatedAt: string;
+}
 
 export interface UserProfile {
   id: string;
@@ -15,6 +35,7 @@ export interface UserProfile {
   role: UserRole;
   phone?: string;
   is_active: boolean;
+  mfa_enabled?: boolean;
   clientId?: string;
   company?: string;
   created_at: string;
@@ -65,6 +86,45 @@ export interface WebsiteSettings {
   updated_at: string;
 }
 
+export interface ServicePricePreset {
+  id: string;
+  service_name: string;
+  name?: string; // alias for service_name
+  description: string;
+  sac_code?: string;
+  sacCode?: string;
+  default_price: number;
+  rate?: number; // alias for default_price
+  gst_applicable: boolean;
+  gst_rate: number;
+  is_active: boolean;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface PaymentTermItem {
+  id: string;
+  name: string;
+  description?: string;
+  is_default?: boolean;
+  sort_order?: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface DocumentNumberConfig {
+  document_type: 'invoice' | 'quotation';
+  prefix: string; // e.g. "INV" | "QTN"
+  company_code: string; // e.g. "FFC"
+  include_year: boolean;
+  year_format: 'YYYY' | 'YY' | 'YYYY-YY';
+  starting_sequence: number; // e.g. 10001 or 1
+  current_sequence: number; // e.g. 10001
+  separator: string; // e.g. "/" or "-"
+  style: 'standard' | 'shorter' | 'custom';
+  custom_pattern?: string;
+}
+
 export interface SellerProfile {
   id?: string;
   company_name: string;
@@ -77,15 +137,29 @@ export interface SellerProfile {
   jurisdiction: string;
   logo_url: string;
   signature_url: string;
+  stamp_url?: string;
+  stampUrl?: string;
+  msme_number?: string;
+  msmeNumber?: string;
   bank_name: string;
   account_name: string;
   account_number: string;
   ifsc_code: string;
   branch_name: string;
   terms_conditions: string;
+  quotation_terms?: string | string[];
+  invoice_terms?: string | string[];
+  default_quotation_validity_days?: number;
+  payment_terms?: PaymentTermItem[];
+  numbering_configs?: {
+    invoice: DocumentNumberConfig;
+    quotation: DocumentNumberConfig;
+  };
 
   // Compatibility & metadata fields
+  name?: string;
   legal_name?: string;
+  legalName?: string;
   trade_name?: string;
   pan?: string;
   state_name?: string;
@@ -97,6 +171,7 @@ export interface SellerProfile {
   pincode?: string;
   sac_code?: string;
   sacCode?: string;
+  terms?: string[];
   social_channels?: SocialChannelItem[];
   socialChannels?: SocialChannelItem[];
   social_links?: {
@@ -125,6 +200,14 @@ export interface SellerProfile {
     medium?: string;
     [key: string]: string | undefined;
   };
+  bankDetails?: {
+    accountName: string;
+    bankName: string;
+    accountNumber: string;
+    ifscCode: string;
+    branch: string;
+    upiId: string;
+  };
   default_bank_account?: {
     account_name: string;
     bank_name: string;
@@ -136,6 +219,8 @@ export interface SellerProfile {
   created_at?: string;
   updated_at?: string;
 }
+
+export type AgencyConfig = SellerProfile;
 
 export interface AuditLog {
   id: string;
@@ -166,6 +251,9 @@ export interface Client {
   gstin?: string;
   pan?: string;
   placeOfSupply?: string;
+  placeOfSupplyCode?: string;
+  isGstRegistered?: boolean;
+  isUrp?: boolean;
   billingAddress: {
     street: string;
     city: string;
@@ -174,6 +262,17 @@ export interface Client {
     country: string;
     stateCode?: string;
   };
+  // Shipping Address Details
+  sameAsBilling?: boolean;
+  shippingName?: string;
+  shippingCompany?: string;
+  shippingPhone?: string;
+  shippingAddress?: string;
+  shippingCity?: string;
+  shippingState?: string;
+  shippingStateCode?: string;
+  shippingPincode?: string;
+  shippingGstin?: string;
   currency: 'INR' | 'USD' | 'EUR';
   status: 'active' | 'disabled' | 'inactive' | 'lead' | 'deleted';
   isDeleted?: boolean;
@@ -212,7 +311,25 @@ export interface InvoiceItem {
 }
 
 export type GSTType = 'cgst_sgst' | 'cgst_utgst' | 'igst' | 'none';
-export type QuoteStatus = 'draft' | 'sent' | 'approved' | 'rejected' | 'converted';
+export type QuoteStatus = 
+  | 'draft' 
+  | 'sent' 
+  | 'pending'
+  | 'order_received' 
+  | 'approved' 
+  | 'converted' 
+  | 'rejected' 
+  | 'cancelled' 
+  | 'closed'
+  | 'Draft' 
+  | 'Sent' 
+  | 'Pending' 
+  | 'Order Received' 
+  | 'Approved' 
+  | 'Converted' 
+  | 'Rejected' 
+  | 'Cancelled' 
+  | 'Closed';
 
 export interface Quotation {
   id: string;
@@ -221,8 +338,20 @@ export interface Quotation {
   clientName: string;
   clientCompany: string;
   clientEmail: string;
+  clientAddress?: string;
+  clientGstin?: string;
   sellerStateCode?: string;
   buyerStateCode?: string;
+  placeOfSupply?: string;
+  sameAsBilling?: boolean;
+  shippingName?: string;
+  shippingCompany?: string;
+  shippingAddress?: string;
+  shippingCity?: string;
+  shippingState?: string;
+  shippingStateCode?: string;
+  shippingPincode?: string;
+  shippingGstin?: string;
   supplyType?: 'INTRA_STATE' | 'INTER_STATE' | 'EXEMPT';
   taxLabel?: string;
   title: string;
@@ -245,6 +374,10 @@ export interface Quotation {
   totalAmount: number;
   notes: string;
   termsAndConditions: string[];
+  paymentTerms?: string;
+  gstApplicable?: boolean;
+  emailSentAt?: string;
+  emailSentBy?: string;
   status: QuoteStatus;
   convertedInvoiceId?: string;
   createdBy: string;
@@ -305,6 +438,17 @@ export interface Invoice {
   buyerGstin?: string;
   buyerState?: string;
   buyerStateCode?: string;
+
+  // Shipping details
+  sameAsBilling?: boolean;
+  shippingName?: string;
+  shippingCompany?: string;
+  shippingAddress?: string;
+  shippingCity?: string;
+  shippingState?: string;
+  shippingStateCode?: string;
+  shippingPincode?: string;
+  shippingGstin?: string;
 
   supplyType?: 'INTRA_STATE' | 'INTER_STATE' | 'EXEMPT';
   taxLabel?: string;

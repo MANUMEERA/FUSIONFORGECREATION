@@ -219,8 +219,26 @@ CREATE TABLE IF NOT EXISTS public.clients (
 );
 
 ALTER TABLE public.clients
+    ADD COLUMN IF NOT EXISTS contact_person TEXT DEFAULT NULL,
+    ADD COLUMN IF NOT EXISTS city TEXT DEFAULT NULL,
+    ADD COLUMN IF NOT EXISTS state TEXT DEFAULT NULL,
     ADD COLUMN IF NOT EXISTS state_code TEXT DEFAULT NULL,
-    ADD COLUMN IF NOT EXISTS place_of_supply TEXT DEFAULT NULL;
+    ADD COLUMN IF NOT EXISTS pincode TEXT DEFAULT NULL,
+    ADD COLUMN IF NOT EXISTS postal_code TEXT DEFAULT NULL,
+    ADD COLUMN IF NOT EXISTS place_of_supply TEXT DEFAULT NULL,
+    ADD COLUMN IF NOT EXISTS place_of_supply_code TEXT DEFAULT NULL,
+    ADD COLUMN IF NOT EXISTS gstin TEXT DEFAULT NULL,
+    ADD COLUMN IF NOT EXISTS pan TEXT DEFAULT NULL,
+    ADD COLUMN IF NOT EXISTS same_as_billing BOOLEAN DEFAULT TRUE,
+    ADD COLUMN IF NOT EXISTS shipping_name TEXT DEFAULT NULL,
+    ADD COLUMN IF NOT EXISTS shipping_company TEXT DEFAULT NULL,
+    ADD COLUMN IF NOT EXISTS shipping_phone TEXT DEFAULT NULL,
+    ADD COLUMN IF NOT EXISTS shipping_address TEXT DEFAULT NULL,
+    ADD COLUMN IF NOT EXISTS shipping_city TEXT DEFAULT NULL,
+    ADD COLUMN IF NOT EXISTS shipping_state TEXT DEFAULT NULL,
+    ADD COLUMN IF NOT EXISTS shipping_state_code TEXT DEFAULT NULL,
+    ADD COLUMN IF NOT EXISTS shipping_pincode TEXT DEFAULT NULL,
+    ADD COLUMN IF NOT EXISTS shipping_gstin TEXT DEFAULT NULL;
 
 
 -- =====================================================================
@@ -561,8 +579,54 @@ ALTER TABLE public.seller_profile
     ADD COLUMN IF NOT EXISTS branch_name
         TEXT DEFAULT 'Silvassa Branch',
 
+    ADD COLUMN IF NOT EXISTS msme_number
+        TEXT DEFAULT 'UDYAM-DN-00-0012345',
+
+    ADD COLUMN IF NOT EXISTS stamp_url
+        TEXT DEFAULT NULL,
+
+    ADD COLUMN IF NOT EXISTS default_quotation_validity_days
+        INT DEFAULT 30,
+
+    ADD COLUMN IF NOT EXISTS quotation_terms
+        JSONB DEFAULT '["Quotation is valid for 30 calendar days from the issue date.", "Commercial development kicks off upon confirmation and receipt of 50% milestone advance.", "All statutory taxes (GST @ 18%, SAC 998314) are billed extra as itemized.", "Scope variations or add-ons beyond itemized deliverables are quoted separately.", "All intellectual property rights transfer to the client upon full project settlement."]'::jsonb,
+
+    ADD COLUMN IF NOT EXISTS invoice_terms
+        JSONB DEFAULT '["Payment is due within 15 calendar days from the invoice issue date.", "Goods & Services Tax (GST) charged under SAC Code 998314 (Information Technology Software Services).", "Please quote invoice number on all NEFT / RTGS / IMPS wire transfers.", "All disputes subject to exclusive arbitration in Silvassa, Dadra & Nagar Haveli jurisdiction."]'::jsonb,
+
+    ADD COLUMN IF NOT EXISTS numbering_configs
+        JSONB DEFAULT '{"invoice": {"prefix": "INV", "company_code": "FFC", "include_year": true, "year_format": "YYYY", "starting_sequence": 10001, "current_sequence": 10001, "separator": "/", "style": "standard"}, "quotation": {"prefix": "QTN", "company_code": "FFC", "include_year": true, "year_format": "YYYY", "starting_sequence": 10001, "current_sequence": 10001, "separator": "/", "style": "standard"}}'::jsonb,
+
     ADD COLUMN IF NOT EXISTS terms_conditions
         TEXT DEFAULT 'Payment due within 15 days of issue date.';
+
+
+-- =====================================================================
+-- 17B. SERVICE PRICE PRESETS (QUICK ADD)
+-- =====================================================================
+
+CREATE TABLE IF NOT EXISTS public.service_price_presets (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    service_name TEXT NOT NULL,
+    description TEXT NOT NULL DEFAULT '',
+    sac_code TEXT DEFAULT '998314',
+    default_price NUMERIC(12,2) NOT NULL DEFAULT 0.00,
+    gst_applicable BOOLEAN NOT NULL DEFAULT TRUE,
+    gst_rate NUMERIC(5,2) NOT NULL DEFAULT 18.00,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS public.payment_terms (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name TEXT NOT NULL,
+    description TEXT DEFAULT '',
+    is_default BOOLEAN NOT NULL DEFAULT FALSE,
+    sort_order INT DEFAULT 0,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
 
 
 -- =====================================================================

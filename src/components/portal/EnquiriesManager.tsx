@@ -177,14 +177,29 @@ export const EnquiriesManager: React.FC = () => {
                 </select>
               </div>
 
-              {enq.status !== 'Converted' && enq.status !== 'won' && (
-                <button
-                  onClick={() => handleConvert(enq.id)}
-                  className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-semibold flex items-center space-x-1.5 transition-all shadow-md shadow-blue-500/25 cursor-pointer"
-                >
-                  <UserCheck className="w-3.5 h-3.5" />
-                  <span>Convert to Client</span>
-                </button>
+              {/* Convert to Client / Create Quotation Workflow */}
+              {!['closed', 'Closed', 'rejected', 'Rejected', 'cancelled', 'Cancelled', 'converted', 'Converted', 'won', 'lost'].includes(enq.status) && (
+                <div className="flex flex-col sm:flex-row items-center gap-2">
+                  <button
+                    onClick={() => handleConvert(enq.id)}
+                    className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-semibold flex items-center space-x-1.5 transition-all shadow-md shadow-blue-500/25 cursor-pointer"
+                    title="Convert Lead into active Client record"
+                  >
+                    <UserCheck className="w-3.5 h-3.5" />
+                    <span>Convert to Client</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      const client = convertEnquiryToClient(enq.id);
+                      setActiveTab('quotations');
+                    }}
+                    className="px-3 py-1.5 rounded-xl bg-cyan-600/20 hover:bg-cyan-600 text-cyan-300 hover:text-white border border-cyan-500/40 text-xs font-semibold flex items-center space-x-1.5 transition-all cursor-pointer"
+                    title="Convert to Client and prepare Quotation"
+                  >
+                    <span>Create Quote</span>
+                    <ArrowRight className="w-3 h-3" />
+                  </button>
+                </div>
               )}
             </div>
           </div>

@@ -15,7 +15,12 @@ import {
   FaqItem,
   ChatbotQAItem,
   ChatbotSettings,
-  AuditLog
+  AuditLog,
+  RoleDefinition,
+  PermissionDefinition,
+  ServicePricePreset,
+  PaymentTermItem,
+  DocumentNumberConfig
 } from '../types';
 import { 
   INITIAL_USERS, 
@@ -34,8 +39,12 @@ import {
   INITIAL_CHATBOT_SETTINGS,
   INITIAL_AUDIT_LOGS,
   INITIAL_SOCIAL_CHANNELS,
+  INITIAL_PRICE_PRESETS,
+  INITIAL_PAYMENT_TERMS,
   AGENCY_CONFIG 
 } from '../mockData';
+import { DEFAULT_INVOICE_NUMBERING, DEFAULT_QUOTATION_NUMBERING } from '../utils/documentNumbering';
+import { INITIAL_SYSTEM_ROLES, SYSTEM_PERMISSIONS, hasPermission } from '../lib/permissions';
 import { calculateGstInvoiceTotals } from '../utils/gstEngine';
 import { supabase, isSupabaseConfigured } from '../lib/supabaseClient';
 import { logAuditEvent } from '../utils/auditLogger';
@@ -135,7 +144,33 @@ interface AppContextType {
   updateUser: (id: string, data: Partial<UserProfile>) => void;
   deleteUser: (id: string) => void;
 
-  updateAgencyConfig: (data: Partial<typeof AGENCY_CONFIG>) => void;
+  // Custom Roles & Permissions Management
+  roles: RoleDefinition[];
+  permissions: PermissionDefinition[];
+  addRole: (role: Omit<RoleDefinition, 'id' | 'createdAt' | 'updatedAt'>) => RoleDefinition | null;
+  updateRole: (id: string, data: Partial<RoleDefinition>) => boolean;
+  deleteRole: (id: string) => boolean;
+  assignUserRole: (userId: string, roleCode: string) => void;
+  checkPermission: (permissionCode: string) => boolean;
+
+  // Phase 5: Service Price Presets
+  pricePresets: ServicePricePreset[];
+  addPricePreset: (preset: Omit<ServicePricePreset, 'id' | 'created_at' | 'updated_at'>) => ServicePricePreset;
+  updatePricePreset: (id: string, data: Partial<ServicePricePreset>) => void;
+  deletePricePreset: (id: string) => void;
+  togglePricePresetActive: (id: string) => void;
+
+  // Phase 5: Payment Terms Management
+  paymentTerms: PaymentTermItem[];
+  addPaymentTerm: (term: Omit<PaymentTermItem, 'id' | 'created_at' | 'updated_at'>) => PaymentTermItem;
+  updatePaymentTerm: (id: string, data: Partial<PaymentTermItem>) => void;
+  deletePaymentTerm: (id: string) => void;
+  setDefaultPaymentTerm: (id: string) => void;
+
+  // Phase 5: Document Numbering Configuration
+  updateDocumentNumberConfig: (type: 'invoice' | 'quotation', config: Partial<DocumentNumberConfig>) => void;
+
+  updateAgencyConfig: (data: Partial<Omit<typeof AGENCY_CONFIG, 'social_links' | 'socialLinks'> & { social_links?: Record<string, string>; socialLinks?: Record<string, string> }>) => void;
   agencyConfig: typeof AGENCY_CONFIG;
 }
 
@@ -196,8 +231,51 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   });
   const [users, setUsers] = useState<UserProfile[]>(INITIAL_USERS);
+  const [roles, setRoles] = useState<RoleDefinition[]>(() => {
+    try {
+      const saved = localStorage.getItem('fusion_forge_roles');
+      return saved ? JSON.parse(saved) : INITIAL_SYSTEM_ROLES;
+    } catch {
+      return INITIAL_SYSTEM_ROLES;
+    }
+  });
+  const [permissions] = useState<PermissionDefinition[]>(SYSTEM_PERMISSIONS);
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>(INITIAL_AUDIT_LOGS);
   const [portfolio, setPortfolio] = useState<PortfolioProject[]>(INITIAL_PORTFOLIO);
+  const [pricePresets, setPricePresets] = useState<ServicePricePreset[]>(() => {
+    try {
+      const saved = localStorage.getItem('fusion_forge_price_presets');
+      return saved ? JSON.parse(saved) : INITIAL_PRICE_PRESETS;
+    } catch {
+      return INITIAL_PRICE_PRESETS;
+    }
+  });
+
+  const [paymentTerms, setPaymentTerms] = useState<PaymentTermItem[]>(() => {
+    try {
+      const saved = localStorage.getItem('fusion_forge_payment_terms');
+      return saved ? JSON.parse(saved) : INITIAL_PAYMENT_TERMS;
+    } catch {
+      return INITIAL_PAYMENT_TERMS;
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('fusion_forge_price_presets', JSON.stringify(pricePresets));
+    } catch (e) {
+      console.warn('Failed to persist price presets to localStorage', e);
+    }
+  }, [pricePresets]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('fusion_forge_payment_terms', JSON.stringify(paymentTerms));
+    } catch (e) {
+      console.warn('Failed to persist payment terms to localStorage', e);
+    }
+  }, [paymentTerms]);
+
   const [agencyConfig, setAgencyConfig] = useState<typeof AGENCY_CONFIG>(() => {
     try {
       const saved = localStorage.getItem('fusion_forge_agency_config');
@@ -210,7 +288,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           social_channels: parsedChannels,
           socialChannels: parsedChannels,
           social_links: { ...AGENCY_CONFIG.social_links, ...(parsed.social_links || parsed.socialLinks || {}) },
-          socialLinks: { ...AGENCY_CONFIG.socialLinks, ...(parsed.social_links || parsed.socialLinks || {}) }
+          socialLinks: { ...AGENCY_CONFIG.socialLinks, ...(parsed.social_links || parsed.socialLinks || {}) },
+          numbering_configs: {
+            invoice: { ...DEFAULT_INVOICE_NUMBERING, ...(parsed.numbering_configs?.invoice || {}) },
+            quotation: { ...DEFAULT_QUOTATION_NUMBERING, ...(parsed.numbering_configs?.quotation || {}) }
+          }
         };
       }
       return AGENCY_CONFIG;
@@ -253,41 +335,65 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     try {
       setIsLoading(true);
 
-      // 1. Fetch Clients (columns: id, name, company, email, phone, address, tax_number, notes, enquiry_id, state_code, place_of_supply, created_at, updated_at)
+      // 1. Fetch Clients (columns: id, name, company, email, phone, address, city, state, state_code, pincode, tax_number, gstin, pan, place_of_supply, place_of_supply_code, same_as_billing, shipping_name, shipping_company, shipping_phone, shipping_address, shipping_city, shipping_state, shipping_state_code, shipping_pincode, shipping_gstin, notes, enquiry_id, created_at, updated_at)
       const { data: clientsData } = await supabase
         .from('clients')
         .select('*')
         .order('created_at', { ascending: false });
 
       if (clientsData && clientsData.length > 0) {
-        const mappedClients: Client[] = clientsData.map((c: any) => ({
-          id: c.id,
-          name: c.name || '',
-          companyName: c.company || c.name || 'Client',
-          email: c.email || '',
-          phone: c.phone || '',
-          address: c.address || '',
-          stateCode: c.state_code || '',
-          placeOfSupply: c.place_of_supply || '',
-          gstin: c.tax_number || '',
-          pan: c.tax_number ? c.tax_number.substring(2, 12) : '',
-          billingAddress: {
-            street: c.address || '',
-            city: '',
-            state: '',
+        const mappedClients: Client[] = clientsData.map((c: any) => {
+          const rawGstin = c.gstin || c.tax_number || '';
+          const pos = c.place_of_supply || (c.state ? `${c.state_code ? `${c.state_code}-` : ''}${c.state}` : '');
+          const sameAsBilling = c.same_as_billing !== false;
+          return {
+            id: c.id,
+            name: c.name || '',
+            contactPerson: c.contact_person || c.name || '',
+            companyName: c.company || c.name || 'Client',
+            email: c.email || '',
+            phone: c.phone || '',
+            address: c.address || '',
+            city: c.city || '',
+            state: c.state || '',
             stateCode: c.state_code || '',
-            postalCode: '',
-            country: 'India'
-          },
-          currency: 'INR',
-          status: 'active',
-          isDeleted: false,
-          totalBilled: 0,
-          totalPaid: 0,
-          notes: c.notes || '',
-          createdAt: c.created_at,
-          updatedAt: c.updated_at
-        }));
+            pincode: c.pincode || c.postal_code || '',
+            postalCode: c.pincode || c.postal_code || '',
+            gstin: rawGstin,
+            pan: c.pan || (rawGstin.length >= 12 ? rawGstin.substring(2, 12) : ''),
+            placeOfSupply: pos,
+            placeOfSupplyCode: c.place_of_supply_code || c.state_code || '',
+            isGstRegistered: Boolean(rawGstin && rawGstin.length === 15),
+            isUrp: !rawGstin || rawGstin.toUpperCase() === 'URP',
+            billingAddress: {
+              street: c.address || '',
+              city: c.city || '',
+              state: c.state || '',
+              stateCode: c.state_code || '',
+              postalCode: c.pincode || c.postal_code || '',
+              country: 'India'
+            },
+            sameAsBilling,
+            shippingName: c.shipping_name || '',
+            shippingCompany: c.shipping_company || '',
+            shippingPhone: c.shipping_phone || '',
+            shippingAddress: c.shipping_address || '',
+            shippingCity: c.shipping_city || '',
+            shippingState: c.shipping_state || '',
+            shippingStateCode: c.shipping_state_code || '',
+            shippingPincode: c.shipping_pincode || '',
+            shippingGstin: c.shipping_gstin || '',
+            currency: 'INR',
+            status: c.status || 'active',
+            isDeleted: c.is_deleted || false,
+            deletedAt: c.deleted_at || undefined,
+            totalBilled: 0,
+            totalPaid: 0,
+            notes: c.notes || '',
+            createdAt: c.created_at,
+            updatedAt: c.updated_at
+          };
+        });
         setClients(mappedClients);
       }
 
@@ -559,11 +665,25 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           address: sellerData.address || prev.address,
           gstin: sellerData.gstin || prev.gstin,
           state_code: sellerData.state_code || prev.state_code,
+          msme_number: sellerData.msme_number || prev.msme_number,
+          msmeNumber: sellerData.msme_number || prev.msmeNumber,
+          stamp_url: sellerData.stamp_url || prev.stamp_url,
+          stampUrl: sellerData.stamp_url || prev.stampUrl,
+          signature_url: sellerData.signature_url || prev.signature_url,
+          logo_url: sellerData.logo_url || prev.logo_url,
+          default_quotation_validity_days: sellerData.default_quotation_validity_days ?? prev.default_quotation_validity_days,
+          quotation_terms: sellerData.quotation_terms || prev.quotation_terms,
+          invoice_terms: sellerData.invoice_terms || prev.invoice_terms,
+          numbering_configs: sellerData.numbering_configs ? {
+            invoice: { ...DEFAULT_INVOICE_NUMBERING, ...(sellerData.numbering_configs.invoice || {}) },
+            quotation: { ...DEFAULT_QUOTATION_NUMBERING, ...(sellerData.numbering_configs.quotation || {}) }
+          } : prev.numbering_configs,
           bank_name: sellerData.bank_name || prev.bank_name,
           account_name: sellerData.account_name || prev.account_name,
           account_number: sellerData.account_number || prev.account_number,
           ifsc_code: sellerData.ifsc_code || prev.ifsc_code,
           branch_name: sellerData.branch_name || prev.branch_name,
+          terms_conditions: sellerData.terms_conditions || prev.terms_conditions,
           bankDetails: {
             bankName: sellerData.bank_name || prev.bankDetails.bankName,
             accountName: sellerData.account_name || prev.bankDetails.accountName,
@@ -573,6 +693,58 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             upiId: prev.bankDetails.upiId
           }
         }));
+      }
+
+      // 10B. Fetch Service Price Presets from Supabase
+      try {
+        const { data: presetsData } = await supabase
+          .from('service_price_presets')
+          .select('*')
+          .order('created_at', { ascending: true });
+
+        if (presetsData && presetsData.length > 0) {
+          const mappedPresets: ServicePricePreset[] = presetsData.map((p: any) => ({
+            id: p.id,
+            service_name: p.service_name,
+            name: p.service_name,
+            description: p.description || '',
+            sac_code: p.sac_code || '998314',
+            sacCode: p.sac_code || '998314',
+            default_price: Number(p.default_price) || 0,
+            rate: Number(p.default_price) || 0,
+            gst_applicable: p.gst_applicable ?? true,
+            gst_rate: Number(p.gst_rate) || 18,
+            is_active: p.is_active ?? true,
+            created_at: p.created_at,
+            updated_at: p.updated_at
+          }));
+          setPricePresets(mappedPresets);
+        }
+      } catch (err) {
+        console.warn('[Supabase Presets Fetch] Handled non-critical error:', err);
+      }
+
+      // 10C. Fetch Payment Terms from Supabase
+      try {
+        const { data: termsData } = await supabase
+          .from('payment_terms')
+          .select('*')
+          .order('sort_order', { ascending: true });
+
+        if (termsData && termsData.length > 0) {
+          const mappedTerms: PaymentTermItem[] = termsData.map((t: any) => ({
+            id: t.id,
+            name: t.name,
+            description: t.description || '',
+            is_default: t.is_default ?? false,
+            sort_order: t.sort_order || 0,
+            created_at: t.created_at,
+            updated_at: t.updated_at
+          }));
+          setPaymentTerms(mappedTerms);
+        }
+      } catch (err) {
+        console.warn('[Supabase Payment Terms Fetch] Handled non-critical error:', err);
       }
 
       // 11. Fetch Profiles
@@ -682,13 +854,31 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       supabase.from('clients').insert({
         id: newClient.id,
         name: newClient.name,
+        contact_person: newClient.contactPerson || newClient.name,
         company: newClient.companyName,
         email: newClient.email,
         phone: newClient.phone,
         address: newClient.address || newClient.billingAddress?.street || '',
+        city: newClient.city || newClient.billingAddress?.city || '',
+        state: newClient.state || newClient.billingAddress?.state || '',
         state_code: newClient.stateCode || newClient.billingAddress?.stateCode || '',
+        pincode: newClient.pincode || newClient.postalCode || newClient.billingAddress?.postalCode || '',
+        postal_code: newClient.pincode || newClient.postalCode || '',
         place_of_supply: newClient.placeOfSupply || '',
+        place_of_supply_code: newClient.placeOfSupplyCode || newClient.stateCode || '',
         tax_number: newClient.gstin || '',
+        gstin: newClient.gstin || '',
+        pan: newClient.pan || '',
+        same_as_billing: newClient.sameAsBilling !== false,
+        shipping_name: newClient.shippingName || '',
+        shipping_company: newClient.shippingCompany || '',
+        shipping_phone: newClient.shippingPhone || '',
+        shipping_address: newClient.shippingAddress || '',
+        shipping_city: newClient.shippingCity || '',
+        shipping_state: newClient.shippingState || '',
+        shipping_state_code: newClient.shippingStateCode || '',
+        shipping_pincode: newClient.shippingPincode || '',
+        shipping_gstin: newClient.shippingGstin || '',
         notes: newClient.notes || ''
       }).then();
     }
@@ -713,12 +903,28 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       supabase.from('clients').update({
         ...(data.companyName !== undefined ? { company: data.companyName } : {}),
         ...(data.name !== undefined ? { name: data.name } : {}),
+        ...(data.contactPerson !== undefined ? { contact_person: data.contactPerson } : {}),
         ...(data.email !== undefined ? { email: data.email } : {}),
         ...(data.phone !== undefined ? { phone: data.phone } : {}),
         ...(data.address !== undefined ? { address: data.address } : {}),
+        ...(data.city !== undefined ? { city: data.city } : {}),
+        ...(data.state !== undefined ? { state: data.state } : {}),
         ...(data.stateCode !== undefined ? { state_code: data.stateCode } : {}),
+        ...(data.pincode !== undefined ? { pincode: data.pincode, postal_code: data.pincode } : {}),
         ...(data.placeOfSupply !== undefined ? { place_of_supply: data.placeOfSupply } : {}),
-        ...(data.gstin !== undefined ? { tax_number: data.gstin } : {}),
+        ...(data.placeOfSupplyCode !== undefined ? { place_of_supply_code: data.placeOfSupplyCode } : {}),
+        ...(data.gstin !== undefined ? { tax_number: data.gstin, gstin: data.gstin } : {}),
+        ...(data.pan !== undefined ? { pan: data.pan } : {}),
+        ...(data.sameAsBilling !== undefined ? { same_as_billing: data.sameAsBilling } : {}),
+        ...(data.shippingName !== undefined ? { shipping_name: data.shippingName } : {}),
+        ...(data.shippingCompany !== undefined ? { shipping_company: data.shippingCompany } : {}),
+        ...(data.shippingPhone !== undefined ? { shipping_phone: data.shippingPhone } : {}),
+        ...(data.shippingAddress !== undefined ? { shipping_address: data.shippingAddress } : {}),
+        ...(data.shippingCity !== undefined ? { shipping_city: data.shippingCity } : {}),
+        ...(data.shippingState !== undefined ? { shipping_state: data.shippingState } : {}),
+        ...(data.shippingStateCode !== undefined ? { shipping_state_code: data.shippingStateCode } : {}),
+        ...(data.shippingPincode !== undefined ? { shipping_pincode: data.shippingPincode } : {}),
+        ...(data.shippingGstin !== undefined ? { shipping_gstin: data.shippingGstin } : {}),
         ...(data.notes !== undefined ? { notes: data.notes } : {}),
         updated_at: new Date().toISOString()
       }).eq('id', id).then();
@@ -1723,6 +1929,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const deleteUser = (id: string) => {
+    // Only super_admin can delete records
+    if (currentUser.role !== 'super_admin') {
+      console.warn('[Security Violation] Deletion attempt denied: Super Admin authority required.');
+      return;
+    }
+
     setUsers(prev => prev.filter(u => u.id !== id));
     addAuditLog({
       user_id: currentUser.id,
@@ -1732,6 +1944,416 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       table_name: 'profiles',
       record_id: id,
       details: `Deleted user profile ${id}`
+    });
+  };
+
+  // Custom Roles & Permissions Management (Super Admin only)
+  const addRole = (roleData: Omit<RoleDefinition, 'id' | 'createdAt' | 'updatedAt'>): RoleDefinition | null => {
+    if (currentUser.role !== 'super_admin') {
+      console.warn('[Security Violation] Unauthorized attempt to create role: Super Admin authority required.');
+      return null;
+    }
+
+    const cleanCode = roleData.code.toLowerCase().trim().replace(/[^a-z0-9_]/g, '_');
+    const existing = roles.find(r => r.code === cleanCode);
+    if (existing) {
+      console.warn('[Role Management] Role code already exists:', cleanCode);
+      return null;
+    }
+
+    const newRole: RoleDefinition = {
+      ...roleData,
+      id: `role_${Date.now()}`,
+      code: cleanCode,
+      isSystem: false,
+      userCount: 0,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+
+    const updatedRoles = [...roles, newRole];
+    setRoles(updatedRoles);
+    try {
+      localStorage.setItem('fusion_forge_roles', JSON.stringify(updatedRoles));
+    } catch (e) {
+      console.warn('Failed to save roles:', e);
+    }
+
+    addAuditLog({
+      user_id: currentUser.id,
+      user_email: currentUser.email,
+      user_role: currentUser.role,
+      action: 'CREATE',
+      table_name: 'roles',
+      record_id: newRole.id,
+      details: `Created new custom RBAC role: ${newRole.name} [${newRole.code}] with ${newRole.permissions.length} permissions`
+    });
+
+    return newRole;
+  };
+
+  const updateRole = (id: string, data: Partial<RoleDefinition>): boolean => {
+    if (currentUser.role !== 'super_admin') {
+      console.warn('[Security Violation] Unauthorized attempt to modify role: Super Admin authority required.');
+      return false;
+    }
+
+    let modifiedRoleName = '';
+    const updatedRoles = roles.map(r => {
+      if (r.id === id) {
+        modifiedRoleName = r.name;
+        return { ...r, ...data, updatedAt: new Date().toISOString() };
+      }
+      return r;
+    });
+
+    setRoles(updatedRoles);
+    try {
+      localStorage.setItem('fusion_forge_roles', JSON.stringify(updatedRoles));
+    } catch (e) {
+      console.warn('Failed to update roles in localStorage:', e);
+    }
+
+    addAuditLog({
+      user_id: currentUser.id,
+      user_email: currentUser.email,
+      user_role: currentUser.role,
+      action: 'UPDATE',
+      table_name: 'roles',
+      record_id: id,
+      details: `Modified RBAC role permissions & definition: ${modifiedRoleName} (${data.permissions ? data.permissions.length + ' permissions' : 'metadata'})`
+    });
+
+    return true;
+  };
+
+  const deleteRole = (id: string): boolean => {
+    if (currentUser.role !== 'super_admin') {
+      console.warn('[Security Violation] Unauthorized attempt to delete role: Super Admin authority required.');
+      return false;
+    }
+
+    const targetRole = roles.find(r => r.id === id);
+    if (!targetRole) return false;
+
+    if (targetRole.isSystem) {
+      console.warn('[Role Management] System built-in roles cannot be deleted.');
+      return false;
+    }
+
+    const updatedRoles = roles.filter(r => r.id !== id);
+    setRoles(updatedRoles);
+    try {
+      localStorage.setItem('fusion_forge_roles', JSON.stringify(updatedRoles));
+    } catch (e) {
+      console.warn('Failed to delete role:', e);
+    }
+
+    addAuditLog({
+      user_id: currentUser.id,
+      user_email: currentUser.email,
+      user_role: currentUser.role,
+      action: 'DELETE',
+      table_name: 'roles',
+      record_id: id,
+      details: `Deleted custom RBAC role: ${targetRole.name} [${targetRole.code}]`
+    });
+
+    return true;
+  };
+
+  const assignUserRole = (userId: string, roleCode: string) => {
+    if (currentUser.role !== 'super_admin') {
+      console.warn('[Security Violation] Unauthorized role assignment attempt.');
+      return;
+    }
+
+    setUsers(prev => prev.map(u => {
+      if (u.id === userId) {
+        return { ...u, role: roleCode as any, updated_at: new Date().toISOString() };
+      }
+      return u;
+    }));
+
+    if (currentUser.id === userId) {
+      setCurrentUser(prev => ({ ...prev, role: roleCode as any }));
+    }
+
+    addAuditLog({
+      user_id: currentUser.id,
+      user_email: currentUser.email,
+      user_role: currentUser.role,
+      action: 'ROLE_CHANGE',
+      table_name: 'profiles',
+      record_id: userId,
+      details: `Assigned new role [${roleCode}] to user ${userId}`
+    });
+  };
+
+  const checkPermission = (permissionCode: string): boolean => {
+    return hasPermission(currentUser.role, permissionCode, roles);
+  };
+
+  // Phase 5: Service Price Presets Handlers
+  const addPricePreset = (presetData: Omit<ServicePricePreset, 'id' | 'created_at' | 'updated_at'>): ServicePricePreset => {
+    const newId = `preset_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`;
+    const newPreset: ServicePricePreset = {
+      ...presetData,
+      id: newId,
+      name: presetData.service_name,
+      rate: presetData.default_price,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
+
+    setPricePresets(prev => [...prev, newPreset]);
+
+    if (isSupabaseConfigured) {
+      supabase.from('service_price_presets').insert({
+        service_name: newPreset.service_name,
+        description: newPreset.description,
+        sac_code: newPreset.sac_code || '998314',
+        default_price: newPreset.default_price,
+        gst_applicable: newPreset.gst_applicable,
+        gst_rate: newPreset.gst_rate,
+        is_active: newPreset.is_active
+      }).then();
+    }
+
+    addAuditLog({
+      user_id: currentUser.id,
+      user_email: currentUser.email,
+      user_role: currentUser.role,
+      action: 'CREATE',
+      table_name: 'service_price_presets',
+      record_id: newId,
+      details: `Created new price preset: ${newPreset.service_name} (₹${newPreset.default_price.toLocaleString('en-IN')})`
+    });
+
+    return newPreset;
+  };
+
+  const updatePricePreset = (id: string, data: Partial<ServicePricePreset>) => {
+    let presetName = '';
+    setPricePresets(prev => prev.map(p => {
+      if (p.id === id) {
+        presetName = data.service_name || p.service_name;
+        return {
+          ...p,
+          ...data,
+          name: data.service_name || p.service_name,
+          rate: data.default_price !== undefined ? data.default_price : p.default_price,
+          updated_at: new Date().toISOString()
+        };
+      }
+      return p;
+    }));
+
+    if (isSupabaseConfigured) {
+      supabase.from('service_price_presets').update({
+        ...(data.service_name !== undefined ? { service_name: data.service_name } : {}),
+        ...(data.description !== undefined ? { description: data.description } : {}),
+        ...(data.sac_code !== undefined ? { sac_code: data.sac_code } : (data.sacCode !== undefined ? { sac_code: data.sacCode } : {})),
+        ...(data.default_price !== undefined ? { default_price: data.default_price } : (data.rate !== undefined ? { default_price: data.rate } : {})),
+        ...(data.gst_applicable !== undefined ? { gst_applicable: data.gst_applicable } : {}),
+        ...(data.gst_rate !== undefined ? { gst_rate: data.gst_rate } : {}),
+        ...(data.is_active !== undefined ? { is_active: data.is_active } : {}),
+        updated_at: new Date().toISOString()
+      }).eq('id', id).then();
+    }
+
+    addAuditLog({
+      user_id: currentUser.id,
+      user_email: currentUser.email,
+      user_role: currentUser.role,
+      action: 'UPDATE',
+      table_name: 'service_price_presets',
+      record_id: id,
+      details: `Modified price preset: ${presetName || id}`
+    });
+  };
+
+  const deletePricePreset = (id: string) => {
+    const target = pricePresets.find(p => p.id === id);
+    setPricePresets(prev => prev.filter(p => p.id !== id));
+
+    if (isSupabaseConfigured) {
+      supabase.from('service_price_presets').delete().eq('id', id).then();
+    }
+
+    addAuditLog({
+      user_id: currentUser.id,
+      user_email: currentUser.email,
+      user_role: currentUser.role,
+      action: 'DELETE',
+      table_name: 'service_price_presets',
+      record_id: id,
+      details: `Deleted price preset: ${target?.service_name || id}`
+    });
+  };
+
+  const togglePricePresetActive = (id: string) => {
+    const target = pricePresets.find(p => p.id === id);
+    if (!target) return;
+    const nextState = !target.is_active;
+
+    updatePricePreset(id, { is_active: nextState });
+  };
+
+  // Phase 5: Payment Terms Handlers
+  const addPaymentTerm = (termData: Omit<PaymentTermItem, 'id' | 'created_at' | 'updated_at'>): PaymentTermItem => {
+    const newId = `pt_${Date.now()}`;
+    const newTerm: PaymentTermItem = {
+      ...termData,
+      id: newId,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
+
+    setPaymentTerms(prev => {
+      // If this term is set as default, unset previous defaults
+      const updated = newTerm.is_default
+        ? prev.map(t => ({ ...t, is_default: false }))
+        : prev;
+      return [...updated, newTerm];
+    });
+
+    if (isSupabaseConfigured) {
+      supabase.from('payment_terms').insert({
+        name: newTerm.name,
+        description: newTerm.description || '',
+        is_default: newTerm.is_default || false,
+        sort_order: newTerm.sort_order || 0
+      }).then();
+    }
+
+    addAuditLog({
+      user_id: currentUser.id,
+      user_email: currentUser.email,
+      user_role: currentUser.role,
+      action: 'CREATE',
+      table_name: 'payment_terms',
+      record_id: newId,
+      details: `Created payment term: ${newTerm.name}`
+    });
+
+    return newTerm;
+  };
+
+  const updatePaymentTerm = (id: string, data: Partial<PaymentTermItem>) => {
+    setPaymentTerms(prev => prev.map(t => {
+      if (t.id === id) {
+        return { ...t, ...data, updated_at: new Date().toISOString() };
+      }
+      if (data.is_default && t.id !== id) {
+        return { ...t, is_default: false };
+      }
+      return t;
+    }));
+
+    if (isSupabaseConfigured) {
+      supabase.from('payment_terms').update({
+        ...(data.name !== undefined ? { name: data.name } : {}),
+        ...(data.description !== undefined ? { description: data.description } : {}),
+        ...(data.is_default !== undefined ? { is_default: data.is_default } : {}),
+        ...(data.sort_order !== undefined ? { sort_order: data.sort_order } : {}),
+        updated_at: new Date().toISOString()
+      }).eq('id', id).then();
+    }
+
+    addAuditLog({
+      user_id: currentUser.id,
+      user_email: currentUser.email,
+      user_role: currentUser.role,
+      action: 'UPDATE',
+      table_name: 'payment_terms',
+      record_id: id,
+      details: `Updated payment term: ${data.name || id}`
+    });
+  };
+
+  const deletePaymentTerm = (id: string) => {
+    const target = paymentTerms.find(t => t.id === id);
+    setPaymentTerms(prev => prev.filter(t => t.id !== id));
+
+    if (isSupabaseConfigured) {
+      supabase.from('payment_terms').delete().eq('id', id).then();
+    }
+
+    addAuditLog({
+      user_id: currentUser.id,
+      user_email: currentUser.email,
+      user_role: currentUser.role,
+      action: 'DELETE',
+      table_name: 'payment_terms',
+      record_id: id,
+      details: `Deleted payment term: ${target?.name || id}`
+    });
+  };
+
+  const setDefaultPaymentTerm = (id: string) => {
+    setPaymentTerms(prev => prev.map(t => ({
+      ...t,
+      is_default: t.id === id,
+      updated_at: new Date().toISOString()
+    })));
+
+    if (isSupabaseConfigured) {
+      supabase.from('payment_terms').update({ is_default: false }).neq('id', id).then(() => {
+        supabase.from('payment_terms').update({ is_default: true }).eq('id', id).then();
+      });
+    }
+
+    addAuditLog({
+      user_id: currentUser.id,
+      user_email: currentUser.email,
+      user_role: currentUser.role,
+      action: 'UPDATE',
+      table_name: 'payment_terms',
+      record_id: id,
+      details: `Set default payment term to: ${paymentTerms.find(t => t.id === id)?.name || id}`
+    });
+  };
+
+  // Phase 5: Document Numbering Configuration
+  const updateDocumentNumberConfig = (type: 'invoice' | 'quotation', configUpdate: Partial<DocumentNumberConfig>) => {
+    setAgencyConfig(prev => {
+      const currentConfigs = prev.numbering_configs || {
+        invoice: DEFAULT_INVOICE_NUMBERING,
+        quotation: DEFAULT_QUOTATION_NUMBERING
+      };
+
+      const updatedNumbering = {
+        ...currentConfigs,
+        [type]: {
+          ...currentConfigs[type],
+          ...configUpdate
+        }
+      };
+
+      const updated = {
+        ...prev,
+        numbering_configs: updatedNumbering
+      };
+
+      if (isSupabaseConfigured) {
+        supabase.from('seller_profile').update({
+          numbering_configs: updatedNumbering,
+          updated_at: new Date().toISOString()
+        }).neq('id', '00000000-0000-0000-0000-000000000000').then();
+      }
+
+      return updated;
+    });
+
+    addAuditLog({
+      user_id: currentUser.id,
+      user_email: currentUser.email,
+      user_role: currentUser.role,
+      action: 'UPDATE',
+      table_name: 'numbering_configs',
+      record_id: type,
+      details: `Super Admin reconfigured ${type} document numbering pattern (Prefix: ${configUpdate.prefix || 'N/A'}, Style: ${configUpdate.style || 'N/A'}, Seq: ${configUpdate.starting_sequence || configUpdate.current_sequence || 'N/A'})`
     });
   };
 
@@ -1747,11 +2369,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         ...(data.address !== undefined ? { address: data.address } : {}),
         ...(data.gstin !== undefined ? { gstin: data.gstin } : {}),
         ...(data.state_code !== undefined ? { state_code: data.state_code } : {}),
+        ...(data.msme_number !== undefined ? { msme_number: data.msme_number } : (data.msmeNumber !== undefined ? { msme_number: data.msmeNumber } : {})),
+        ...(data.stamp_url !== undefined ? { stamp_url: data.stamp_url } : (data.stampUrl !== undefined ? { stamp_url: data.stampUrl } : {})),
+        ...(data.signature_url !== undefined ? { signature_url: data.signature_url } : {}),
+        ...(data.logo_url !== undefined ? { logo_url: data.logo_url } : {}),
+        ...(data.default_quotation_validity_days !== undefined ? { default_quotation_validity_days: data.default_quotation_validity_days } : {}),
+        ...(data.quotation_terms !== undefined ? { quotation_terms: data.quotation_terms } : {}),
+        ...(data.invoice_terms !== undefined ? { invoice_terms: data.invoice_terms } : {}),
+        ...(data.numbering_configs !== undefined ? { numbering_configs: data.numbering_configs } : {}),
         ...(data.bank_name !== undefined ? { bank_name: data.bank_name } : (data.bankDetails?.bankName !== undefined ? { bank_name: data.bankDetails.bankName } : {})),
         ...(data.account_name !== undefined ? { account_name: data.account_name } : (data.bankDetails?.accountName !== undefined ? { account_name: data.bankDetails.accountName } : {})),
         ...(data.account_number !== undefined ? { account_number: data.account_number } : (data.bankDetails?.accountNumber !== undefined ? { account_number: data.bankDetails.accountNumber } : {})),
         ...(data.ifsc_code !== undefined ? { ifsc_code: data.ifsc_code } : (data.bankDetails?.ifscCode !== undefined ? { ifsc_code: data.bankDetails.ifscCode } : {})),
         ...(data.branch_name !== undefined ? { branch_name: data.branch_name } : (data.bankDetails?.branch !== undefined ? { branch_name: data.bankDetails.branch } : {})),
+        ...(data.terms_conditions !== undefined ? { terms_conditions: data.terms_conditions } : {}),
         updated_at: new Date().toISOString()
       }).neq('id', '00000000-0000-0000-0000-000000000000').then();
     }
@@ -1842,8 +2473,26 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       addUser,
       updateUser,
       deleteUser,
+      roles,
+      permissions,
+      addRole,
+      updateRole,
+      deleteRole,
+      assignUserRole,
+      checkPermission,
       auditLogs,
       addAuditLog,
+      pricePresets,
+      addPricePreset,
+      updatePricePreset,
+      deletePricePreset,
+      togglePricePresetActive,
+      paymentTerms,
+      addPaymentTerm,
+      updatePaymentTerm,
+      deletePaymentTerm,
+      setDefaultPaymentTerm,
+      updateDocumentNumberConfig,
       updateAgencyConfig,
       agencyConfig
     }}>

@@ -47,22 +47,127 @@ export const INDIAN_STATES: IndianState[] = [
 
 export const getStateCodeByName = (stateName: string): string => {
   if (!stateName) return '';
+  const clean = stateName.trim().toLowerCase();
   const found = INDIAN_STATES.find(
-    s => s.name.toLowerCase() === stateName.toLowerCase() ||
-         stateName.toLowerCase().includes(s.name.toLowerCase())
+    s => s.name.toLowerCase() === clean ||
+         clean.includes(s.name.toLowerCase()) ||
+         s.name.toLowerCase().includes(clean)
   );
   return found ? found.code : '';
 };
 
 export const getStateNameByCode = (code: string): string => {
   if (!code) return '';
-  const cleanCode = code.padStart(2, '0');
+  const cleanCode = code.trim().padStart(2, '0');
   const found = INDIAN_STATES.find(s => s.code === cleanCode);
   return found ? found.name : '';
 };
 
 export const formatPlaceOfSupply = (stateName: string, stateCode?: string): string => {
-  if (!stateName) return '';
-  const code = stateCode || getStateCodeByName(stateName);
-  return code ? `${code}-${stateName}` : stateName;
+  if (!stateName && !stateCode) return '';
+  const code = stateCode ? stateCode.padStart(2, '0') : getStateCodeByName(stateName);
+  const name = stateName || getStateNameByCode(code);
+  return code && name ? `${code}-${name}` : (name || code || '');
+};
+
+// Standard 15-character GSTIN Regex: 2 digits + 10-char PAN + 1 entity num + 'Z' + 1 checksum
+export const GSTIN_REGEX = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
+
+export interface GstinValidationResult {
+  isValid: boolean;
+  isUrp: boolean;
+  stateCode: string;
+  stateName: string;
+  placeOfSupply: string;
+  pan: string;
+  status: 'valid' | 'invalid_format' | 'incomplete' | 'unregistered' | 'invalid_state';
+  message: string;
+}
+
+export const validateAndDeriveGstin = (gstinInput?: string | null): GstinValidationResult => {
+  if (!gstinInput || !gstinInput.trim() || gstinInput.trim().toUpperCase() === 'URP' || gstinInput.trim() === '—') {
+    return {
+      isValid: false,
+      isUrp: true,
+      stateCode: '',
+      stateName: '',
+      placeOfSupply: '',
+      pan: '',
+      status: 'unregistered',
+      message: 'Unregistered Person (URP) / Non-GST Client'
+    };
+  }
+
+  const clean = gstinInput.trim().toUpperCase();
+
+  // Extract first 2 digits
+  let stateCode = '';
+  let stateName = '';
+  let placeOfSupply = '';
+  let pan = '';
+
+  if (clean.length >= 2) {
+    const rawCode = clean.substring(0, 2);
+    if (/^\d{2}$/.test(rawCode)) {
+      stateCode = rawCode;
+      stateName = getStateNameByCode(stateCode);
+      if (stateName) {
+        placeOfSupply = `${stateCode}-${stateName}`;
+      }
+    }
+  }
+
+  if (clean.length >= 12) {
+    pan = clean.substring(2, 12);
+  }
+
+  if (clean.length < 15) {
+    return {
+      isValid: false,
+      isUrp: false,
+      stateCode,
+      stateName,
+      placeOfSupply,
+      pan,
+      status: 'incomplete',
+      message: `Incomplete GSTIN (${clean.length}/15 characters)`
+    };
+  }
+
+  if (!stateName) {
+    return {
+      isValid: false,
+      isUrp: false,
+      stateCode,
+      stateName: '',
+      placeOfSupply: '',
+      pan,
+      status: 'invalid_state',
+      message: `Invalid State Code [${stateCode}] in GSTIN`
+    };
+  }
+
+  if (!GSTIN_REGEX.test(clean)) {
+    return {
+      isValid: false,
+      isUrp: false,
+      stateCode,
+      stateName,
+      placeOfSupply,
+      pan,
+      status: 'invalid_format',
+      message: 'Invalid GSTIN format pattern (Expected: 2-digit code + PAN + 1 char + Z + check char)'
+    };
+  }
+
+  return {
+    isValid: true,
+    isUrp: false,
+    stateCode,
+    stateName,
+    placeOfSupply,
+    pan,
+    status: 'valid',
+    message: `Verified GSTIN • ${stateName} (${stateCode})`
+  };
 };

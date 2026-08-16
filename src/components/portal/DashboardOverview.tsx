@@ -27,12 +27,12 @@ export const DashboardOverview: React.FC = () => {
   // Active records (exclude soft-deleted)
   const activeInvoices = invoices.filter(i => !i.isDeleted);
   const activeQuotations = quotations;
-  const openEnquiries = enquiries.filter(e => e.status !== 'closed');
+  const openEnquiries = enquiries.filter(e => !['closed', 'Closed', 'lost', 'won', 'Converted', 'converted'].includes(e.status));
   
   const totalClientsCount = clients.length || 24;
-  const openEnquiriesCount = openEnquiries.length || 8;
-  const quotationsCount = activeQuotations.length || 12;
-  const totalInvoicesCount = activeInvoices.length || 18;
+  const openEnquiriesCount = openEnquiries.length;
+  const quotationsCount = activeQuotations.length;
+  const totalInvoicesCount = activeInvoices.length;
 
   const totalOutstanding = activeInvoices.reduce((acc, i) => acc + (i.balanceDue || 0), 0) || 125000;
   const totalPaid = activeInvoices.reduce((acc, i) => acc + (i.paidAmount || 0), 0) || 340000;
