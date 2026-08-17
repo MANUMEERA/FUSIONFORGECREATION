@@ -4,7 +4,7 @@ export interface IndianState {
 }
 
 export const INDIAN_STATES: IndianState[] = [
-  { code: '01', name: 'Jammu & Kashmir' },
+  { code: '01', name: 'Jammu and Kashmir' },
   { code: '02', name: 'Himachal Pradesh' },
   { code: '03', name: 'Punjab' },
   { code: '04', name: 'Chandigarh' },
@@ -28,8 +28,8 @@ export const INDIAN_STATES: IndianState[] = [
   { code: '22', name: 'Chhattisgarh' },
   { code: '23', name: 'Madhya Pradesh' },
   { code: '24', name: 'Gujarat' },
-  { code: '25', name: 'Daman & Diu' },
-  { code: '26', name: 'Dadra & Nagar Haveli' },
+  { code: '25', name: 'Daman and Diu (Legacy)' },
+  { code: '26', name: 'Dadra and Nagar Haveli and Daman and Diu' },
   { code: '27', name: 'Maharashtra' },
   { code: '28', name: 'Andhra Pradesh (Old)' },
   { code: '29', name: 'Karnataka' },
@@ -38,7 +38,7 @@ export const INDIAN_STATES: IndianState[] = [
   { code: '32', name: 'Kerala' },
   { code: '33', name: 'Tamil Nadu' },
   { code: '34', name: 'Puducherry' },
-  { code: '35', name: 'Andaman & Nicobar Islands' },
+  { code: '35', name: 'Andaman and Nicobar Islands' },
   { code: '36', name: 'Telangana' },
   { code: '37', name: 'Andhra Pradesh' },
   { code: '38', name: 'Ladakh' },

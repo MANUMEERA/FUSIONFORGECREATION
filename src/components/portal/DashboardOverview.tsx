@@ -17,12 +17,26 @@ import {
   ArrowRight,
   ShieldCheck,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  ShoppingBag,
+  Calculator
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 
 export const DashboardOverview: React.FC = () => {
-  const { clients, quotations, invoices, payments, enquiries, setActiveTab, recordPayment } = useApp();
+  const { 
+    clients, 
+    quotations, 
+    invoices, 
+    payments, 
+    enquiries, 
+    purchases, 
+    expenses, 
+    salaryRecords, 
+    staffMembers,
+    setActiveTab, 
+    recordPayment 
+  } = useApp();
 
   // Active records (exclude soft-deleted)
   const activeInvoices = invoices.filter(i => !i.isDeleted);
@@ -37,6 +51,14 @@ export const DashboardOverview: React.FC = () => {
   const totalOutstanding = activeInvoices.reduce((acc, i) => acc + (i.balanceDue || 0), 0) || 125000;
   const totalPaid = activeInvoices.reduce((acc, i) => acc + (i.paidAmount || 0), 0) || 340000;
   const totalBilled = totalPaid + totalOutstanding;
+
+  // Financial Outflow stats
+  const totalPurchasesAmount = purchases.reduce((sum, p) => sum + p.totalAmount, 0);
+  const totalPurchasesItc = purchases.reduce((sum, p) => sum + (p.cgstAmount + p.sgstAmount + p.igstAmount), 0);
+  const totalExpensesAmount = expenses.reduce((sum, e) => sum + e.amount, 0);
+  const totalSalariesGross = salaryRecords.reduce((sum, s) => sum + s.grossSalary, 0);
+  const totalOutflow = totalPurchasesAmount + totalExpensesAmount + totalSalariesGross;
+  const netOperatingProfit = totalBilled - totalOutflow;
 
   // Pending payments (invoices with balanceDue > 0)
   const pendingInvoices = activeInvoices.filter(i => (i.balanceDue || 0) > 0);
@@ -320,6 +342,81 @@ export const DashboardOverview: React.FC = () => {
           <div className="p-3.5 rounded-xl bg-gradient-to-br from-amber-950/50 to-orange-950/30 border border-amber-500/30 text-xs">
             <div className="text-amber-300 font-semibold">Pending Receivables (Outstanding)</div>
             <div className="text-lg font-black text-amber-400 font-mono mt-1">₹{totalOutstanding.toLocaleString('en-IN')}</div>
+          </div>
+        </div>
+      </div>
+
+      {/* ========================================================================= */}
+      {/* FINANCIAL HEALTH & P&L EXECUTIVE SECTION (PHASE 10)                       */}
+      {/* ========================================================================= */}
+      <div className="bg-gradient-to-br from-[#111f48]/95 via-[#0c1736]/95 to-[#070e24]/95 border border-indigo-500/30 rounded-2xl p-6 shadow-xl backdrop-blur-md space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-indigo-500/20">
+          <div>
+            <h3 className="text-sm font-black text-white flex items-center gap-2">
+              <Calculator className="w-4 h-4 text-cyan-400" />
+              <span>Profit & Loss (P&L) & Cost Center Outflows</span>
+            </h3>
+            <p className="text-xs text-slate-300 mt-0.5">Purchases, OPEX, Employee Payroll, and Net Operating EBITDA</p>
+          </div>
+          <button
+            onClick={() => setActiveTab('accounting')}
+            className="text-xs text-cyan-300 hover:text-cyan-200 font-bold flex items-center gap-1 cursor-pointer bg-blue-500/10 px-3 py-1.5 rounded-xl border border-blue-500/30"
+          >
+            Full P&L Reports <ArrowRight className="w-3.5 h-3.5" />
+          </button>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div 
+            onClick={() => setActiveTab('purchases')}
+            className="p-4 rounded-xl bg-slate-900/80 border border-indigo-500/30 hover:border-indigo-400 transition-all cursor-pointer space-y-1"
+          >
+            <div className="flex justify-between text-xs text-indigo-300 font-semibold">
+              <span>Vendor Purchases</span>
+              <ShoppingBag className="w-3.5 h-3.5" />
+            </div>
+            <div className="text-xl font-black text-white font-mono">₹{totalPurchasesAmount.toLocaleString('en-IN')}</div>
+            <div className="text-[10px] text-emerald-400 font-mono">ITC Claimable: ₹{totalPurchasesItc.toLocaleString('en-IN')}</div>
+          </div>
+
+          <div 
+            onClick={() => setActiveTab('expenses')}
+            className="p-4 rounded-xl bg-slate-900/80 border border-rose-500/30 hover:border-rose-400 transition-all cursor-pointer space-y-1"
+          >
+            <div className="flex justify-between text-xs text-rose-300 font-semibold">
+              <span>Operating Expenses (OPEX)</span>
+              <CreditCard className="w-3.5 h-3.5" />
+            </div>
+            <div className="text-xl font-black text-rose-400 font-mono">₹{totalExpensesAmount.toLocaleString('en-IN')}</div>
+            <div className="text-[10px] text-slate-400">{expenses.length} operating vouchers</div>
+          </div>
+
+          <div 
+            onClick={() => setActiveTab('salary')}
+            className="p-4 rounded-xl bg-slate-900/80 border border-cyan-500/30 hover:border-cyan-400 transition-all cursor-pointer space-y-1"
+          >
+            <div className="flex justify-between text-xs text-cyan-300 font-semibold">
+              <span>Salary & Payroll</span>
+              <Users className="w-3.5 h-3.5" />
+            </div>
+            <div className="text-xl font-black text-cyan-400 font-mono">₹{totalSalariesGross.toLocaleString('en-IN')}</div>
+            <div className="text-[10px] text-slate-400">{staffMembers.length} active team members</div>
+          </div>
+
+          <div 
+            onClick={() => setActiveTab('accounting')}
+            className="p-4 rounded-xl bg-gradient-to-br from-emerald-950/60 to-slate-900 border border-emerald-500/40 hover:border-emerald-400 transition-all cursor-pointer space-y-1"
+          >
+            <div className="flex justify-between text-xs text-emerald-300 font-semibold">
+              <span>Net Operating Profit</span>
+              <TrendingUp className="w-3.5 h-3.5" />
+            </div>
+            <div className={`text-xl font-black font-mono ${netOperatingProfit >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+              ₹{netOperatingProfit.toLocaleString('en-IN')}
+            </div>
+            <div className="text-[10px] text-emerald-300 font-bold">
+              Margin: {totalBilled > 0 ? Math.round((netOperatingProfit / totalBilled) * 100) : 0}%
+            </div>
           </div>
         </div>
       </div>

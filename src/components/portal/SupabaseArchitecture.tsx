@@ -39,7 +39,7 @@ interface TableColumnInfo {
 
 interface TableNode {
   name: string;
-  category: 'auth' | 'crm' | 'sales' | 'content' | 'seller' | 'geography' | 'audit';
+  category: 'auth' | 'crm' | 'sales' | 'content' | 'seller' | 'geography' | 'audit' | 'finance' | 'payroll';
   description: string;
   primaryKey: string;
   foreignKeys?: { column: string; references: string; onDelete?: string }[];
@@ -55,6 +55,10 @@ export const SupabaseArchitecture: React.FC = () => {
     quotations, 
     invoices, 
     payments, 
+    purchases,
+    expenses,
+    staffMembers,
+    salaryRecords,
     services, 
     technologies, 
     managedProjects, 
@@ -418,6 +422,103 @@ export const SupabaseArchitecture: React.FC = () => {
       primaryKey: 'code (VARCHAR(2))',
       columnsCount: 8,
       sampleCount: 39
+    },
+    purchases: {
+      name: 'purchases',
+      category: 'finance',
+      description: 'Vendor bills, procurements, and cloud infrastructure invoices with HSN/SAC codes and Input Tax Credit (ITC).',
+      primaryKey: 'id (TEXT/UUID)',
+      foreignKeys: [{ column: 'supplier_state_code', references: 'state_ut_master(code)', onDelete: 'RESTRICT' }],
+      columnsCount: 28,
+      columns: [
+        { name: 'id', type: 'TEXT', isNullable: false, isPrimary: true, description: 'Unique purchase bill ID' },
+        { name: 'supplier_name', type: 'TEXT', isNullable: false, description: 'Supplier / Vendor business title' },
+        { name: 'supplier_gstin', type: 'VARCHAR(15)', isNullable: true, description: 'Vendor GSTIN for B2B ITC claim' },
+        { name: 'bill_number', type: 'TEXT', isNullable: false, description: 'Vendor invoice or tax receipt number' },
+        { name: 'purchase_date', type: 'DATE', isNullable: false, defaultValue: 'CURRENT_DATE', description: 'Bill transaction date' },
+        { name: 'due_date', type: 'DATE', isNullable: true, description: 'Payment due deadline' },
+        { name: 'description', type: 'TEXT', isNullable: false, description: 'Procurement details & items' },
+        { name: 'hsn_sac_code', type: 'VARCHAR(10)', isNullable: true, description: 'HSN/SAC classification code' },
+        { name: 'category', type: 'TEXT', isNullable: true, description: 'Procurement classification group' },
+        { name: 'taxable_amount', type: 'NUMERIC(12,2)', isNullable: false, defaultValue: '0.00', description: 'Tax base before GST' },
+        { name: 'gst_rate', type: 'NUMERIC(5,2)', isNullable: false, defaultValue: '18.00', description: 'Applicable GST percentage' },
+        { name: 'cgst_amount', type: 'NUMERIC(12,2)', isNullable: false, defaultValue: '0.00', description: 'Central tax' },
+        { name: 'sgst_amount', type: 'NUMERIC(12,2)', isNullable: false, defaultValue: '0.00', description: 'State tax' },
+        { name: 'igst_amount', type: 'NUMERIC(12,2)', isNullable: false, defaultValue: '0.00', description: 'Integrated tax' },
+        { name: 'total_amount', type: 'NUMERIC(12,2)', isNullable: false, defaultValue: '0.00', description: 'Total payable amount' },
+        { name: 'payment_status', type: 'TEXT', isNullable: false, defaultValue: "'pending'", description: 'pending, paid, partially_paid, cancelled' },
+        { name: 'is_itc_claimable', type: 'BOOLEAN', isNullable: false, defaultValue: 'true', description: 'Eligible for GSTR-2B / 3B ITC' },
+        { name: 'attachment_url', type: 'TEXT', isNullable: true, description: 'Uploaded bill document URL' }
+      ],
+      sampleCount: purchases.length
+    },
+    expenses: {
+      name: 'expenses',
+      category: 'finance',
+      description: 'Daily operational expenditures, office rent, utilities, marketing, software subscriptions, and petty cash.',
+      primaryKey: 'id (TEXT/UUID)',
+      columnsCount: 23,
+      columns: [
+        { name: 'id', type: 'TEXT', isNullable: false, isPrimary: true, description: 'Unique expense voucher ID' },
+        { name: 'expense_date', type: 'DATE', isNullable: false, defaultValue: 'CURRENT_DATE', description: 'Expenditure date' },
+        { name: 'category', type: 'TEXT', isNullable: false, description: 'Rent, Hosting, Software, Travel, Legal, Meals' },
+        { name: 'description', type: 'TEXT', isNullable: false, description: 'Expense purpose and narrative' },
+        { name: 'vendor_name', type: 'TEXT', isNullable: false, description: 'Payee / service provider' },
+        { name: 'amount', type: 'NUMERIC(12,2)', isNullable: false, defaultValue: '0.00', description: 'Total outflow amount' },
+        { name: 'gst_applicable', type: 'BOOLEAN', isNullable: false, defaultValue: 'false', description: 'GST levy status' },
+        { name: 'taxable_amount', type: 'NUMERIC(12,2)', isNullable: true, description: 'Net expense before tax' },
+        { name: 'gst_amount', type: 'NUMERIC(12,2)', isNullable: true, description: 'Levied GST total' },
+        { name: 'payment_mode', type: 'TEXT', isNullable: false, defaultValue: "'UPI'", description: 'UPI, Net Banking, Card, Cash' },
+        { name: 'status', type: 'TEXT', isNullable: false, defaultValue: "'paid'", description: 'paid, pending, approved' }
+      ],
+      sampleCount: expenses.length
+    },
+    staff_members: {
+      name: 'staff_members',
+      category: 'payroll',
+      description: 'Employee profiles, designations, department structure, statutory PF/ESI/TDS flags, and bank details.',
+      primaryKey: 'id (TEXT/UUID)',
+      columnsCount: 21,
+      columns: [
+        { name: 'id', type: 'TEXT', isNullable: false, isPrimary: true, description: 'Staff master ID' },
+        { name: 'employee_id', type: 'TEXT', isNullable: false, description: 'Unique code (e.g. FFC-EMP-001)' },
+        { name: 'full_name', type: 'TEXT', isNullable: false, description: 'Employee legal name' },
+        { name: 'email', type: 'TEXT', isNullable: false, description: 'Corporate email' },
+        { name: 'designation', type: 'TEXT', isNullable: false, description: 'Role & job title' },
+        { name: 'department', type: 'TEXT', isNullable: false, description: 'Engineering, Design, DevOps, Admin' },
+        { name: 'joining_date', type: 'DATE', isNullable: false, description: 'Employment start date' },
+        { name: 'base_salary', type: 'NUMERIC(12,2)', isNullable: false, defaultValue: '0.00', description: 'Monthly base salary' },
+        { name: 'hra_allowance', type: 'NUMERIC(12,2)', isNullable: false, defaultValue: '0.00', description: 'House rent allowance' },
+        { name: 'special_allowance', type: 'NUMERIC(12,2)', isNullable: false, defaultValue: '0.00', description: 'Special allowance' },
+        { name: 'pf_applicable', type: 'BOOLEAN', isNullable: false, defaultValue: 'true', description: 'EPF statutory deduction' },
+        { name: 'is_active', type: 'BOOLEAN', isNullable: false, defaultValue: 'true', description: 'Employment active status' }
+      ],
+      sampleCount: staffMembers.length
+    },
+    salary_records: {
+      name: 'salary_records',
+      category: 'payroll',
+      description: 'Monthly payroll runs, gross earnings, PF/ESI/PT/TDS deductions, net disbursements, and generated payslips.',
+      primaryKey: 'id (TEXT/UUID)',
+      foreignKeys: [{ column: 'employee_id', references: 'staff_members(id)', onDelete: 'CASCADE' }],
+      columnsCount: 26,
+      columns: [
+        { name: 'id', type: 'TEXT', isNullable: false, isPrimary: true, description: 'Unique payroll run ID' },
+        { name: 'employee_id', type: 'TEXT', isNullable: false, isForeign: true, references: 'staff_members(id)', description: 'Staff member FK' },
+        { name: 'employee_name', type: 'TEXT', isNullable: false, description: 'Employee full name' },
+        { name: 'period', type: 'TEXT', isNullable: false, description: 'Cycle label (e.g. August 2026)' },
+        { name: 'period_month', type: 'TEXT', isNullable: false, description: 'Month (01-12)' },
+        { name: 'period_year', type: 'INTEGER', isNullable: false, description: 'Calendar year (e.g. 2026)' },
+        { name: 'gross_salary', type: 'NUMERIC(12,2)', isNullable: false, defaultValue: '0.00', description: 'Gross earnings before deductions' },
+        { name: 'provident_fund', type: 'NUMERIC(12,2)', isNullable: false, defaultValue: '0.00', description: 'Employee PF (12%)' },
+        { name: 'professional_tax', type: 'NUMERIC(12,2)', isNullable: false, defaultValue: '0.00', description: 'Professional Tax (₹200)' },
+        { name: 'tds_deduction', type: 'NUMERIC(12,2)', isNullable: false, defaultValue: '0.00', description: 'Tax deducted at source' },
+        { name: 'total_deductions', type: 'NUMERIC(12,2)', isNullable: false, defaultValue: '0.00', description: 'Sum of all deductions' },
+        { name: 'net_salary', type: 'NUMERIC(12,2)', isNullable: false, defaultValue: '0.00', description: 'Take-home disbursement' },
+        { name: 'payment_status', type: 'TEXT', isNullable: false, defaultValue: "'processing'", description: 'processing, paid, hold, failed' },
+        { name: 'payslip_generated', type: 'BOOLEAN', isNullable: false, defaultValue: 'true', description: 'Official payslip document status' }
+      ],
+      sampleCount: salaryRecords.length
     }
   };
 
@@ -430,6 +531,8 @@ export const SupabaseArchitecture: React.FC = () => {
       case 'content': return 'bg-purple-500/10 text-purple-400 border-purple-500/30';
       case 'seller': return 'bg-cyan-500/10 text-cyan-400 border-cyan-500/30';
       case 'geography': return 'bg-indigo-500/10 text-indigo-400 border-indigo-500/30';
+      case 'finance': return 'bg-teal-500/10 text-teal-400 border-teal-500/30';
+      case 'payroll': return 'bg-sky-500/10 text-sky-400 border-sky-500/30';
     }
   };
 

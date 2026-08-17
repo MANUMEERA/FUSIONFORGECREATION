@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { 
   Receipt, 
   Plus, 
@@ -26,7 +26,10 @@ import {
   Zap,
   Check,
   Layers,
-  ArrowRight
+  ArrowRight,
+  Truck,
+  QrCode,
+  FolderKanban
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { Invoice, LineItem, GSTType, InvoiceStatus } from '../../types';
@@ -39,6 +42,8 @@ import {
   UT_WITHOUT_LEGISLATURE_CODES
 } from '../../utils/gstEngine';
 import { generateNextDocumentNumber, DEFAULT_INVOICE_NUMBERING } from '../../utils/documentNumbering';
+import { formatDateDDMMYYYY } from '../../utils/dateUtils';
+import { generateQrSvg } from '../../utils/qrHelper';
 import { BrandLogo } from '../BrandLogo';
 
 export const InvoicesManager: React.FC = () => {
@@ -86,6 +91,31 @@ export const InvoicesManager: React.FC = () => {
   const [formClientAddress, setFormClientAddress] = useState('');
   const [formClientGstin, setFormClientGstin] = useState('');
   
+  // Phase 7: Reverse Charge & Shipping Address
+  const [formReverseCharge, setFormReverseCharge] = useState<'Yes' | 'No'>('No');
+  const [formSameAsBilling, setFormSameAsBilling] = useState<boolean>(true);
+  const [formShippingName, setFormShippingName] = useState('');
+  const [formShippingCompany, setFormShippingCompany] = useState('');
+  const [formShippingAddress, setFormShippingAddress] = useState('');
+  const [formShippingCity, setFormShippingCity] = useState('');
+  const [formShippingState, setFormShippingState] = useState('');
+  const [formShippingStateCode, setFormShippingStateCode] = useState('');
+  const [formShippingPincode, setFormShippingPincode] = useState('');
+  const [formShippingGstin, setFormShippingGstin] = useState('');
+
+  // Phase 7: E-Invoice & Statutory Reference fields
+  const [formArn, setFormArn] = useState('');
+  const [formAckNo, setFormAckNo] = useState('');
+  const [formAckDate, setFormAckDate] = useState('');
+  const [formIrn, setFormIrn] = useState('');
+
+  // Phase 11: Statutory Invoice Type & LUT ARN
+  const [formInvoiceType, setFormInvoiceType] = useState<string>('Regular');
+  const [formLutArn, setFormLutArn] = useState<string>('AD260426001234F');
+
+  // View modal QR SVG state
+  const [viewModalQrSvg, setViewModalQrSvg] = useState<string>('');
+
   // Explicit Seller & Buyer State Codes (GST Engine authoritative inputs)
   const [formSellerStateCode, setFormSellerStateCode] = useState('21'); // Default Odisha, or 26 for DNH & DD
   const [formBuyerStateCode, setFormBuyerStateCode] = useState('24'); // Default Gujarat
@@ -105,6 +135,16 @@ export const InvoicesManager: React.FC = () => {
   const [formNotes, setFormNotes] = useState('SAC 998314 - Software development & IT consulting.');
   const [formPaymentTerms, setFormPaymentTerms] = useState('Payment due within 15 days of invoice date.');
 
+  // Dynamically generate Payment QR for Viewing Modal
+  useEffect(() => {
+    if (viewingInvoice) {
+      const upiId = viewingInvoice.bankDetails?.upiId || agencyConfig.upi_id || agencyConfig.bankDetails?.upiId || 'fusionforge@hdfcbank';
+      const payeeName = agencyConfig.company_name || agencyConfig.name || 'Fusion Forge Creation';
+      const upiUrl = `upi://pay?pa=${encodeURIComponent(upiId)}&pn=${encodeURIComponent(payeeName)}&am=${viewingInvoice.totalAmount.toFixed(2)}&tn=${encodeURIComponent(`Invoice ${viewingInvoice.invoiceNumber}`)}&cu=INR`;
+      generateQrSvg(upiUrl, 95).then(svg => setViewModalQrSvg(svg)).catch(() => setViewModalQrSvg(''));
+    }
+  }, [viewingInvoice, agencyConfig]);
+
   // GST Simulator Sandbox state
   const [simSellerCode, setSimSellerCode] = useState('26');
   const [simBuyerCode, setSimBuyerCode] = useState('26');
@@ -120,9 +160,11 @@ export const InvoicesManager: React.FC = () => {
       discountType: formDiscountType,
       discountValue: formDiscountValue,
       gstRate: formGstRate,
+      invoiceType: formInvoiceType as any,
+      lutArn: formLutArn,
       currency: 'INR'
     });
-  }, [formSellerStateCode, formBuyerStateCode, formItems, formDiscountType, formDiscountValue, formGstRate]);
+  }, [formSellerStateCode, formBuyerStateCode, formItems, formDiscountType, formDiscountValue, formGstRate, formInvoiceType, formLutArn]);
 
   // Authoritative GST calculation for the Simulator
   const simCalculation = useMemo(() => {
@@ -146,6 +188,11 @@ export const InvoicesManager: React.FC = () => {
     const { number } = generateNextDocumentNumber('invoice', invConfig, existingNums);
     setFormInvoiceNumber(number);
 
+    // Default Reverse charge based on agency config
+    setFormReverseCharge((agencyConfig.reverse_charge_default as any) || (agencyConfig.gstin ? 'No' : 'Yes'));
+    setFormInvoiceType((agencyConfig.default_invoice_type as string) || 'Regular');
+    setFormLutArn(agencyConfig.lut_arn || 'AD260426001234F');
+
     // Default to JP MODATEX LLP or first available client
     const defClient = clients.find(c => c.companyName.includes('JP MODATEX')) || clients[0];
     if (defClient) {
@@ -158,6 +205,29 @@ export const InvoicesManager: React.FC = () => {
       setFormClientAddress(addr);
       setFormClientGstin(defClient.gstin || '—');
       setFormBuyerStateCode(defClient.placeOfSupplyCode || defClient.stateCode || extractStateCode(defClient.state) || '24');
+
+      // Shipping address initialization
+      if (defClient.shippingAddress || defClient.shippingCity || defClient.sameAsBilling === false) {
+        setFormSameAsBilling(defClient.sameAsBilling ?? false);
+        setFormShippingName(defClient.shippingName || defClient.contactPerson || defClient.name || '');
+        setFormShippingCompany(defClient.shippingCompany || defClient.companyName || '');
+        setFormShippingAddress(defClient.shippingAddress || '');
+        setFormShippingCity(defClient.shippingCity || '');
+        setFormShippingState(defClient.shippingState || '');
+        setFormShippingStateCode(defClient.shippingStateCode || '');
+        setFormShippingPincode(defClient.shippingPincode || '');
+        setFormShippingGstin(defClient.shippingGstin || defClient.gstin || '');
+      } else {
+        setFormSameAsBilling(true);
+        setFormShippingName('');
+        setFormShippingCompany('');
+        setFormShippingAddress('');
+        setFormShippingCity('');
+        setFormShippingState('');
+        setFormShippingStateCode('');
+        setFormShippingPincode('');
+        setFormShippingGstin('');
+      }
     } else {
       setFormClientId('');
       setFormClientCompany('JP MODATEX LLP');
@@ -165,7 +235,21 @@ export const InvoicesManager: React.FC = () => {
       setFormClientAddress('Survey No. 42, GIDC Industrial Estate, Sachin, Surat, Gujarat - 394230');
       setFormClientGstin('—');
       setFormBuyerStateCode('24');
+      setFormSameAsBilling(true);
+      setFormShippingName('');
+      setFormShippingCompany('');
+      setFormShippingAddress('');
+      setFormShippingCity('');
+      setFormShippingState('');
+      setFormShippingStateCode('');
+      setFormShippingPincode('');
+      setFormShippingGstin('');
     }
+
+    setFormArn('');
+    setFormAckNo('');
+    setFormAckDate('');
+    setFormIrn('');
 
     setFormSellerStateCode(agencyConfig.state_code || '21'); // Fusion Forge Creation default
     setFormTitle('Textile ERP Workflow Automation & Inventory Engine');
@@ -215,6 +299,24 @@ export const InvoicesManager: React.FC = () => {
     setFormStatus(inv.status);
     setFormNotes(inv.notes);
     setFormPaymentTerms(inv.paymentTerms);
+
+    // Phase 7 fields
+    setFormReverseCharge(inv.reverseCharge === 'Yes' || inv.reverseCharge === true ? 'Yes' : 'No');
+    setFormInvoiceType(inv.invoiceType || 'Regular');
+    setFormLutArn(inv.lutArn || agencyConfig.lut_arn || 'AD260426001234F');
+    setFormSameAsBilling(inv.sameAsBilling !== false);
+    setFormShippingName(inv.shippingName || '');
+    setFormShippingCompany(inv.shippingCompany || '');
+    setFormShippingAddress(inv.shippingAddress || '');
+    setFormShippingCity(inv.shippingCity || '');
+    setFormShippingState(inv.shippingState || '');
+    setFormShippingStateCode(inv.shippingStateCode || '');
+    setFormShippingPincode(inv.shippingPincode || '');
+    setFormShippingGstin(inv.shippingGstin || '');
+    setFormArn(inv.arn || '');
+    setFormAckNo(inv.ackNo || inv.acknowledgement_number || '');
+    setFormAckDate(inv.ackDate || inv.acknowledgement_date || '');
+    setFormIrn(inv.irn || '');
   };
 
   // Handle client selection in form
@@ -230,6 +332,21 @@ export const InvoicesManager: React.FC = () => {
       setFormClientAddress(addr);
       setFormClientGstin(cl.gstin || '—');
       setFormBuyerStateCode(cl.placeOfSupplyCode || cl.stateCode || extractStateCode(cl.state) || (cl.gstin && cl.gstin.length >= 2 ? cl.gstin.slice(0, 2) : '24'));
+
+      // Shipping details if available
+      if (cl.shippingAddress || cl.shippingCity || cl.sameAsBilling === false) {
+        setFormSameAsBilling(cl.sameAsBilling ?? false);
+        setFormShippingName(cl.shippingName || cl.contactPerson || cl.name || '');
+        setFormShippingCompany(cl.shippingCompany || cl.companyName || '');
+        setFormShippingAddress(cl.shippingAddress || '');
+        setFormShippingCity(cl.shippingCity || '');
+        setFormShippingState(cl.shippingState || '');
+        setFormShippingStateCode(cl.shippingStateCode || '');
+        setFormShippingPincode(cl.shippingPincode || '');
+        setFormShippingGstin(cl.shippingGstin || cl.gstin || '');
+      } else {
+        setFormSameAsBilling(true);
+      }
     }
   };
 
@@ -316,6 +433,28 @@ export const InvoicesManager: React.FC = () => {
       buyerGstin: formClientGstin,
       buyerState: `${buyerState.name} [${buyerState.code}]`,
       buyerStateCode: formBuyerStateCode,
+
+      // Phase 7: Reverse Charge, Shipping Address & E-Invoice metadata
+      reverseCharge: formReverseCharge,
+      sameAsBilling: formSameAsBilling,
+      shippingName: formSameAsBilling ? formClientName : (formShippingName || formClientName),
+      shippingCompany: formSameAsBilling ? formClientCompany : (formShippingCompany || formClientCompany),
+      shippingAddress: formSameAsBilling ? formClientAddress : formShippingAddress,
+      shippingCity: formShippingCity,
+      shippingState: formShippingState,
+      shippingStateCode: formShippingStateCode,
+      shippingPincode: formShippingPincode,
+      shippingGstin: formShippingGstin || formClientGstin,
+      arn: formArn,
+      ackNo: formAckNo,
+      acknowledgement_number: formAckNo,
+      ackDate: formAckDate,
+      acknowledgement_date: formAckDate,
+      irn: formIrn,
+
+      // Phase 11: Statutory Invoice Type & LUT ARN
+      invoiceType: formInvoiceType,
+      lutArn: formInvoiceType === 'SEZ Supply without Tax' ? formLutArn : undefined,
 
       title: formTitle,
       issueDate: formIssueDate,
@@ -758,11 +897,17 @@ export const InvoicesManager: React.FC = () => {
                     <tr key={inv.id} className="hover:bg-slate-800/40 transition-colors">
                       {/* Invoice # & Date */}
                       <td className="py-4 px-4 font-mono">
-                        <div className="font-bold text-blue-400 flex items-center space-x-1.5">
+                        <div className="font-bold text-blue-400 flex items-center space-x-1.5 flex-wrap gap-1">
                           <span>{inv.invoiceNumber}</span>
                           {inv.quoteNumber && (
                             <span className="text-[9px] font-sans px-1.5 py-0.5 rounded bg-slate-800 text-slate-400">
                               Ref {inv.quoteNumber}
+                            </span>
+                          )}
+                          {inv.projectTitle && (
+                            <span className="text-[9px] font-sans px-1.5 py-0.5 rounded bg-emerald-950/80 border border-emerald-800/60 text-emerald-300 flex items-center gap-0.5">
+                              <FolderKanban className="w-2.5 h-2.5 text-emerald-400" />
+                              <span>Project</span>
                             </span>
                           )}
                         </div>
@@ -941,21 +1086,44 @@ export const InvoicesManager: React.FC = () => {
       {/* ========================================================================= */}
       {viewingInvoice && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-[#0b1324] border border-slate-700 rounded-3xl w-full max-w-4xl max-h-[92vh] overflow-y-auto shadow-2xl p-6 md:p-8 space-y-6">
+          <div className="bg-[#0b1324] border-2 border-slate-700 md:border-blue-500/40 rounded-3xl w-full max-w-4xl max-h-[92vh] overflow-y-auto shadow-2xl p-6 md:p-8 space-y-6">
             
             {/* Modal Header & Quick Actions */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-800 gap-4">
-              <BrandLogo size="md" variant="full" theme="dark" />
-
-              <div className="flex flex-wrap items-center justify-between sm:justify-end gap-3">
-                <div className="text-right">
-                  <div className="flex items-center space-x-2">
-                    <h2 className="text-lg font-black text-white font-mono">{viewingInvoice.invoiceNumber}</h2>
-                    <span className="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                      GST Verified
-                    </span>
+              <div>
+                <BrandLogo size="md" variant="full" theme="dark" />
+                <div className="mt-2 text-xs text-slate-300 space-y-0.5">
+                  <div>{agencyConfig.address}, {agencyConfig.city}, {agencyConfig.state} - {agencyConfig.postalCode}</div>
+                  <div className="flex flex-wrap gap-x-3 text-[11px] text-slate-400">
+                    {agencyConfig.gstin && <span><strong className="text-slate-300">GSTIN:</strong> {agencyConfig.gstin}</span>}
+                    <span><strong className="text-slate-300">PAN:</strong> {agencyConfig.pan || (agencyConfig.gstin && agencyConfig.gstin.length >= 12 ? agencyConfig.gstin.slice(2, 12) : 'AALFF1234F')}</span>
+                    <span><strong className="text-slate-300">Email:</strong> {agencyConfig.email || 'admin@fusionforgecreation.com'}</span>
+                    <span><strong className="text-slate-300">Contact:</strong> {agencyConfig.phone || '+91 90040 77126'}</span>
                   </div>
-                  <div className="text-[10px] text-slate-400 font-medium">TAX INVOICE (SAC 998314)</div>
+                  {(agencyConfig.msme_number || agencyConfig.msmeNumber) && (
+                    <div className="text-[11px] text-amber-400 font-semibold">
+                      MSME / Udyam Reg: {agencyConfig.msme_number || agencyConfig.msmeNumber}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex flex-col items-start sm:items-end justify-between gap-3">
+                <div className="text-left sm:text-right">
+                  <div className="text-xs font-black text-cyan-400 tracking-wider uppercase mb-1">TAX INVOICE</div>
+                  <div className="text-base font-black text-white font-mono">{viewingInvoice.invoiceNumber}</div>
+                  <div className="text-xs text-slate-300 font-mono mt-0.5">
+                    <span className="text-slate-400">Invoice Date:</span> <strong className="text-white">{formatDateDDMMYYYY(viewingInvoice.issueDate || viewingInvoice.createdAt)}</strong>
+                  </div>
+                  <div className="text-xs text-slate-300 font-mono">
+                    <span className="text-slate-400">Due Date:</span> <strong className="text-white">{formatDateDDMMYYYY(viewingInvoice.dueDate)}</strong>
+                  </div>
+                  <div className="text-[11px] text-slate-400 mt-0.5">
+                    <span>Reverse Charge: </span>
+                    <strong className={viewingInvoice.reverseCharge === 'Yes' || viewingInvoice.reverseCharge === true ? 'text-amber-400' : 'text-emerald-400'}>
+                      {viewingInvoice.reverseCharge === 'Yes' || viewingInvoice.reverseCharge === true ? 'Yes' : 'No'}
+                    </strong>
+                  </div>
                 </div>
 
                 <div className="flex items-center space-x-2">
@@ -983,48 +1151,161 @@ export const InvoicesManager: React.FC = () => {
               </div>
             </div>
 
-            {/* Document Body (Matching Prompt Template) */}
+            {/* E-Invoice / Statutory Reference Bar */}
+            {(viewingInvoice.irn || viewingInvoice.ackNo || viewingInvoice.acknowledgement_number || viewingInvoice.arn) && (
+              <div className="bg-slate-900/90 border border-blue-500/30 rounded-xl p-3 text-[11px] font-mono grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2 text-slate-300">
+                {viewingInvoice.irn && (
+                  <div className="col-span-full break-all">
+                    <span className="text-slate-500 font-bold">IRN: </span>
+                    <span className="text-cyan-300">{viewingInvoice.irn}</span>
+                  </div>
+                )}
+                {(viewingInvoice.ackNo || viewingInvoice.acknowledgement_number) && (
+                  <div>
+                    <span className="text-slate-500 font-bold">Ack No: </span>
+                    <span className="text-white">{viewingInvoice.ackNo || viewingInvoice.acknowledgement_number}</span>
+                  </div>
+                )}
+                {(viewingInvoice.ackDate || viewingInvoice.acknowledgement_date) && (
+                  <div>
+                    <span className="text-slate-500 font-bold">Ack Date: </span>
+                    <span className="text-white">{formatDateDDMMYYYY(viewingInvoice.ackDate || viewingInvoice.acknowledgement_date)}</span>
+                  </div>
+                )}
+                {viewingInvoice.arn && (
+                  <div>
+                    <span className="text-slate-500 font-bold">ARN: </span>
+                    <span className="text-white">{viewingInvoice.arn}</span>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Linked Project Banner */}
+            {viewingInvoice.projectTitle && (
+              <div className="bg-emerald-950/40 border border-emerald-500/30 rounded-xl p-3 text-xs flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <FolderKanban className="w-4 h-4 text-emerald-400" />
+                  <span className="text-slate-300">
+                    Linked Engagement: <strong className="text-white">{viewingInvoice.projectTitle}</strong>
+                  </span>
+                </div>
+                <span className="text-[10px] font-bold uppercase bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded border border-emerald-500/30">
+                  Deliverables Verified & Invoiced
+                </span>
+              </div>
+            )}
+
+            {/* SEZ / LUT Statutory Endorsement Banner */}
+            {viewingInvoice.invoiceType === 'SEZ Supply without Tax' && (
+              <div className="bg-blue-950/40 border-2 border-cyan-500/40 rounded-xl p-3.5 text-xs text-cyan-200 space-y-1">
+                <div className="flex items-center gap-2 text-cyan-400 font-bold uppercase tracking-wider text-[11px]">
+                  <ShieldCheck className="w-4 h-4" />
+                  <span>Statutory Endorsement (Rule 46(j) CGST Rules, 2017)</span>
+                </div>
+                <p className="font-semibold leading-relaxed">
+                  "SUPPLY MEANT FOR EXPORT / SUPPLY TO SEZ UNIT OR SEZ DEVELOPER FOR AUTHORISED OPERATIONS UNDER BOND OR LETTER OF UNDERTAKING WITHOUT PAYMENT OF INTEGRATED TAX"
+                </p>
+                <div className="text-[11px] text-slate-400">
+                  Letter of Undertaking (LUT ARN): <strong className="text-white font-mono">{viewingInvoice.lutArn || agencyConfig.lut_arn || 'AD260426001234F'}</strong> • IGST Charged: <strong className="text-emerald-400">0.00% (Zero-Rated)</strong>
+                </div>
+              </div>
+            )}
+
+            {viewingInvoice.invoiceType === 'SEZ Supply with Tax' && (
+              <div className="bg-purple-950/40 border border-purple-500/40 rounded-xl p-3 text-xs text-purple-200">
+                <div className="flex items-center gap-2 text-purple-300 font-bold uppercase tracking-wider text-[11px]">
+                  <ShieldCheck className="w-4 h-4" />
+                  <span>Statutory Endorsement (Rule 46(j) CGST Rules, 2017)</span>
+                </div>
+                <p className="font-semibold mt-1">
+                  "SUPPLY MEANT FOR EXPORT / SUPPLY TO SEZ UNIT OR SEZ DEVELOPER FOR AUTHORISED OPERATIONS ON PAYMENT OF INTEGRATED TAX"
+                </p>
+              </div>
+            )}
+
+            {/* Document Body: Billed To & Shipped To */}
             <div className="space-y-6">
-              {/* Header: Seller & Buyer Cards */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 
-                {/* Seller Box */}
-                <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 space-y-2">
-                  <div className="text-[11px] font-extrabold text-blue-400 uppercase tracking-wider pb-1 border-b border-slate-800">
-                    Seller:
-                  </div>
-                  <div className="text-base font-black text-white">{viewingInvoice.sellerName || 'Fusion Forge Creation'}</div>
-                  <div className="text-xs text-slate-300">
-                    <span className="text-slate-500 font-semibold">Address: </span>
-                    {viewingInvoice.sellerAddress || `${agencyConfig.address}, ${agencyConfig.city}, ${agencyConfig.state} - ${agencyConfig.postalCode}`}
-                  </div>
-                  <div className="text-xs text-slate-300">
-                    <span className="text-slate-500 font-semibold">GSTIN: </span>
-                    <span className="font-mono font-bold text-white">{viewingInvoice.sellerGstin || agencyConfig.gstin}</span>
-                  </div>
-                  <div className="text-xs text-slate-300">
-                    <span className="text-slate-500 font-semibold">State: </span>
-                    {viewingInvoice.sellerState || 'Odisha [21]'}
-                  </div>
-                </div>
-
-                {/* Buyer Box */}
+                {/* BILLED TO Box */}
                 <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 space-y-2">
                   <div className="text-[11px] font-extrabold text-cyan-400 uppercase tracking-wider pb-1 border-b border-slate-800">
-                    Buyer:
+                    BILLED TO:
                   </div>
                   <div className="text-base font-black text-white">{viewingInvoice.buyerCompany || viewingInvoice.clientCompany || viewingInvoice.clientName || 'JP MODATEX LLP'}</div>
+                  {(viewingInvoice.buyerName || viewingInvoice.clientName) && (
+                    <div className="text-xs text-slate-400">
+                      <span className="text-slate-500 font-semibold">Attn: </span>
+                      {viewingInvoice.buyerName || viewingInvoice.clientName}
+                    </div>
+                  )}
                   <div className="text-xs text-slate-300">
                     <span className="text-slate-500 font-semibold">Address: </span>
                     {viewingInvoice.buyerAddress || viewingInvoice.clientAddress || 'Survey No. 42, GIDC Industrial Estate, Sachin, Surat, Gujarat - 394230'}
                   </div>
                   <div className="text-xs text-slate-300">
                     <span className="text-slate-500 font-semibold">GSTIN: </span>
-                    <span className="font-mono font-bold text-white">{viewingInvoice.buyerGstin || viewingInvoice.clientGstin || '—'}</span>
+                    <span className="font-mono font-bold text-white">
+                      {(viewingInvoice.buyerGstin && viewingInvoice.buyerGstin !== '—') 
+                        ? viewingInvoice.buyerGstin 
+                        : (viewingInvoice.clientGstin && viewingInvoice.clientGstin !== '—' ? viewingInvoice.clientGstin : 'URP')}
+                    </span>
+                  </div>
+                  <div className="text-xs text-slate-300 flex justify-between">
+                    <span>
+                      <span className="text-slate-500 font-semibold">State: </span>
+                      {viewingInvoice.buyerState || 'Gujarat [24]'}
+                    </span>
+                    <span>
+                      <span className="text-slate-500 font-semibold">POS: </span>
+                      {viewingInvoice.placeOfSupply || viewingInvoice.buyerStateCode || '24-Gujarat'}
+                    </span>
+                  </div>
+                </div>
+
+                {/* SHIPPED TO Box */}
+                <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 space-y-2">
+                  <div className="text-[11px] font-extrabold text-blue-400 uppercase tracking-wider pb-1 border-b border-slate-800 flex items-center justify-between">
+                    <span>SHIPPED TO:</span>
+                    {viewingInvoice.sameAsBilling !== false && (
+                      <span className="text-[9px] font-mono text-slate-400 bg-slate-800 px-2 py-0.5 rounded">
+                        Same as Billed To
+                      </span>
+                    )}
+                  </div>
+                  <div className="text-base font-black text-white">
+                    {viewingInvoice.sameAsBilling === false && viewingInvoice.shippingCompany 
+                      ? viewingInvoice.shippingCompany 
+                      : (viewingInvoice.buyerCompany || viewingInvoice.clientCompany || viewingInvoice.clientName || 'JP MODATEX LLP')}
+                  </div>
+                  {viewingInvoice.sameAsBilling === false && viewingInvoice.shippingName && (
+                    <div className="text-xs text-slate-400">
+                      <span className="text-slate-500 font-semibold">Contact: </span>
+                      {viewingInvoice.shippingName}
+                    </div>
+                  )}
+                  <div className="text-xs text-slate-300">
+                    <span className="text-slate-500 font-semibold">Address: </span>
+                    {viewingInvoice.sameAsBilling === false && viewingInvoice.shippingAddress
+                      ? `${viewingInvoice.shippingAddress}${viewingInvoice.shippingCity ? `, ${viewingInvoice.shippingCity}` : ''}${viewingInvoice.shippingState ? `, ${viewingInvoice.shippingState}` : ''}${viewingInvoice.shippingPincode ? ` - ${viewingInvoice.shippingPincode}` : ''}`
+                      : (viewingInvoice.buyerAddress || viewingInvoice.clientAddress || 'Survey No. 42, GIDC Industrial Estate, Sachin, Surat, Gujarat - 394230')}
                   </div>
                   <div className="text-xs text-slate-300">
-                    <span className="text-slate-500 font-semibold">State: </span>
-                    {viewingInvoice.buyerState || 'Gujarat [24]'}
+                    <span className="text-slate-500 font-semibold">GSTIN: </span>
+                    <span className="font-mono font-bold text-white">
+                      {viewingInvoice.sameAsBilling === false && viewingInvoice.shippingGstin
+                        ? viewingInvoice.shippingGstin
+                        : ((viewingInvoice.buyerGstin && viewingInvoice.buyerGstin !== '—') 
+                            ? viewingInvoice.buyerGstin 
+                            : (viewingInvoice.clientGstin && viewingInvoice.clientGstin !== '—' ? viewingInvoice.clientGstin : 'URP'))}
+                    </span>
+                  </div>
+                  <div className="text-xs text-slate-300">
+                    <span className="text-slate-500 font-semibold">Place of Delivery: </span>
+                    {viewingInvoice.sameAsBilling === false && viewingInvoice.shippingState
+                      ? `${viewingInvoice.shippingState} [${viewingInvoice.shippingStateCode || ''}]`
+                      : (viewingInvoice.buyerState || 'Gujarat [24]')}
                   </div>
                 </div>
               </div>
@@ -1064,14 +1345,14 @@ export const InvoicesManager: React.FC = () => {
                 </table>
               </div>
 
-              {/* Financial Calculation Breakdown */}
+              {/* Financial Calculation & Payment QR Breakdown */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
                 
-                {/* Left Meta Information */}
+                {/* Left Payment & Bank Details Box */}
                 <div className="bg-slate-900/60 border border-slate-800 rounded-xl p-4 space-y-3 text-xs">
-                  <div className="flex items-center justify-between pb-2 border-b border-slate-800">
-                    <span className="text-slate-400 font-semibold">Payment Status:</span>
-                    <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                  <div className="text-[11px] font-bold text-slate-300 uppercase tracking-wider pb-1 border-b border-slate-800 flex items-center justify-between">
+                    <span>Payment Channel & Bank Details</span>
+                    <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase ${
                       viewingInvoice.status === 'paid'
                         ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
                         : viewingInvoice.status === 'partially_paid'
@@ -1082,22 +1363,43 @@ export const InvoicesManager: React.FC = () => {
                     </span>
                   </div>
 
-                  <div className="flex items-center justify-between pb-2 border-b border-slate-800">
-                    <span className="text-slate-400 font-semibold">Due Date:</span>
-                    <span className="font-mono font-bold text-white">{viewingInvoice.dueDate}</span>
+                  <div className="flex items-center space-x-4 pt-1">
+                    {viewModalQrSvg ? (
+                      <div className="flex flex-col items-center">
+                        <div 
+                          className="w-[95px] h-[95px] bg-white rounded-lg p-1 flex items-center justify-center shadow"
+                          dangerouslySetInnerHTML={{ __html: viewModalQrSvg }}
+                        />
+                        <span className="text-[9px] font-bold text-cyan-400 mt-1 text-center whitespace-nowrap">
+                          Please Scan for Payment
+                        </span>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col items-center">
+                        <div className="w-[95px] h-[95px] bg-slate-800 border border-slate-700 rounded-lg flex items-center justify-center text-slate-500">
+                          <QrCode className="w-8 h-8" />
+                        </div>
+                        <span className="text-[9px] font-bold text-slate-400 mt-1">Please Scan for Payment</span>
+                      </div>
+                    )}
+
+                    <div className="space-y-1 text-[11px] text-slate-300 flex-1">
+                      <div><strong className="text-slate-400">Bank:</strong> {agencyConfig.bankDetails?.bankName || 'HDFC Bank'}</div>
+                      <div><strong className="text-slate-400">Account:</strong> {agencyConfig.bankDetails?.accountName || 'Fusion Forge Creation'}</div>
+                      <div><strong className="text-slate-400">A/C No:</strong> <span className="font-mono font-bold text-white">{agencyConfig.bankDetails?.accountNumber || '50200012345678'}</span></div>
+                      <div><strong className="text-slate-400">IFSC:</strong> <span className="font-mono text-cyan-300">{agencyConfig.bankDetails?.ifscCode || 'HDFC0001234'}</span></div>
+                      <div><strong className="text-slate-400">UPI:</strong> <span className="font-mono text-emerald-400">{agencyConfig.upi_id || agencyConfig.bankDetails?.upiId || 'fusionforge@hdfcbank'}</span></div>
+                    </div>
                   </div>
 
-                  <div className="flex items-center justify-between pb-2 border-b border-slate-800">
-                    <span className="text-slate-400 font-semibold">Issue Date:</span>
-                    <span className="font-mono text-slate-300">{viewingInvoice.issueDate}</span>
-                  </div>
-
-                  <div>
-                    <span className="text-slate-400 font-semibold block mb-1">Notes:</span>
-                    <p className="text-slate-300 text-[11px] leading-relaxed bg-slate-950/60 p-2.5 rounded-lg border border-slate-800/80">
-                      {viewingInvoice.notes || 'No specific notes recorded.'}
-                    </p>
-                  </div>
+                  {viewingInvoice.notes && (
+                    <div className="pt-2 border-t border-slate-800">
+                      <span className="text-slate-400 font-semibold block mb-0.5 text-[10px]">Notes:</span>
+                      <p className="text-slate-300 text-[11px] leading-relaxed bg-slate-950/60 p-2 rounded-lg border border-slate-800/80">
+                        {viewingInvoice.notes}
+                      </p>
+                    </div>
+                  )}
                 </div>
 
                 {/* Right Tax Summary Box */}
@@ -1115,7 +1417,7 @@ export const InvoicesManager: React.FC = () => {
                   </div>
 
                   <div className="pt-2 border-t border-slate-800 flex justify-between text-slate-200 font-semibold">
-                    <span>Taxable Amount</span>
+                    <span>Total Taxable Value</span>
                     <span className="font-mono font-bold text-white">₹ {viewingInvoice.taxableAmount.toLocaleString('en-IN')}</span>
                   </div>
 
@@ -1159,6 +1461,40 @@ export const InvoicesManager: React.FC = () => {
                 <span className="font-bold text-white font-serif tracking-wide text-sm">
                   {viewingInvoice.amountInWords || 'Indian Rupees Zero Only'}
                 </span>
+              </div>
+
+              {/* Terms & Conditions (with delay interest clause) */}
+              <div className="p-4 rounded-xl bg-slate-900/40 border border-slate-800 text-xs space-y-1.5">
+                <div className="text-slate-400 font-bold uppercase tracking-wider text-[10px]">Terms & Conditions:</div>
+                <ul className="list-disc pl-4 space-y-1 text-[11px] text-slate-300 leading-relaxed">
+                  <li>Payment is due within configured terms from the invoice date.</li>
+                  <li>All payments should be remitted to the official bank account or UPI specified above.</li>
+                  <li className="text-amber-300 font-medium">
+                    {agencyConfig.delay_interest_clause || 'Interest @ 18% per annum will be charged on all delayed payments beyond the due date.'}
+                  </li>
+                </ul>
+              </div>
+
+              {/* Footer: Stamp & Signatures */}
+              <div className="pt-4 border-t border-slate-800 flex flex-col sm:flex-row justify-between items-end gap-6 text-xs">
+                <div>
+                  <div className="w-24 h-24 border-2 border-dashed border-slate-700 rounded-2xl flex flex-col items-center justify-center text-slate-500 text-[10px] text-center p-1">
+                    <div className="font-bold text-slate-400">OFFICIAL STAMP</div>
+                    <div className="text-[8px] text-slate-500 mt-1">Fusion Forge Creation</div>
+                  </div>
+                </div>
+
+                <div className="text-center sm:text-right space-y-2">
+                  <div className="text-[11px] text-slate-400">For <strong>{agencyConfig.name || 'Fusion Forge Creation'}</strong></div>
+                  <div className="h-10 flex items-center justify-center sm:justify-end">
+                    <div className="font-serif italic text-cyan-400 font-bold text-base tracking-wider opacity-85">
+                      Authorized Signature
+                    </div>
+                  </div>
+                  <div className="text-[11px] font-bold text-white border-t border-slate-700 pt-1">
+                    Authorised Signatory
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -1211,8 +1547,8 @@ export const InvoicesManager: React.FC = () => {
 
             <form onSubmit={handleSaveInvoice} className="space-y-6">
               
-              {/* Row 1: Invoice Number & Client Selection */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* Row 1: Invoice Number & Client Selection & Reverse Charge */}
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div>
                   <label className="text-[11px] font-bold text-slate-300 block mb-1">Invoice Number *</label>
                   <input
@@ -1255,9 +1591,75 @@ export const InvoicesManager: React.FC = () => {
                     <option value="draft">Draft</option>
                   </select>
                 </div>
+
+                <div>
+                  <label className="text-[11px] font-bold text-slate-300 block mb-1">Reverse Charge (RCM)</label>
+                  <select
+                    value={formReverseCharge}
+                    onChange={e => setFormReverseCharge(e.target.value as 'Yes' | 'No')}
+                    className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-bold text-white focus:outline-none focus:border-blue-500"
+                  >
+                    <option value="No">No (Normal Tax Invoice)</option>
+                    <option value="Yes">Yes (Recipient Pays Tax under RCM)</option>
+                  </select>
+                </div>
               </div>
 
-              {/* Row 2: Authoritative State Codes for GST Engine (Intra vs Inter State) */}
+              {/* Row 2: Statutory Supply Type & SEZ / LUT ARN Classification */}
+              <div className="bg-slate-900/90 rounded-2xl border border-slate-800 p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="text-xs font-bold text-cyan-400 uppercase tracking-wider flex items-center gap-2">
+                    <ShieldCheck className="w-4 h-4" />
+                    <span>Statutory Invoice Classification (GSTR-1 & SEZ Compliance)</span>
+                  </div>
+                  <span className="text-[10px] font-mono font-bold text-white bg-slate-800 px-2.5 py-0.5 rounded border border-slate-700">
+                    Type: {formInvoiceType}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                  <div className="md:col-span-2">
+                    <label className="text-[11px] font-semibold text-slate-300 block mb-1">
+                      Statutory Invoice Type / Export Category *
+                    </label>
+                    <select
+                      value={formInvoiceType}
+                      onChange={e => setFormInvoiceType(e.target.value)}
+                      className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs font-medium text-white focus:outline-none focus:border-cyan-500"
+                    >
+                      <option value="Regular">Regular (Standard Domestic B2B / B2C Supply)</option>
+                      <option value="SEZ Supply with Tax">SEZ Supply with Payment of Tax (Deemed Inter-State IGST)</option>
+                      <option value="SEZ Supply without Tax">SEZ Supply without Payment of Tax (Zero-Rated Under LUT / Bond)</option>
+                      <option value="Deemed Exports">Deemed Exports (Section 147)</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="text-[11px] font-semibold text-slate-300 block mb-1">
+                      Letter of Undertaking (LUT ARN)
+                    </label>
+                    <input
+                      type="text"
+                      disabled={formInvoiceType !== 'SEZ Supply without Tax'}
+                      value={formLutArn}
+                      onChange={e => setFormLutArn(e.target.value.toUpperCase())}
+                      placeholder="AD260426001234F"
+                      className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-cyan-500 disabled:opacity-40 disabled:cursor-not-allowed"
+                    />
+                  </div>
+                </div>
+
+                {formInvoiceType === 'SEZ Supply without Tax' && (
+                  <div className="p-3 rounded-xl bg-cyan-950/40 border border-cyan-500/30 text-[11px] text-cyan-300 flex items-start gap-2">
+                    <Sparkles className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
+                    <div>
+                      <strong>SEZ Zero-Rated Supply Active:</strong> Taxable amount will be billed with 0% IGST under Letter of Undertaking (LUT ARN: <span className="font-mono font-bold text-white">{formLutArn || 'PENDING'}</span>). Statutory legal endorsement will be rendered on the invoice.
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Row 2.5: Authoritative State Codes for GST Engine (Intra vs Inter State) */}
               <div className="bg-slate-900/90 rounded-2xl border-2 border-blue-500/30 p-4 space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="text-xs font-bold text-white flex items-center gap-2">
@@ -1312,10 +1714,10 @@ export const InvoicesManager: React.FC = () => {
                 </div>
               </div>
 
-              {/* Row 3: Buyer Details */}
+              {/* Row 3: Buyer Details (BILLED TO) */}
               <div className="bg-slate-900/60 rounded-2xl border border-slate-800 p-4 space-y-4">
                 <div className="text-xs font-bold text-blue-400 uppercase tracking-wider">
-                  Buyer Details (Bill To)
+                  Buyer Details (BILLED TO)
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
@@ -1340,7 +1742,7 @@ export const InvoicesManager: React.FC = () => {
                     />
                   </div>
                   <div>
-                    <label className="text-[11px] font-semibold text-slate-300 block mb-1">Address</label>
+                    <label className="text-[11px] font-semibold text-slate-300 block mb-1">Billing Address</label>
                     <input
                       type="text"
                       value={formClientAddress}
@@ -1359,6 +1761,159 @@ export const InvoicesManager: React.FC = () => {
                       onChange={e => handleFormGstinChange(e.target.value)}
                       placeholder="e.g. 24AABCM1234F1Z1 or —"
                       className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-blue-500"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Row 3.5: Shipping Details (SHIPPED TO) */}
+              <div className="bg-slate-900/60 rounded-2xl border border-slate-800 p-4 space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="text-xs font-bold text-cyan-400 uppercase tracking-wider flex items-center space-x-2">
+                    <Truck className="w-4 h-4" />
+                    <span>Shipping Details (SHIPPED TO)</span>
+                  </div>
+                  <label className="flex items-center space-x-2 text-xs text-slate-300 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={formSameAsBilling}
+                      onChange={e => setFormSameAsBilling(e.target.checked)}
+                      className="rounded border-slate-700 bg-slate-900 text-blue-600 focus:ring-0"
+                    />
+                    <span className="font-semibold">Shipped to same as Billed to</span>
+                  </label>
+                </div>
+
+                {!formSameAsBilling && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 pt-2 border-t border-slate-800">
+                    <div>
+                      <label className="text-[11px] font-semibold text-slate-300 block mb-1">Shipping Company / Entity</label>
+                      <input
+                        type="text"
+                        value={formShippingCompany}
+                        onChange={e => setFormShippingCompany(e.target.value)}
+                        placeholder="e.g. JP MODATEX Unit 2"
+                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[11px] font-semibold text-slate-300 block mb-1">Contact / Attn</label>
+                      <input
+                        type="text"
+                        value={formShippingName}
+                        onChange={e => setFormShippingName(e.target.value)}
+                        placeholder="e.g. Manoj Satapathy (Plant Head)"
+                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[11px] font-semibold text-slate-300 block mb-1">Shipping GSTIN</label>
+                      <input
+                        type="text"
+                        value={formShippingGstin}
+                        onChange={e => setFormShippingGstin(e.target.value.toUpperCase())}
+                        placeholder="e.g. 24AABCM1234F1Z1"
+                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs font-mono text-white"
+                      />
+                    </div>
+                    <div className="sm:col-span-2">
+                      <label className="text-[11px] font-semibold text-slate-300 block mb-1">Delivery Address / Street</label>
+                      <input
+                        type="text"
+                        value={formShippingAddress}
+                        onChange={e => setFormShippingAddress(e.target.value)}
+                        placeholder="e.g. Plot 108, Sachin GIDC Phase 2"
+                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[11px] font-semibold text-slate-300 block mb-1">City</label>
+                      <input
+                        type="text"
+                        value={formShippingCity}
+                        onChange={e => setFormShippingCity(e.target.value)}
+                        placeholder="Surat"
+                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[11px] font-semibold text-slate-300 block mb-1">State</label>
+                      <input
+                        type="text"
+                        value={formShippingState}
+                        onChange={e => setFormShippingState(e.target.value)}
+                        placeholder="Gujarat"
+                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[11px] font-semibold text-slate-300 block mb-1">State Code</label>
+                      <input
+                        type="text"
+                        value={formShippingStateCode}
+                        onChange={e => setFormShippingStateCode(e.target.value)}
+                        placeholder="24"
+                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs font-mono text-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[11px] font-semibold text-slate-300 block mb-1">Pincode</label>
+                      <input
+                        type="text"
+                        value={formShippingPincode}
+                        onChange={e => setFormShippingPincode(e.target.value)}
+                        placeholder="394230"
+                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs font-mono text-white"
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Row 3.7: E-Invoice & Statutory References (Optional) */}
+              <div className="bg-slate-900/60 rounded-2xl border border-slate-800 p-4 space-y-3">
+                <div className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center space-x-2">
+                  <QrCode className="w-4 h-4 text-blue-400" />
+                  <span>E-Invoice & Statutory References (Optional)</span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+                  <div>
+                    <label className="text-[11px] text-slate-400 block mb-1">Ack No.</label>
+                    <input
+                      type="text"
+                      value={formAckNo}
+                      onChange={e => setFormAckNo(e.target.value)}
+                      placeholder="112233445566"
+                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 font-mono text-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[11px] text-slate-400 block mb-1">Ack Date</label>
+                    <input
+                      type="date"
+                      value={formAckDate}
+                      onChange={e => setFormAckDate(e.target.value)}
+                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[11px] text-slate-400 block mb-1">ARN (Application Ref)</label>
+                    <input
+                      type="text"
+                      value={formArn}
+                      onChange={e => setFormArn(e.target.value)}
+                      placeholder="AA240226001234Z"
+                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 font-mono text-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[11px] text-slate-400 block mb-1">IRN (Invoice Ref Num)</label>
+                    <input
+                      type="text"
+                      value={formIrn}
+                      onChange={e => setFormIrn(e.target.value)}
+                      placeholder="64-digit IRN hash"
+                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 font-mono text-white"
                     />
                   </div>
                 </div>

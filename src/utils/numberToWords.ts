@@ -56,3 +56,5 @@ export function numberToWordsIndian(amount: number, currency: string = 'INR'): s
 
   return `${prefix} ${wordStr} Only`;
 }
+
+export const numberToIndianWords = numberToWordsIndian;

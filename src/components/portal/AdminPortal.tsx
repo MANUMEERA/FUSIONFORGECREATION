@@ -27,7 +27,8 @@ import {
   Plus,
   Layers,
   Sparkles,
-  Bot
+  Bot,
+  ShoppingBag
 } from 'lucide-react';
 import { DashboardOverview } from './DashboardOverview';
 import { ClientsManager } from './ClientsManager';
@@ -35,6 +36,9 @@ import { QuotationsManager } from './QuotationsManager';
 import { InvoicesManager } from './InvoicesManager';
 import { PaymentsManager } from './PaymentsManager';
 import { AccountingManager } from './AccountingManager';
+import { PurchasesSection } from './accounting/PurchasesSection';
+import { ExpensesSection } from './accounting/ExpensesSection';
+import { SalarySection } from './accounting/SalarySection';
 import { EnquiriesManager } from './EnquiriesManager';
 import { ServicesManager } from './ServicesManager';
 import { ProjectsManager } from './ProjectsManager';
@@ -94,10 +98,13 @@ export const AdminPortal: React.FC = () => {
     {
       title: 'Financials & GST',
       items: [
-        { id: 'quotations', label: 'Quotations & Scopes', icon: FileText, perm: 'module.quotations' },
+        { id: 'accounting', label: 'Financials & P&L', icon: Calculator, perm: 'module.accounting' },
         { id: 'invoices', label: 'Tax Invoices', icon: Receipt, perm: 'module.invoices' },
+        { id: 'quotations', label: 'Quotations & Scopes', icon: FileText, perm: 'module.quotations' },
         { id: 'payments', label: 'Payment Receipts', icon: CreditCard, perm: 'module.payments' },
-        { id: 'accounting', label: 'GST & Accounting', icon: Calculator, perm: 'module.accounting' }
+        { id: 'purchases', label: 'Purchases & Bills', icon: ShoppingBag, perm: 'module.purchases' },
+        { id: 'expenses', label: 'Operating Expenses', icon: CreditCard, perm: 'module.expenses' },
+        { id: 'salary', label: 'Staff & Payroll', icon: Users, perm: 'module.salary' }
       ]
     },
     {
@@ -454,6 +461,9 @@ export const AdminPortal: React.FC = () => {
             {effectiveActiveTab === 'quotations' && <QuotationsManager />}
             {effectiveActiveTab === 'invoices' && <InvoicesManager />}
             {effectiveActiveTab === 'payments' && <PaymentsManager />}
+            {effectiveActiveTab === 'purchases' && <PurchasesSection />}
+            {effectiveActiveTab === 'expenses' && <ExpensesSection />}
+            {effectiveActiveTab === 'salary' && <SalarySection />}
             {effectiveActiveTab === 'accounting' && <AccountingManager />}
             {effectiveActiveTab === 'services' && <ServicesManager />}
             {effectiveActiveTab === 'projects' && <ProjectsManager />}

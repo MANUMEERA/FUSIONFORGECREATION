@@ -36,6 +36,53 @@ export function formatDateDDMMYYYY(dateInput: string | Date | undefined | null):
   }
 }
 
+const MONTH_FULL_NAMES = [
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December'
+];
+
+/**
+ * GSTR-1 Specific Date Formatter: DD-MONTH NAME-YYYY (e.g. "14-August-2026", "05-August-2026")
+ */
+export function formatDateGstr1(dateInput: string | Date | undefined | null): string {
+  if (!dateInput) return '—';
+  
+  if (typeof dateInput === 'string') {
+    const trimmed = dateInput.trim();
+    if (/^\d{4}-\d{2}-\d{2}/.test(trimmed)) {
+      const parts = trimmed.split('T')[0].split('-');
+      if (parts.length === 3) {
+        const year = parts[0];
+        const monthIdx = parseInt(parts[1], 10) - 1;
+        const day = parts[2].padStart(2, '0');
+        const monthName = MONTH_FULL_NAMES[monthIdx] || 'August';
+        return `${day}-${monthName}-${year}`;
+      }
+    }
+    if (/^\d{2}-\d{2}-\d{4}$/.test(trimmed)) {
+      const parts = trimmed.split('-');
+      const day = parts[0].padStart(2, '0');
+      const monthIdx = parseInt(parts[1], 10) - 1;
+      const year = parts[2];
+      const monthName = MONTH_FULL_NAMES[monthIdx] || 'August';
+      return `${day}-${monthName}-${year}`;
+    }
+  }
+
+  try {
+    const d = new Date(dateInput);
+    if (isNaN(d.getTime())) {
+      return String(dateInput);
+    }
+    const day = String(d.getDate()).padStart(2, '0');
+    const monthName = MONTH_FULL_NAMES[d.getMonth()] || 'August';
+    const year = d.getFullYear();
+    return `${day}-${monthName}-${year}`;
+  } catch {
+    return String(dateInput);
+  }
+}
+
 /**
  * Returns today's date in YYYY-MM-DD format for HTML date inputs
  */

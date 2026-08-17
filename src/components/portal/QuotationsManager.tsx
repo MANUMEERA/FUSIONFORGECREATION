@@ -16,34 +16,74 @@ import {
   Printer,
   X,
   Zap,
-  ShieldCheck
+  ShieldCheck,
+  Mail,
+  Lock,
+  Clock,
+  AlertCircle,
+  Building2
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
-import { Quotation, LineItem, GSTType, ServicePricePreset } from '../../types';
+import { Quotation, LineItem, GSTType, ServicePricePreset, QuoteStatus } from '../../types';
 import { generateQuotationPDF } from '../../utils/pdfGenerator';
 import { AGENCY_CONFIG } from '../../mockData';
-import { calculateGstInvoiceTotals, INDIAN_GST_STATES, extractStateCode } from '../../utils/gstEngine';
+import { calculateGstInvoiceTotals, extractStateCode } from '../../utils/gstEngine';
 import { generateNextDocumentNumber, DEFAULT_QUOTATION_NUMBERING } from '../../utils/documentNumbering';
+import { formatDateDDMMYYYY, getTodayInputDate, getFutureInputDate } from '../../utils/dateUtils';
+import { sendQuotationEmailBackend } from '../../utils/emailService';
 import { BrandLogo } from '../BrandLogo';
 
 export const QuotationsManager: React.FC = () => {
-  const { quotations, clients, addQuotation, updateQuotation, convertQuoteToInvoice, addClient, agencyConfig, pricePresets, setActiveTab } = useApp();
+  const { 
+    quotations, 
+    clients, 
+    invoices,
+    addQuotation, 
+    updateQuotation, 
+    convertQuoteToInvoice, 
+    addClient, 
+    agencyConfig, 
+    pricePresets, 
+    setActiveTab,
+    testBuzzerSound 
+  } = useApp();
+
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [previewQuote, setPreviewQuote] = useState<Quotation | null>(null);
   const [editingQuoteId, setEditingQuoteId] = useState<string | null>(null);
+
+  // Email Modal State
+  const [emailModalQuote, setEmailModalQuote] = useState<Quotation | null>(null);
+  const [emailSubject, setEmailSubject] = useState('');
+  const [emailNotes, setEmailNotes] = useState('');
+  const [isSendingEmail, setIsSendingEmail] = useState(false);
+
+  // Banner Notification State
+  const [notificationMsg, setNotificationMsg] = useState<{ text: string; type: 'success' | 'info' | 'error' } | null>(null);
+
+  const showNotification = (text: string, type: 'success' | 'info' | 'error' = 'success') => {
+    setNotificationMsg({ text, type });
+    setTimeout(() => {
+      setNotificationMsg(null);
+    }, 6000);
+  };
 
   // Form State
   const [quoteNumber, setQuoteNumber] = useState('');
   const [clientId, setClientId] = useState(clients[0]?.id || '');
   const [title, setTitle] = useState('Website Design & Hosting Infrastructure');
-  const [issueDate, setIssueDate] = useState(() => new Date().toISOString().split('T')[0]);
+  const [issueDate, setIssueDate] = useState(() => getTodayInputDate());
   const [validUntil, setValidUntil] = useState(() => {
     const days = agencyConfig?.default_quotation_validity_days || 30;
-    return new Date(Date.now() + days * 86400000).toISOString().split('T')[0];
+    return getFutureInputDate(days);
   });
   const [currency, setCurrency] = useState<'INR' | 'USD' | 'EUR'>('INR');
+
+  // GST / Non-GST Choice State
+  const [isGstApplicable, setIsGstApplicable] = useState<boolean>(true);
   const [gstType, setGstType] = useState<GSTType>('igst');
   const [gstRate, setGstRate] = useState<number>(18);
+  const [paymentTerms, setPaymentTerms] = useState<string>('50% Milestone Advance on Project Kickoff, 50% on Production Handover.');
   
   // Discount state
   const [discountType, setDiscountType] = useState<'fixed' | 'percentage'>('fixed');
@@ -65,7 +105,7 @@ export const QuotationsManager: React.FC = () => {
   const selectedClient = clients.find(c => c.id === clientId) || clients[0];
   const clientBuyerCode = selectedClient?.stateCode || extractStateCode(selectedClient?.state) || '24';
 
-  // Authoritative GST calculation
+  // Authoritative calculation respecting GST / Non-GST Choice
   const authoritativeQuoteCalc = useMemo(() => {
     return calculateGstInvoiceTotals({
       sellerStateCode: '21',
@@ -73,11 +113,11 @@ export const QuotationsManager: React.FC = () => {
       items,
       discountType,
       discountValue: Number(discountValue) || 0,
-      gstRate: gstType === 'none' ? 0 : gstRate,
+      gstRate: isGstApplicable && gstType !== 'none' ? gstRate : 0,
       currency: currency || 'INR',
-      overrideGstType: gstType === 'none' ? 'none' : undefined
+      overrideGstType: !isGstApplicable || gstType === 'none' ? 'none' : undefined
     });
-  }, [clientBuyerCode, items, discountType, discountValue, gstType, gstRate, currency]);
+  }, [clientBuyerCode, items, discountType, discountValue, isGstApplicable, gstType, gstRate, currency]);
 
   const openCreateModal = () => {
     setEditingQuoteId(null);
@@ -87,9 +127,11 @@ export const QuotationsManager: React.FC = () => {
     setQuoteNumber(number);
     setClientId(clients[0]?.id || '');
     setTitle('Website Design & Hosting Infrastructure');
-    setIssueDate(new Date().toISOString().split('T')[0]);
+    setIssueDate(getTodayInputDate());
     const validityDays = agencyConfig.default_quotation_validity_days || 30;
-    setValidUntil(new Date(Date.now() + validityDays * 86400000).toISOString().split('T')[0]);
+    setValidUntil(getFutureInputDate(validityDays));
+    setIsGstApplicable(true);
+    setPaymentTerms('50% Milestone Advance on Project Kickoff, 50% on Production Handover.');
     setDiscountType('fixed');
     setDiscountValue(5000);
     setGstType('igst');
@@ -108,9 +150,11 @@ export const QuotationsManager: React.FC = () => {
     setTitle(q.title);
     setIssueDate(q.issueDate);
     setValidUntil(q.validUntil);
+    setIsGstApplicable(q.gstApplicable !== false && q.gstType !== 'none');
+    setPaymentTerms(q.paymentTerms || '50% Milestone Advance on Project Kickoff, 50% on Production Handover.');
     setDiscountType(q.discountType || 'fixed');
     setDiscountValue(q.discountValue || 0);
-    setGstType(q.gstType);
+    setGstType(q.gstType || 'igst');
     setGstRate(q.gstRate || 18);
     setItems(q.items.length > 0 ? q.items : [
       { id: '1', description: 'Website Design', sacCode: '998314', quantity: 1, rate: 50000, amount: 50000 }
@@ -159,11 +203,11 @@ export const QuotationsManager: React.FC = () => {
   const subtotal = authoritativeQuoteCalc.subtotal;
   const discountAmount = authoritativeQuoteCalc.discountAmount;
   const taxableAmount = authoritativeQuoteCalc.taxableAmount;
-  const effectiveGstRate = authoritativeQuoteCalc.gstRate;
-  const cgstAmount = authoritativeQuoteCalc.cgstAmount;
-  const sgstAmount = authoritativeQuoteCalc.sgstAmount;
-  const igstAmount = authoritativeQuoteCalc.igstAmount;
-  const totalAmount = authoritativeQuoteCalc.grandTotal;
+  const effectiveGstRate = isGstApplicable && gstType !== 'none' ? authoritativeQuoteCalc.gstRate : 0;
+  const cgstAmount = isGstApplicable && gstType !== 'none' ? authoritativeQuoteCalc.cgstAmount : 0;
+  const sgstAmount = isGstApplicable && gstType !== 'none' ? authoritativeQuoteCalc.sgstAmount : 0;
+  const igstAmount = isGstApplicable && gstType !== 'none' ? authoritativeQuoteCalc.igstAmount : 0;
+  const totalAmount = isGstApplicable && gstType !== 'none' ? authoritativeQuoteCalc.grandTotal : taxableAmount;
 
   const handleQuickAddClient = (e: React.FormEvent) => {
     e.preventDefault();
@@ -192,7 +236,7 @@ export const QuotationsManager: React.FC = () => {
     setNewClientPhone('');
   };
 
-  const handleSaveQuotation = (targetStatus: 'draft' | 'sent') => {
+  const handleSaveQuotation = (targetStatus: QuoteStatus) => {
     const selClient = clients.find(c => c.id === clientId) || clients[0];
     if (!selClient) {
       alert('Please select or create a client first.');
@@ -231,12 +275,14 @@ export const QuotationsManager: React.FC = () => {
       discountValue: Number(discountValue) || 0,
       discountAmount,
       taxableAmount,
-      gstType,
-      gstRate: effectiveGstRate,
+      gstApplicable: isGstApplicable,
+      gstType: isGstApplicable ? gstType : 'none',
+      gstRate: isGstApplicable ? effectiveGstRate : 0,
       cgstAmount,
       sgstAmount,
       igstAmount,
       totalAmount,
+      paymentTerms,
       notes: 'Includes comprehensive quality audit, SLA support, and source repository handover.',
       termsAndConditions: AGENCY_CONFIG.terms,
       status: targetStatus,
@@ -245,8 +291,10 @@ export const QuotationsManager: React.FC = () => {
 
     if (editingQuoteId) {
       updateQuotation(editingQuoteId, payload);
+      showNotification(`Commercial Quotation ${payload.quoteNumber} updated successfully.`);
     } else {
       addQuotation(payload);
+      showNotification(`New Commercial Quotation ${payload.quoteNumber} created.`);
     }
 
     setShowCreateModal(false);
@@ -272,13 +320,15 @@ export const QuotationsManager: React.FC = () => {
       discountValue: Number(discountValue) || 0,
       discountAmount,
       taxableAmount,
-      gstType,
-      gstRate: effectiveGstRate,
+      gstApplicable: isGstApplicable,
+      gstType: isGstApplicable ? gstType : 'none',
+      gstRate: isGstApplicable ? effectiveGstRate : 0,
       cgstAmount,
       sgstAmount,
       igstAmount,
       totalAmount,
-      notes: 'Generated via Fusion Forge Creation',
+      paymentTerms,
+      notes: 'Generated via Fusion Forge Creation Commercial Engine',
       termsAndConditions: AGENCY_CONFIG.terms,
       status: 'draft',
       createdBy: 'Manoj Satapathy',
@@ -288,8 +338,88 @@ export const QuotationsManager: React.FC = () => {
     generateQuotationPDF(tempQuote, agencyConfig);
   };
 
+  // Trigger SEND FOR INVOICE workflow
+  const handleSendForInvoice = (quote: Quotation) => {
+    // Only enabled when status is Received Order
+    const isOrderReceived = quote.status === 'Order Received' || quote.status === 'order_received';
+    if (!isOrderReceived) {
+      alert("Quotation must be marked as 'Received Order' before it can be sent for invoice generation.");
+      return;
+    }
+
+    // Idempotency: Prevent duplicate invoices
+    if (quote.convertedInvoiceId) {
+      showNotification(`Invoice already generated for ${quote.quoteNumber}. Linked Invoice ID: ${quote.convertedInvoiceId}`, 'info');
+      return;
+    }
+
+    const createdInvoice = convertQuoteToInvoice(quote.id);
+    if (createdInvoice) {
+      testBuzzerSound();
+      showNotification(`Quotation ${quote.quoteNumber} successfully sent for invoice! Tax Invoice ${createdInvoice.invoiceNumber} created.`, 'success');
+    }
+  };
+
+  // Open Official Email Modal
+  const openEmailModal = (q: Quotation) => {
+    setEmailModalQuote(q);
+    setEmailSubject(`COMMERCIAL QUOTATION: ${q.quoteNumber} - ${q.title}`);
+    setEmailNotes(`Dear ${q.clientName},\n\nPlease find attached the official Commercial Quotation (${q.quoteNumber}) from Fusion Forge Creation for your review.\n\nTotal Value: ₹ ${q.totalAmount.toLocaleString('en-IN')}\nValidity: ${formatDateDDMMYYYY(q.validUntil)}\n\nBest regards,\nFusion Forge Creation Admin\nadmin@fusionforgecreation.com`);
+  };
+
+  // Send Email via Backend Integration
+  const handleSendEmailSubmit = async () => {
+    if (!emailModalQuote) return;
+    setIsSendingEmail(true);
+
+    try {
+      const res = await sendQuotationEmailBackend(emailModalQuote, emailSubject, emailNotes);
+      if (res.success) {
+        updateQuotation(emailModalQuote.id, {
+          status: emailModalQuote.status === 'draft' || emailModalQuote.status === 'Draft' ? 'Sent' : emailModalQuote.status,
+          emailSentAt: res.timestamp,
+          emailSentBy: res.sender
+        });
+        showNotification(`Official email sent from admin@fusionforgecreation.com to ${emailModalQuote.clientEmail} successfully!`, 'success');
+        setEmailModalQuote(null);
+      } else {
+        showNotification(`Failed to dispatch email: ${res.error || 'Unknown error'}`, 'error');
+      }
+    } catch (err: any) {
+      showNotification(`Email dispatch error: ${err.message || 'Network error'}`, 'error');
+    } finally {
+      setIsSendingEmail(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
+      {/* Toast Notification Banner */}
+      {notificationMsg && (
+        <div className={`p-4 rounded-2xl border flex items-center justify-between shadow-lg transition-all animate-fadeIn ${
+          notificationMsg.type === 'success'
+            ? 'bg-emerald-950/80 border-emerald-500/40 text-emerald-200'
+            : notificationMsg.type === 'info'
+            ? 'bg-blue-950/80 border-blue-500/40 text-blue-200'
+            : 'bg-rose-950/80 border-rose-500/40 text-rose-200'
+        }`}>
+          <div className="flex items-center space-x-3 text-xs sm:text-sm font-semibold">
+            {notificationMsg.type === 'success' ? (
+              <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+            ) : (
+              <AlertCircle className="w-5 h-5 text-blue-400 shrink-0" />
+            )}
+            <span>{notificationMsg.text}</span>
+          </div>
+          <button 
+            onClick={() => setNotificationMsg(null)}
+            className="p-1 rounded-lg hover:bg-white/10 text-slate-400 hover:text-white"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
       {/* Header Bar */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-gradient-to-r from-[#111e47]/90 via-[#0d1b3e]/90 to-[#081430]/90 p-6 rounded-2xl border border-blue-500/20 shadow-lg">
         <div>
@@ -297,10 +427,10 @@ export const QuotationsManager: React.FC = () => {
             <div className="p-2 rounded-lg bg-blue-600/20 border border-blue-500/30 text-blue-400">
               <FileText className="w-5 h-5" />
             </div>
-            <h2 className="text-xl font-bold text-white tracking-tight">QUOTATIONS & ESTIMATES</h2>
+            <h2 className="text-xl font-bold text-white tracking-tight">COMMERCIAL QUOTATIONS</h2>
           </div>
           <p className="text-xs text-slate-300 mt-1">
-            Create professional commercial proposals with Subtotal, Discount, Taxable Amount, GST calculation, and instant PDF generation.
+            Enterprise commercial proposal workflow with GST/non-GST control, official email dispatch (<span className="text-blue-400 font-mono">admin@fusionforgecreation.com</span>), and structured SEND FOR INVOICE governance.
           </p>
         </div>
         <button
@@ -309,18 +439,21 @@ export const QuotationsManager: React.FC = () => {
           className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold flex items-center space-x-2 transition-all shadow-md shadow-blue-600/30 hover:scale-[1.02] cursor-pointer"
         >
           <Plus className="w-4 h-4" />
-          <span>New Quotation</span>
+          <span>New Commercial Quotation</span>
         </button>
       </div>
 
       {/* Quotations List */}
       <div className="rounded-2xl border border-blue-500/20 bg-gradient-to-b from-[#111e47]/90 to-[#0a1330]/90 overflow-hidden shadow-xl">
-        <div className="px-5 py-4 border-b border-blue-500/20 flex justify-between items-center bg-[#0d1b3e]/80">
-          <div className="text-xs font-bold uppercase tracking-wider text-slate-200">
-            Active Quotation Records ({quotations.length})
+        <div className="px-5 py-4 border-b border-blue-500/20 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 bg-[#0d1b3e]/80">
+          <div className="text-xs font-bold uppercase tracking-wider text-slate-200 flex items-center gap-2">
+            <span>Commercial Quotation Records ({quotations.length})</span>
+            <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30">
+              DD-MM-YYYY Dates
+            </span>
           </div>
           <div className="text-[11px] text-slate-400">
-            Standard Format: <span className="font-mono text-blue-400 font-semibold">QTN-YYYY-XXXX</span>
+            Order Status Rule: <span className="font-semibold text-emerald-400">"Received Order"</span> unlocks <span className="font-semibold text-blue-300">SEND FOR INVOICE</span>
           </div>
         </div>
         <div className="overflow-x-auto">
@@ -329,59 +462,75 @@ export const QuotationsManager: React.FC = () => {
               <tr>
                 <th className="py-3.5 px-4 font-semibold">Quotation No</th>
                 <th className="py-3.5 px-4 font-semibold">Client & Scope</th>
-                <th className="py-3.5 px-4 font-semibold">Dates</th>
-                <th className="py-3.5 px-4 font-semibold text-right">Taxable</th>
-                <th className="py-3.5 px-4 font-semibold text-right">Grand Total (incl. GST)</th>
+                <th className="py-3.5 px-4 font-semibold">Dates (DD-MM-YYYY)</th>
+                <th className="py-3.5 px-4 font-semibold text-right">Tax Mode & Total</th>
                 <th className="py-3.5 px-4 font-semibold text-center">Status</th>
-                <th className="py-3.5 px-4 font-semibold text-right">Actions</th>
+                <th className="py-3.5 px-4 font-semibold text-right">Actions / Workflow</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-blue-500/10">
               {quotations.map(q => {
-                const taxAmt = q.taxableAmount ?? (q.subtotal - (q.discountAmount || 0));
+                const isConverted = q.status === 'converted' || q.status === 'Converted' || Boolean(q.convertedInvoiceId);
+                const isOrderReceived = q.status === 'Order Received' || q.status === 'order_received';
+                const isGstActive = q.gstApplicable !== false && q.gstType !== 'none';
+                
                 return (
                   <tr key={q.id} className="hover:bg-blue-600/10 transition-colors">
+                    {/* Quotation No */}
                     <td className="py-4 px-4 font-mono font-bold text-blue-400">
-                      {q.quoteNumber}
+                      <div>{q.quoteNumber}</div>
+                      {q.emailSentAt && (
+                        <div className="text-[9px] text-cyan-300 flex items-center gap-1 font-sans mt-0.5" title={`Emailed via ${q.emailSentBy || 'admin@fusionforgecreation.com'}`}>
+                          <Mail className="w-2.5 h-2.5" />
+                          <span>Emailed</span>
+                        </div>
+                      )}
                     </td>
+
+                    {/* Client & Scope */}
                     <td className="py-4 px-4">
                       <div className="font-bold text-white text-sm">{q.clientCompany || q.clientName}</div>
                       <div className="text-[11px] text-slate-300 truncate max-w-xs">{q.title}</div>
                       <div className="text-[10px] text-slate-400">{q.items?.length || 0} line item(s)</div>
                     </td>
-                    <td className="py-4 px-4 text-slate-300 text-[11px]">
-                      <div>Issued: <span className="text-white font-medium">{q.issueDate}</span></div>
-                      <div className="text-slate-400">Valid: <span className="text-slate-200">{q.validUntil}</span></div>
+
+                    {/* Dates */}
+                    <td className="py-4 px-4 text-slate-300 text-[11px] font-mono">
+                      <div>Issued: <span className="text-white font-medium">{formatDateDDMMYYYY(q.issueDate)}</span></div>
+                      <div className="text-slate-400">Valid: <span className="text-slate-200">{formatDateDDMMYYYY(q.validUntil)}</span></div>
                     </td>
-                    <td className="py-4 px-4 text-right font-mono text-slate-200">
-                      ₹ {taxAmt.toLocaleString('en-IN')}
-                    </td>
+
+                    {/* Tax Mode & Total */}
                     <td className="py-4 px-4 text-right">
                       <div className="font-bold text-cyan-400 font-mono text-sm">
                         ₹ {q.totalAmount.toLocaleString('en-IN')}
                       </div>
-                      {q.discountAmount > 0 && (
-                        <div className="text-[10px] text-emerald-400 font-mono">
-                          Discount: -₹{q.discountAmount.toLocaleString('en-IN')}
-                        </div>
-                      )}
+                      <div className="text-[10px] text-slate-400">
+                        {isGstActive ? (
+                          <span className="text-blue-300">GST ({q.gstRate || 18}%)</span>
+                        ) : (
+                          <span className="text-emerald-400 font-semibold">Non-GST / Zero Tax</span>
+                        )}
+                      </div>
                     </td>
+
+                    {/* Status Dropdown with Pending & Received Order Ordered Prominently */}
                     <td className="py-4 px-4 text-center">
                       <select
                         id={`select-status-${q.id}`}
                         value={q.status}
                         onChange={(e) => updateQuotation(q.id, { status: e.target.value as any })}
-                        className={`text-[11px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-lg border outline-none cursor-pointer ${
-                          q.status === 'converted' || q.status === 'Converted'
+                        className={`text-[11px] font-bold uppercase tracking-wider px-2.5 py-1.5 rounded-lg border outline-none cursor-pointer ${
+                          isConverted
                             ? 'bg-purple-500/20 text-purple-300 border-purple-500/30'
-                            : q.status === 'Order Received' || q.status === 'order_received'
-                            ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 font-black'
+                            : isOrderReceived
+                            ? 'bg-emerald-500/25 text-emerald-300 border-emerald-400 font-black shadow-xs shadow-emerald-500/20'
+                            : q.status === 'Pending' || q.status === 'pending'
+                            ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'
                             : q.status === 'approved' || q.status === 'Approved'
                             ? 'bg-teal-500/20 text-teal-300 border-teal-500/30'
                             : q.status === 'sent' || q.status === 'Sent'
                             ? 'bg-blue-500/20 text-blue-300 border-blue-500/30'
-                            : q.status === 'pending' || q.status === 'Pending'
-                            ? 'bg-amber-500/20 text-amber-300 border-amber-500/30'
                             : q.status === 'rejected' || q.status === 'Rejected'
                             ? 'bg-rose-500/20 text-rose-300 border-rose-500/30'
                             : q.status === 'cancelled' || q.status === 'Cancelled'
@@ -391,10 +540,11 @@ export const QuotationsManager: React.FC = () => {
                             : 'bg-slate-800 text-slate-300 border-slate-700'
                         }`}
                       >
+                        {/* Required Prominent Ordering: Pending and Received Order */}
+                        <option value="Pending" className="bg-[#0b132c] text-amber-300 font-bold">1. Pending</option>
+                        <option value="Order Received" className="bg-[#0b132c] text-emerald-300 font-black">2. Received Order</option>
                         <option value="draft" className="bg-[#0b132c] text-slate-200">Draft</option>
                         <option value="sent" className="bg-[#0b132c] text-blue-300">Sent</option>
-                        <option value="Pending" className="bg-[#0b132c] text-amber-300">Pending</option>
-                        <option value="Order Received" className="bg-[#0b132c] text-emerald-300">Order Received</option>
                         <option value="approved" className="bg-[#0b132c] text-teal-300">Approved</option>
                         <option value="converted" className="bg-[#0b132c] text-purple-300">Converted to Invoice</option>
                         <option value="Rejected" className="bg-[#0b132c] text-rose-300">Rejected</option>
@@ -402,26 +552,42 @@ export const QuotationsManager: React.FC = () => {
                         <option value="Closed" className="bg-[#0b132c] text-slate-400">Closed</option>
                       </select>
                     </td>
+
+                    {/* Actions & SEND FOR INVOICE Button */}
                     <td className="py-4 px-4 text-right">
                       <div className="flex items-center justify-end space-x-1.5">
+                        {/* Preview Action */}
                         <button
                           id={`btn-view-${q.id}`}
                           onClick={() => setPreviewQuote(q)}
-                          title="Preview Quotation Card"
+                          title="Preview Commercial Quotation"
                           className="p-2 rounded-lg bg-[#142352] hover:bg-blue-600 text-slate-300 hover:text-white border border-blue-500/20 transition-colors"
                         >
                           <Eye className="w-3.5 h-3.5" />
                         </button>
+
+                        {/* PDF Generator */}
                         <button
                           id={`btn-pdf-${q.id}`}
                           onClick={() => generateQuotationPDF(q, agencyConfig)}
-                          title="Generate & Download PDF"
+                          title="Print / Export Commercial Quotation"
                           className="p-2 rounded-lg bg-blue-600/20 hover:bg-blue-600 text-blue-400 hover:text-white border border-blue-500/30 transition-all cursor-pointer"
                         >
                           <Download className="w-3.5 h-3.5" />
                         </button>
-                        {/* Only allow edit if not in final closed/converted/cancelled states */}
-                        {!['closed', 'Closed', 'cancelled', 'Cancelled'].includes(q.status) && (
+
+                        {/* Official Email Dispatch */}
+                        <button
+                          id={`btn-email-${q.id}`}
+                          onClick={() => openEmailModal(q)}
+                          title="Email Quotation via admin@fusionforgecreation.com"
+                          className="p-2 rounded-lg bg-cyan-600/20 hover:bg-cyan-600 text-cyan-300 hover:text-white border border-cyan-500/30 transition-all cursor-pointer"
+                        >
+                          <Mail className="w-3.5 h-3.5" />
+                        </button>
+
+                        {/* Edit Quotation (if not converted) */}
+                        {!isConverted && !['closed', 'Closed', 'cancelled', 'Cancelled'].includes(q.status) && (
                           <button
                             id={`btn-edit-${q.id}`}
                             onClick={() => openEditModal(q)}
@@ -431,16 +597,35 @@ export const QuotationsManager: React.FC = () => {
                             Edit
                           </button>
                         )}
-                        {/* Only allow invoice conversion if not already converted and not in non-convertible final state (Closed/Rejected/Cancelled) */}
-                        {!['converted', 'Converted', 'closed', 'Closed', 'rejected', 'Rejected', 'cancelled', 'Cancelled'].includes(q.status) && (
-                          <button
-                            id={`btn-convert-${q.id}`}
-                            onClick={() => convertQuoteToInvoice(q.id)}
-                            className="px-2.5 py-1.5 rounded-lg bg-emerald-500/20 hover:bg-emerald-600 border border-emerald-500/30 text-[11px] font-bold text-emerald-300 hover:text-white transition-all flex items-center space-x-1"
-                            title="Progress Quotation to Tax Invoice"
+
+                        {/* SEND FOR INVOICE BUTTON (Phase 6 Core Workflow) */}
+                        {isConverted ? (
+                          <div 
+                            className="px-3 py-1.5 rounded-lg bg-purple-500/20 border border-purple-500/40 text-[11px] font-bold text-purple-300 flex items-center space-x-1"
+                            title="Quotation already converted to Invoice"
                           >
-                            <span>Invoice</span>
-                            <ArrowRight className="w-3 h-3" />
+                            <CheckCircle2 className="w-3 h-3 text-purple-400" />
+                            <span>Invoice Created</span>
+                          </div>
+                        ) : isOrderReceived ? (
+                          <button
+                            id={`btn-send-for-invoice-${q.id}`}
+                            onClick={() => handleSendForInvoice(q)}
+                            className="px-3 py-1.5 rounded-lg bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white border border-emerald-400/50 text-[11px] font-black tracking-wide transition-all flex items-center space-x-1.5 shadow-md shadow-emerald-600/30 hover:scale-[1.02] cursor-pointer"
+                            title="Order received! Click to send for tax invoice generation"
+                          >
+                            <span>SEND FOR INVOICE</span>
+                            <ArrowRight className="w-3.5 h-3.5" />
+                          </button>
+                        ) : (
+                          <button
+                            id={`btn-send-for-invoice-disabled-${q.id}`}
+                            disabled
+                            className="px-3 py-1.5 rounded-lg bg-slate-800/80 border border-slate-700 text-[11px] font-bold text-slate-500 cursor-not-allowed flex items-center space-x-1.5 opacity-60"
+                            title="Disabled: Requires status to be 'Received Order'"
+                          >
+                            <Lock className="w-3 h-3 text-slate-500" />
+                            <span>SEND FOR INVOICE</span>
                           </button>
                         )}
                       </div>
@@ -453,7 +638,7 @@ export const QuotationsManager: React.FC = () => {
         </div>
       </div>
 
-      {/* CREATE / EDIT QUOTATION MODAL */}
+      {/* CREATE / EDIT COMMERCIAL QUOTATION MODAL */}
       {showCreateModal && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
           <div className="bg-[#0b132c] border border-blue-500/30 rounded-3xl w-full max-w-4xl p-6 sm:p-8 shadow-2xl my-auto text-slate-200">
@@ -463,8 +648,8 @@ export const QuotationsManager: React.FC = () => {
               <BrandLogo size="md" variant="full" theme="dark" />
               <div className="flex items-center gap-3">
                 <div className="text-right hidden sm:block">
-                  <span className="text-[10px] font-bold tracking-widest text-blue-400 uppercase bg-blue-500/10 px-3 py-1 rounded-full border border-blue-500/30">
-                    Commercial Proposal Builder
+                  <span className="text-[10px] font-bold tracking-widest text-cyan-400 uppercase bg-cyan-500/10 px-3 py-1 rounded-full border border-cyan-500/30">
+                    Commercial Quotation Builder
                   </span>
                   <div className="font-mono text-xs text-slate-400 mt-1">{quoteNumber}</div>
                 </div>
@@ -478,6 +663,50 @@ export const QuotationsManager: React.FC = () => {
             </div>
 
             <div className="space-y-6">
+              {/* GST vs. Non-GST Choice Selector (Phase 6 Mandate) */}
+              <div className="p-4 rounded-2xl bg-gradient-to-r from-[#142352] to-[#0d1c44] border-2 border-blue-500/30 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div>
+                  <div className="text-xs font-black uppercase tracking-wider text-cyan-300 flex items-center gap-2">
+                    <ShieldCheck className="w-4 h-4 text-cyan-400" />
+                    <span>Taxation Architecture (GST Mode)</span>
+                  </div>
+                  <p className="text-[11px] text-slate-300 mt-0.5">
+                    Choose whether this commercial quotation is issued with standard GST taxation or as a Zero-Tax / Non-GST proposal.
+                  </p>
+                </div>
+
+                <div className="flex items-center space-x-2 bg-slate-950 p-1 rounded-xl border border-slate-700 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsGstApplicable(true);
+                      if (gstType === 'none') setGstType('igst');
+                    }}
+                    className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                      isGstApplicable 
+                        ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30' 
+                        : 'text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    Quote with GST
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsGstApplicable(false);
+                      setGstType('none');
+                    }}
+                    className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                      !isGstApplicable 
+                        ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/30' 
+                        : 'text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    Quote without GST
+                  </button>
+                </div>
+              </div>
+
               {/* Top Meta Fields */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-[#0e1938] p-4 rounded-2xl border border-blue-500/20">
                 <div className="space-y-3">
@@ -498,7 +727,7 @@ export const QuotationsManager: React.FC = () => {
                   <div>
                     <div className="flex justify-between items-center mb-1">
                       <label className="text-[11px] font-bold uppercase tracking-wider text-slate-300">
-                        Client: [Select Client]
+                        Client / Billed To:
                       </label>
                       <button
                         type="button"
@@ -562,7 +791,7 @@ export const QuotationsManager: React.FC = () => {
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <label className="text-[11px] font-bold uppercase tracking-wider text-slate-300 block mb-1">
-                        Issue Date: [Date]
+                        Issue Date (DD-MM-YYYY):
                       </label>
                       <input
                         id="input-issue-date"
@@ -574,7 +803,7 @@ export const QuotationsManager: React.FC = () => {
                     </div>
                     <div>
                       <label className="text-[11px] font-bold uppercase tracking-wider text-slate-300 block mb-1">
-                        Valid Until: [Date]
+                        Valid Until (DD-MM-YYYY):
                       </label>
                       <input
                         id="input-valid-until"
@@ -586,36 +815,56 @@ export const QuotationsManager: React.FC = () => {
                     </div>
                   </div>
 
-                  <div>
-                    <label className="text-[11px] font-bold uppercase tracking-wider text-slate-300 block mb-1">
-                      Taxation & GST Mode:
-                    </label>
-                    <select
-                      id="select-gst-mode"
-                      value={gstType}
-                      onChange={e => setGstType(e.target.value as any)}
-                      className="w-full px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white outline-none focus:border-blue-500"
-                    >
-                      <option value="igst">Integrated GST (IGST 18%) - Standard Inter-State</option>
-                      <option value="cgst_sgst">CGST (9%) + SGST (9%) - Intra-State Odisha</option>
-                      <option value="none">Tax Exempt / 0% Export</option>
-                    </select>
-                  </div>
+                  {isGstApplicable ? (
+                    <div>
+                      <label className="text-[11px] font-bold uppercase tracking-wider text-slate-300 block mb-1">
+                        Tax Rate & State Tax Type:
+                      </label>
+                      <select
+                        id="select-gst-mode"
+                        value={gstType}
+                        onChange={e => setGstType(e.target.value as any)}
+                        className="w-full px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white outline-none focus:border-blue-500"
+                      >
+                        <option value="igst">Integrated GST (IGST 18%) - Standard Inter-State</option>
+                        <option value="cgst_sgst">CGST (9%) + SGST (9%) - Intra-State Odisha</option>
+                      </select>
+                    </div>
+                  ) : (
+                    <div className="p-2.5 rounded-xl bg-emerald-950/40 border border-emerald-500/30 text-[11px] text-emerald-300">
+                      <strong>Non-GST Commercial Proposal:</strong> Zero tax is computed. No IGST or CGST/SGST lines will appear on the document.
+                    </div>
+                  )}
                 </div>
               </div>
 
-              {/* Title / Scope */}
-              <div>
-                <label className="text-[11px] font-bold uppercase tracking-wider text-slate-300 block mb-1">
-                  Project Title / Scope:
-                </label>
-                <input
-                  type="text"
-                  value={title}
-                  onChange={e => setTitle(e.target.value)}
-                  placeholder="e.g. Website Design & Hosting Infrastructure"
-                  className="w-full px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white outline-none focus:border-blue-500"
-                />
+              {/* Title & Payment Terms */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-[11px] font-bold uppercase tracking-wider text-slate-300 block mb-1">
+                    Project Title / Scope:
+                  </label>
+                  <input
+                    type="text"
+                    value={title}
+                    onChange={e => setTitle(e.target.value)}
+                    placeholder="e.g. Website Design & Hosting Infrastructure"
+                    className="w-full px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white outline-none focus:border-blue-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[11px] font-bold uppercase tracking-wider text-slate-300 block mb-1">
+                    Payment Terms:
+                  </label>
+                  <input
+                    type="text"
+                    value={paymentTerms}
+                    onChange={e => setPaymentTerms(e.target.value)}
+                    placeholder="e.g. 50% Milestone Advance, 50% on Delivery"
+                    className="w-full px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white outline-none focus:border-blue-500"
+                  />
+                </div>
               </div>
 
               {/* Quick Presets */}
@@ -642,12 +891,6 @@ export const QuotationsManager: React.FC = () => {
                       <span className="font-mono text-cyan-300 font-bold">₹{preset.default_price.toLocaleString('en-IN')}</span>
                     </button>
                   ))}
-
-                  {pricePresets.filter(p => p.is_active).length === 0 && (
-                    <div className="text-xs text-slate-400 italic">
-                      No active presets found. Configure price presets in Agency Settings.
-                    </div>
-                  )}
                 </div>
               </div>
 
@@ -655,7 +898,7 @@ export const QuotationsManager: React.FC = () => {
               <div className="border border-blue-500/20 rounded-2xl overflow-hidden bg-[#0e1938]">
                 <div className="p-3 bg-[#0a132c] border-b border-blue-500/20 flex justify-between items-center">
                   <div className="text-xs font-bold text-white uppercase tracking-wider">
-                    Line Items
+                    Commercial Line Items
                   </div>
                   <button
                     type="button"
@@ -777,20 +1020,27 @@ export const QuotationsManager: React.FC = () => {
                   </span>
                 </div>
 
-                {/* GST Row */}
-                <div className="flex justify-between items-center text-sm py-1 border-t border-slate-800">
-                  <div className="flex items-center space-x-2">
-                    <span className="font-semibold text-slate-300">
-                      GST ({effectiveGstRate}%)
-                    </span>
-                    <span className="text-[11px] text-slate-400">
-                      {gstType === 'cgst_sgst' ? '(CGST 9% + SGST 9%)' : gstType === 'igst' ? '(IGST 18%)' : '(Exempt)'}
+                {/* GST Row (Only when GST is active) */}
+                {isGstApplicable ? (
+                  <div className="flex justify-between items-center text-sm py-1 border-t border-slate-800">
+                    <div className="flex items-center space-x-2">
+                      <span className="font-semibold text-slate-300">
+                        GST ({effectiveGstRate}%)
+                      </span>
+                      <span className="text-[11px] text-slate-400">
+                        {gstType === 'cgst_sgst' ? '(CGST 9% + SGST 9%)' : '(IGST 18%)'}
+                      </span>
+                    </div>
+                    <span className="font-mono font-bold text-blue-400">
+                      ₹ {(cgstAmount + sgstAmount + igstAmount).toLocaleString('en-IN')}
                     </span>
                   </div>
-                  <span className="font-mono font-bold text-blue-400">
-                    ₹ {(cgstAmount + sgstAmount + igstAmount).toLocaleString('en-IN')}
-                  </span>
-                </div>
+                ) : (
+                  <div className="flex justify-between items-center text-xs py-1 border-t border-slate-800 text-emerald-400">
+                    <span>Taxation Mode</span>
+                    <span className="font-bold uppercase tracking-wider">Non-GST Commercial Proposal (₹ 0 Tax)</span>
+                  </div>
+                )}
 
                 {/* Grand Total Row */}
                 <div className="flex justify-between items-center pt-3 border-t-2 border-slate-700 text-base">
@@ -834,7 +1084,18 @@ export const QuotationsManager: React.FC = () => {
                     <span>Generate PDF</span>
                   </button>
 
-                  {/* [Send] */}
+                  {/* [Save & Mark Pending] */}
+                  <button
+                    id="btn-save-pending"
+                    type="button"
+                    onClick={() => handleSaveQuotation('Pending')}
+                    className="px-5 py-2.5 rounded-xl bg-amber-600/20 hover:bg-amber-600 text-amber-300 hover:text-white border border-amber-500/40 text-xs font-bold flex items-center space-x-1.5 transition-all cursor-pointer"
+                  >
+                    <Clock className="w-4 h-4" />
+                    <span>Save Pending</span>
+                  </button>
+
+                  {/* [Save & Send Quotation] */}
                   <button
                     id="btn-send-quote"
                     type="button"
@@ -842,7 +1103,7 @@ export const QuotationsManager: React.FC = () => {
                     className="px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-black flex items-center space-x-2 transition-all shadow-md shadow-blue-600/30 hover:scale-[1.02] cursor-pointer"
                   >
                     <Send className="w-4 h-4" />
-                    <span>Send</span>
+                    <span>Save & Send Quote</span>
                   </button>
                 </div>
               </div>
@@ -852,7 +1113,88 @@ export const QuotationsManager: React.FC = () => {
         </div>
       )}
 
-      {/* QUOTATION PREVIEW MODAL */}
+      {/* OFFICIAL EMAIL MODAL (Phase 6 Mandate) */}
+      {emailModalQuote && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="bg-[#0b132c] border border-cyan-500/30 rounded-3xl w-full max-w-2xl p-6 sm:p-8 shadow-2xl text-slate-200">
+            <div className="flex items-center justify-between pb-4 border-b border-slate-800 mb-6">
+              <div className="flex items-center space-x-3">
+                <div className="p-2.5 rounded-xl bg-cyan-600/20 border border-cyan-500/30 text-cyan-400">
+                  <Mail className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-white">Email Commercial Quotation</h3>
+                  <p className="text-xs text-slate-400">Sent via verified agency address: <span className="font-mono text-cyan-300 font-semibold">admin@fusionforgecreation.com</span></p>
+                </div>
+              </div>
+              <button
+                onClick={() => setEmailModalQuote(null)}
+                className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-3 text-xs bg-[#0e1938] p-3.5 rounded-xl border border-blue-500/20">
+                <div>
+                  <span className="text-slate-400 block text-[10px] uppercase font-bold">From (Official Sender):</span>
+                  <span className="font-mono text-cyan-300 font-bold">admin@fusionforgecreation.com</span>
+                </div>
+                <div>
+                  <span className="text-slate-400 block text-[10px] uppercase font-bold">Recipient (Customer):</span>
+                  <span className="font-semibold text-white">{emailModalQuote.clientEmail}</span>
+                </div>
+              </div>
+
+              <div>
+                <label className="text-[11px] font-bold uppercase tracking-wider text-slate-300 block mb-1">
+                  Subject Line:
+                </label>
+                <input
+                  type="text"
+                  value={emailSubject}
+                  onChange={e => setEmailSubject(e.target.value)}
+                  className="w-full px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white outline-none focus:border-cyan-500"
+                />
+              </div>
+
+              <div>
+                <label className="text-[11px] font-bold uppercase tracking-wider text-slate-300 block mb-1">
+                  Email Message Body:
+                </label>
+                <textarea
+                  rows={6}
+                  value={emailNotes}
+                  onChange={e => setEmailNotes(e.target.value)}
+                  className="w-full px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs font-sans text-slate-200 outline-none focus:border-cyan-500 leading-relaxed"
+                />
+              </div>
+
+              <div className="flex justify-end space-x-3 pt-4 border-t border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => setEmailModalQuote(null)}
+                  className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-300"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  disabled={isSendingEmail}
+                  onClick={handleSendEmailSubmit}
+                  className="px-6 py-2 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white text-xs font-black flex items-center space-x-2 transition-all shadow-md shadow-cyan-600/30 cursor-pointer disabled:opacity-50"
+                >
+                  <Send className="w-4 h-4" />
+                  <span>{isSendingEmail ? 'Dispatching...' : 'Dispatch Email Now'}</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* COMMERCIAL QUOTATION PREVIEW MODAL */}
       {previewQuote && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
           <div className="bg-[#0b132c] border border-blue-500/30 rounded-3xl w-full max-w-2xl p-6 sm:p-8 shadow-2xl text-slate-200 max-h-[90vh] overflow-y-auto">
@@ -860,8 +1202,8 @@ export const QuotationsManager: React.FC = () => {
               <BrandLogo size="md" variant="full" theme="dark" />
               <div className="flex items-center gap-3">
                 <div className="text-right">
-                  <span className="text-[10px] font-bold tracking-widest text-blue-400 uppercase bg-blue-500/10 px-2.5 py-1 rounded-full border border-blue-500/30">
-                    Commercial Estimate
+                  <span className="text-[10px] font-black tracking-widest text-cyan-400 uppercase bg-cyan-500/10 px-3 py-1 rounded-full border border-cyan-500/30">
+                    COMMERCIAL QUOTATION
                   </span>
                   <div className="font-mono text-xs font-bold text-blue-400 mt-1">{previewQuote.quoteNumber}</div>
                 </div>
@@ -879,23 +1221,24 @@ export const QuotationsManager: React.FC = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 rounded-xl bg-[#0e1938] border border-blue-500/20 text-xs">
                 <div>
                   <div className="text-cyan-400 font-bold uppercase text-[10px] tracking-wider mb-1 flex items-center justify-between">
-                    <span>Seller / Agency (Live Compliance)</span>
+                    <span>Seller / Agency</span>
                     <span className="font-mono text-[9px] text-slate-400">SAC: {agencyConfig.sacCode || '998314'}</span>
                   </div>
                   <div className="text-white font-bold text-sm">{agencyConfig.company_name || agencyConfig.name || 'Fusion Forge Creation'}</div>
                   <div className="text-slate-300 text-[11px] mt-0.5">{agencyConfig.address}</div>
                   <div className="text-slate-400 text-[11px] font-mono mt-1">
-                    GSTIN: <strong className="text-slate-200">{agencyConfig.gstin}</strong> | PAN: <strong className="text-slate-200">{agencyConfig.pan}</strong>
+                    {agencyConfig.gstin ? `GSTIN: ${agencyConfig.gstin} | ` : ''}PAN: {agencyConfig.pan || 'AALFF1234F'}
+                    {agencyConfig.msme_number ? ` | MSME: ${agencyConfig.msme_number}` : ''}
                   </div>
                 </div>
 
                 <div className="sm:border-l sm:border-slate-800 sm:pl-4">
-                  <div className="text-blue-400 font-bold uppercase text-[10px] tracking-wider mb-1">Client:</div>
+                  <div className="text-blue-400 font-bold uppercase text-[10px] tracking-wider mb-1">Client / Billed To:</div>
                   <div className="text-white font-bold text-sm">{previewQuote.clientCompany || previewQuote.clientName}</div>
                   <div className="text-slate-300 text-[11px]">Attn: {previewQuote.clientName}</div>
                   <div className="text-slate-400 text-[11px]">{previewQuote.clientEmail}</div>
-                  <div className="text-slate-400 text-[10px] mt-1">
-                    Issue: <span className="font-mono text-white font-bold">{previewQuote.issueDate}</span> • Valid: <span className="font-mono text-white font-bold">{previewQuote.validUntil}</span>
+                  <div className="text-slate-400 text-[10px] mt-1 font-mono">
+                    Issue: <span className="text-white font-bold">{formatDateDDMMYYYY(previewQuote.issueDate)}</span> • Valid: <span className="text-white font-bold">{formatDateDDMMYYYY(previewQuote.validUntil)}</span>
                   </div>
                 </div>
               </div>
@@ -906,8 +1249,8 @@ export const QuotationsManager: React.FC = () => {
                   <tr className="border-b border-slate-800 text-slate-400 uppercase text-[10px]">
                     <th className="py-2.5 px-2">Description</th>
                     <th className="py-2.5 px-2 text-center">Qty</th>
-                    <th className="py-2.5 px-2 text-right">Rate</th>
-                    <th className="py-2.5 px-2 text-right">Amount</th>
+                    <th className="py-2.5 px-2 text-right">Rate (₹)</th>
+                    <th className="py-2.5 px-2 text-right">Amount (₹)</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-800 font-mono">
@@ -934,28 +1277,47 @@ export const QuotationsManager: React.FC = () => {
                     <span className="font-mono font-bold">- ₹ {previewQuote.discountAmount.toLocaleString('en-IN')}</span>
                   </div>
                 )}
-                <div className="flex justify-between border-t border-slate-800 pt-1.5 font-bold">
-                  <span className="text-slate-300">Taxable Amount:</span>
-                  <span className="font-mono text-white">₹ {(previewQuote.taxableAmount || (previewQuote.subtotal - previewQuote.discountAmount)).toLocaleString('en-IN')}</span>
-                </div>
-                <div className="flex justify-between text-blue-400">
-                  <span>GST ({previewQuote.gstRate || 18}%):</span>
-                  <span className="font-mono font-bold">₹ {((previewQuote.cgstAmount || 0) + (previewQuote.sgstAmount || 0) + (previewQuote.igstAmount || 0)).toLocaleString('en-IN')}</span>
-                </div>
+                
+                {previewQuote.gstApplicable !== false && previewQuote.gstType !== 'none' && (previewQuote.totalAmount > (previewQuote.taxableAmount || previewQuote.subtotal)) ? (
+                  <>
+                    <div className="flex justify-between border-t border-slate-800 pt-1.5 font-bold">
+                      <span className="text-slate-300">Taxable Amount:</span>
+                      <span className="font-mono text-white">₹ {(previewQuote.taxableAmount || (previewQuote.subtotal - previewQuote.discountAmount)).toLocaleString('en-IN')}</span>
+                    </div>
+                    <div className="flex justify-between text-blue-400">
+                      <span>GST ({previewQuote.gstRate || 18}%):</span>
+                      <span className="font-mono font-bold">₹ {((previewQuote.cgstAmount || 0) + (previewQuote.sgstAmount || 0) + (previewQuote.igstAmount || 0)).toLocaleString('en-IN')}</span>
+                    </div>
+                  </>
+                ) : (
+                  <div className="flex justify-between border-t border-slate-800 pt-1.5 text-emerald-400 font-semibold">
+                    <span>Taxation:</span>
+                    <span>Commercial Non-GST Quotation (₹ 0 Tax)</span>
+                  </div>
+                )}
+
                 <div className="flex justify-between border-t-2 border-slate-700 pt-2 text-sm font-black">
                   <span className="text-white">Grand Total:</span>
                   <span className="font-mono text-cyan-400 text-base">₹ {previewQuote.totalAmount.toLocaleString('en-IN')}</span>
                 </div>
               </div>
 
-              {/* Actions */}
-              <div className="flex justify-end space-x-3 pt-4 border-t border-slate-800">
+              {/* Actions in Preview */}
+              <div className="flex justify-between items-center pt-4 border-t border-slate-800">
+                <button
+                  onClick={() => openEmailModal(previewQuote)}
+                  className="px-4 py-2 rounded-xl bg-cyan-600/20 hover:bg-cyan-600 text-cyan-300 hover:text-white text-xs font-bold flex items-center space-x-1.5 border border-cyan-500/30"
+                >
+                  <Mail className="w-4 h-4" />
+                  <span>Email Quote</span>
+                </button>
+
                 <button
                   onClick={() => generateQuotationPDF(previewQuote, agencyConfig)}
-                  className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold flex items-center space-x-2 transition-all shadow-sm cursor-pointer"
+                  className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold flex items-center space-x-2 transition-all shadow-sm cursor-pointer"
                 >
                   <Download className="w-4 h-4" />
-                  <span>Download PDF Document</span>
+                  <span>Download COMMERCIAL QUOTATION PDF</span>
                 </button>
               </div>
             </div>

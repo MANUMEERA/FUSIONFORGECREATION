@@ -2408,6 +2408,174 @@ ORDER BY event_object_table, trigger_name;
 
 
 -- =====================================================================
+-- 52. PHASE 9: PROJECT STATUS HISTORY & COMPLETED WORKS ARCHIVE
+-- =====================================================================
+
+-- 52.1 Project Status History Table
+CREATE TABLE IF NOT EXISTS public.project_status_history (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    project_id TEXT NOT NULL,
+    previous_status TEXT,
+    new_status TEXT NOT NULL,
+    changed_by TEXT NOT NULL DEFAULT 'admin@fusionforgecreation.com',
+    notes TEXT,
+    email_sent BOOLEAN NOT NULL DEFAULT FALSE,
+    email_recipient TEXT,
+    message_id TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- 52.2 Completed Works (Internal Company Portfolio & History System)
+CREATE TABLE IF NOT EXISTS public.completed_works (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    client_name TEXT NOT NULL,
+    project_title TEXT NOT NULL,
+    work_category TEXT NOT NULL,
+    completion_date DATE NOT NULL DEFAULT CURRENT_DATE,
+    technology_type TEXT[] NOT NULL DEFAULT '{}',
+    public_url TEXT,
+    web_app_url TEXT,
+    software_url TEXT,
+    mobile_app_info TEXT,
+    short_description TEXT NOT NULL DEFAULT '',
+    deliverables_summary TEXT[] DEFAULT '{}',
+    source_project_id TEXT,
+    is_verified BOOLEAN NOT NULL DEFAULT TRUE,
+    created_by TEXT DEFAULT 'Super Admin',
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- RLS Policies for Phase 9 tables
+ALTER TABLE public.project_status_history ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.completed_works ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Allow authenticated full access to project_status_history"
+ON public.project_status_history FOR ALL
+TO authenticated USING (true) WITH CHECK (true);
+
+CREATE POLICY "Allow authenticated full access to completed_works"
+ON public.completed_works FOR ALL
+TO authenticated USING (true) WITH CHECK (true);
+
+CREATE POLICY "Allow public read access to completed_works"
+ON public.completed_works FOR SELECT
+TO anon USING (is_verified = true);
+
+-- Seed Historical Completed Works
+INSERT INTO public.completed_works (
+    id, client_name, project_title, work_category, completion_date,
+    technology_type, public_url, web_app_url, software_url, mobile_app_info,
+    short_description, deliverables_summary, is_verified
+) VALUES
+(
+    'a1b2c3d4-0001-4000-8000-000000000001',
+    'Apex Fintech Solutions Pvt. Ltd.',
+    'Apex Financial Intelligence & Trading Analytics Platform',
+    'Web Application & Real-time Trading',
+    '2026-04-28',
+    ARRAY['React 19', 'TypeScript', 'Node.js', 'PostgreSQL', 'Tailwind CSS', 'WebSockets'],
+    'https://apexfintech.io',
+    'https://app.apexfintech.io',
+    'https://github.com/fusion-forge/apex-engine',
+    'Progressive Web Application (PWA) with push alerts',
+    'Enterprise high-frequency market analytics dashboard featuring sub-second WebSocket updates and automated P&L reporting.',
+    ARRAY['Interactive financial dashboard', 'Real-time WebSocket streaming feed', 'Admin telemetry and client user desk'],
+    TRUE
+),
+(
+    'a1b2c3d4-0002-4000-8000-000000000002',
+    'Quantum Logistics & Freight',
+    'Quantum Fleet Telematics & Live GPS IoT Engine',
+    'Enterprise Cloud & IoT Telematics',
+    '2026-07-24',
+    ARRAY['React', 'TypeScript', 'Node.js', 'PostgreSQL', 'MQTT', 'Docker'],
+    'https://quantumfreight.in',
+    'https://telematics.quantumfreight.in',
+    'https://cloud.quantumfreight.in',
+    'Driver Android GPS Telematics App (Private Distribution)',
+    'Multi-tenant freight dispatch platform integrating real-time GPS telemetry from 500+ commercial fleet vehicles.',
+    ARRAY['High-throughput MQTT GPS telemetry ingestion', 'Live map clustering & route playback', 'Driver mobile application APK'],
+    TRUE
+),
+(
+    'a1b2c3d4-0003-4000-8000-000000000003',
+    'JP MODATEX LLP',
+    'Modatex Textile ERP & Production Workflow Engine',
+    'Enterprise ERP & Inventory Automation',
+    '2026-06-18',
+    ARRAY['React', 'TypeScript', 'PostgreSQL', 'Tailwind CSS', 'Node.js'],
+    'https://jpmodatex.com',
+    'https://erp.jpmodatex.com',
+    'https://internal.jpmodatex.com/portal',
+    'Inventory Barcode Scanner Web App for floor supervisors',
+    'End-to-end textile manufacturing ERP supporting loom scheduling, yarn batch tracking, and inventory dispatch.',
+    ARRAY['Yarn and fabric inventory tracking system', 'Production batch scheduling calendar', 'Automated inter-state IGST billing engine'],
+    TRUE
+)
+ON CONFLICT (id) DO NOTHING;
+
+
+-- =====================================================================
+-- PHASE 12: CENTRAL NOTIFICATION AND EMAIL DISPATCH LOG TABLES
+-- =====================================================================
+
+CREATE TABLE IF NOT EXISTS public.notifications (
+    id TEXT PRIMARY KEY,
+    type TEXT NOT NULL,
+    category TEXT NOT NULL DEFAULT 'system',
+    title TEXT NOT NULL,
+    message TEXT NOT NULL,
+    link TEXT,
+    entity_type TEXT,
+    entity_id TEXT,
+    priority TEXT NOT NULL DEFAULT 'normal' CHECK (priority IN ('low', 'normal', 'high', 'urgent')),
+    is_read BOOLEAN NOT NULL DEFAULT FALSE,
+    read_at TIMESTAMPTZ,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    target_role TEXT DEFAULT 'all',
+    target_user_id TEXT,
+    target_client_id TEXT,
+    metadata JSONB DEFAULT '{}'::jsonb,
+    event_key TEXT
+);
+
+CREATE TABLE IF NOT EXISTS public.email_logs (
+    id TEXT PRIMARY KEY,
+    recipient TEXT NOT NULL,
+    sender TEXT NOT NULL DEFAULT 'admin@fusionforgecreation.com',
+    subject TEXT NOT NULL,
+    category TEXT NOT NULL DEFAULT 'general',
+    status TEXT NOT NULL DEFAULT 'sent' CHECK (status IN ('sent', 'failed', 'pending')),
+    message_id TEXT,
+    error_message TEXT,
+    entity_type TEXT,
+    entity_id TEXT,
+    metadata JSONB DEFAULT '{}'::jsonb,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.email_logs ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Allow authenticated full access to notifications"
+ON public.notifications FOR ALL
+TO authenticated USING (true) WITH CHECK (true);
+
+CREATE POLICY "Allow public read own notifications"
+ON public.notifications FOR SELECT
+TO anon USING (true);
+
+CREATE POLICY "Allow authenticated full access to email_logs"
+ON public.email_logs FOR ALL
+TO authenticated USING (true) WITH CHECK (true);
+
+CREATE POLICY "Allow public read email_logs"
+ON public.email_logs FOR SELECT
+TO anon USING (true);
+
+
+-- =====================================================================
 -- END OF FUSION FORGE CREATION MASTER SUPABASE DATABASE
 -- =====================================================================
 `;

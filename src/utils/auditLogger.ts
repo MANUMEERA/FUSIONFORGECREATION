@@ -3,7 +3,7 @@ import { AuditLog, UserProfile } from '../types';
 
 export interface LogAuditOptions {
   user: UserProfile;
-  action: 'CREATE' | 'UPDATE' | 'DELETE' | 'SOFT_DELETE' | 'RESTORE' | 'PAYMENT_RECORD' | 'AUTH_LOGIN' | 'CALCULATE_GST' | 'ROLE_CHANGE';
+  action: AuditLog['action'];
   tableName: string;
   recordId: string;
   details: Record<string, any> | string;

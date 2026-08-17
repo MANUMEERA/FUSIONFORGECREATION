@@ -10,6 +10,9 @@ import {
   PortfolioProject,
   AgencyService,
   ManagedProject,
+  ProjectStatus,
+  ProjectStatusHistoryItem,
+  CompletedWorkRecord,
   TechnologyItem,
   TestimonialItem,
   FaqItem,
@@ -20,7 +23,16 @@ import {
   PermissionDefinition,
   ServicePricePreset,
   PaymentTermItem,
-  DocumentNumberConfig
+  DocumentNumberConfig,
+  Purchase,
+  Expense,
+  StaffMember,
+  SalaryRecord,
+  CreditDebitNote,
+  AccountingReportFilter,
+  AppNotification,
+  NotificationCategory,
+  EmailLog
 } from '../types';
 import { 
   INITIAL_USERS, 
@@ -28,10 +40,12 @@ import {
   INITIAL_QUOTATIONS, 
   INITIAL_INVOICES, 
   INITIAL_PAYMENTS, 
+  INITIAL_CREDIT_DEBIT_NOTES,
   INITIAL_ENQUIRIES, 
   INITIAL_PORTFOLIO,
   INITIAL_SERVICES,
   INITIAL_MANAGED_PROJECTS,
+  INITIAL_COMPLETED_WORKS,
   INITIAL_TECHNOLOGIES,
   INITIAL_TESTIMONIALS,
   INITIAL_FAQS,
@@ -41,6 +55,12 @@ import {
   INITIAL_SOCIAL_CHANNELS,
   INITIAL_PRICE_PRESETS,
   INITIAL_PAYMENT_TERMS,
+  INITIAL_PURCHASES,
+  INITIAL_EXPENSES,
+  INITIAL_STAFF_MEMBERS,
+  INITIAL_SALARY_RECORDS,
+  INITIAL_NOTIFICATIONS,
+  INITIAL_EMAIL_LOGS,
   AGENCY_CONFIG 
 } from '../mockData';
 import { DEFAULT_INVOICE_NUMBERING, DEFAULT_QUOTATION_NUMBERING } from '../utils/documentNumbering';
@@ -49,6 +69,18 @@ import { calculateGstInvoiceTotals } from '../utils/gstEngine';
 import { supabase, isSupabaseConfigured } from '../lib/supabaseClient';
 import { logAuditEvent } from '../utils/auditLogger';
 import { buzzerEngine } from '../utils/buzzerSound';
+import { 
+  sendProjectStatusEmailBackend, 
+  sendQuotationEmailBackend, 
+  sendPaymentReceiptEmailBackend, 
+  sendInvoiceEmailBackend,
+  sendGenericEmailBackend 
+} from '../utils/emailService';
+import { 
+  filterNotificationsByRole, 
+  playNotificationChime, 
+  isDuplicateEvent 
+} from '../utils/notificationEngine';
 
 interface AppContextType {
   currentUser: UserProfile;
@@ -73,14 +105,35 @@ interface AppContextType {
   testBuzzerSound: () => void;
   triggerSimulatedLeadAlert: () => ProjectEnquiry;
 
+  // Phase 12: Central Notification & Email System
+  notifications: AppNotification[];
+  unreadNotificationsCount: number;
+  addNotification: (notification: Omit<AppNotification, 'id' | 'created_at'>) => Promise<AppNotification | undefined>;
+  markNotificationRead: (id: string) => Promise<void>;
+  markAllNotificationsRead: (category?: NotificationCategory) => Promise<void>;
+  deleteNotification: (id: string) => Promise<void>;
+  clearAllNotifications: () => Promise<void>;
+  emailLogs: EmailLog[];
+  addEmailLog: (log: Omit<EmailLog, 'id' | 'created_at'>) => Promise<EmailLog>;
+  sendInvoiceEmail: (invoiceId: string, customRecipient?: string, customNotes?: string) => Promise<{ success: boolean; messageId?: string; error?: string }>;
+  sendQuotationEmail: (quotationId: string, customRecipient?: string, customNotes?: string) => Promise<{ success: boolean; messageId?: string; error?: string }>;
+  sendPaymentReceiptEmail: (paymentId: string, customRecipient?: string, customNotes?: string) => Promise<{ success: boolean; messageId?: string; error?: string }>;
+
   clients: Client[];
   quotations: Quotation[];
   invoices: Invoice[];
   payments: Payment[];
+  creditDebitNotes: CreditDebitNote[];
+  creditNotes: CreditDebitNote[];
+  purchases: Purchase[];
+  expenses: Expense[];
+  staffMembers: StaffMember[];
+  salaryRecords: SalaryRecord[];
   enquiries: ProjectEnquiry[];
   portfolio: PortfolioProject[];
   services: AgencyService[];
   managedProjects: ManagedProject[];
+  completedWorks: CompletedWorkRecord[];
   technologies: TechnologyItem[];
   testimonials: TestimonialItem[];
   faqs: FaqItem[];
@@ -89,6 +142,32 @@ interface AppContextType {
   users: UserProfile[];
   auditLogs: AuditLog[];
   addAuditLog: (log: Omit<AuditLog, 'id' | 'created_at'>) => void;
+
+  // Phase 11: Credit & Debit Note Management (GSTR-1 CDNR Statutory Compliance)
+  addCreditDebitNote: (note: Omit<CreditDebitNote, 'id' | 'created_at' | 'updated_at'>) => Promise<CreditDebitNote>;
+  updateCreditDebitNote: (id: string, data: Partial<CreditDebitNote>) => Promise<void>;
+  deleteCreditDebitNote: (id: string) => Promise<void>;
+  generateNoteNumber: (type: 'credit' | 'debit') => string;
+
+  // Phase 10: Purchases, Expenses, Staff & Salary Operations
+  addPurchase: (purchase: Omit<Purchase, 'id' | 'created_at' | 'updated_at'>) => Promise<Purchase>;
+  updatePurchase: (id: string, data: Partial<Purchase>) => Promise<void>;
+  deletePurchase: (id: string) => Promise<void>;
+  markPurchasePaid: (id: string, paymentMode?: string, paymentRef?: string, paymentDate?: string) => Promise<void>;
+
+  addExpense: (expense: Omit<Expense, 'id' | 'created_at' | 'updated_at'>) => Promise<Expense>;
+  updateExpense: (id: string, data: Partial<Expense>) => Promise<void>;
+  deleteExpense: (id: string) => Promise<void>;
+
+  addStaffMember: (staff: Omit<StaffMember, 'id' | 'created_at' | 'updated_at'>) => Promise<StaffMember>;
+  updateStaffMember: (id: string, data: Partial<StaffMember>) => Promise<void>;
+  deleteStaffMember: (id: string) => Promise<void>;
+
+  addSalaryRecord: (record: Omit<SalaryRecord, 'id' | 'created_at' | 'updated_at'>) => Promise<SalaryRecord>;
+  updateSalaryRecord: (id: string, data: Partial<SalaryRecord>) => Promise<void>;
+  deleteSalaryRecord: (id: string) => Promise<void>;
+  generateMonthlyPayroll: (periodMonth: string, periodYear: number) => Promise<{ count: number; message: string }>;
+  markSalaryPaid: (id: string, paymentMode?: string, transactionRef?: string, paymentDate?: string) => Promise<void>;
 
   addClient: (client: Omit<Client, 'id' | 'createdAt' | 'updatedAt' | 'totalBilled' | 'totalPaid'>) => Client;
   updateClient: (id: string, data: Partial<Client>) => void;
@@ -106,8 +185,10 @@ interface AppContextType {
   deleteInvoice: (id: string) => void;
   softDeleteInvoice: (id: string) => void;
   restoreInvoice: (id: string) => void;
+  createInvoiceFromProject: (projectId: string, overrideDuplicateWarning?: boolean) => { success: boolean; invoice?: Invoice; message?: string; alreadyInvoiced?: boolean; existingInvoiceNumber?: string };
   
   recordPayment: (payment: Omit<Payment, 'id' | 'createdAt' | 'receiptNumber'>) => Payment;
+  updatePayment: (id: string, data: Partial<Payment>) => void;
   deletePayment: (id: string) => void;
   
   addEnquiry: (enquiry: Omit<ProjectEnquiry, 'id' | 'createdAt' | 'updatedAt' | 'status' | 'priority'>) => ProjectEnquiry;
@@ -120,8 +201,15 @@ interface AppContextType {
   deleteService: (id: string) => void;
 
   addManagedProject: (project: Omit<ManagedProject, 'id'>) => ManagedProject;
-  updateManagedProject: (id: string, data: Partial<ManagedProject>) => void;
+  updateManagedProject: (id: string, data: Partial<ManagedProject>, sendEmailNotification?: boolean, emailSubject?: string, emailNotes?: string) => Promise<ManagedProject | undefined>;
   deleteManagedProject: (id: string) => void;
+  sendProjectStatusEmail: (projectId: string, newStatus: ProjectStatus | string, customNotes?: string) => Promise<{ success: boolean; messageId?: string; error?: string }>;
+
+  // Phase 9: Completed Work Record System (Internal Company Portfolio & History)
+  addCompletedWork: (data: Omit<CompletedWorkRecord, 'id' | 'createdAt' | 'updatedAt'>) => CompletedWorkRecord;
+  updateCompletedWork: (id: string, data: Partial<CompletedWorkRecord>) => void;
+  deleteCompletedWork: (id: string) => void;
+  archiveProjectToCompletedWork: (projectId: string) => CompletedWorkRecord | null;
 
   addTechnology: (tech: Omit<TechnologyItem, 'id'>) => TechnologyItem;
   updateTechnology: (id: string, data: Partial<TechnologyItem>) => void;
@@ -208,9 +296,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [quotations, setQuotations] = useState<Quotation[]>(INITIAL_QUOTATIONS);
   const [invoices, setInvoices] = useState<Invoice[]>(INITIAL_INVOICES);
   const [payments, setPayments] = useState<Payment[]>(INITIAL_PAYMENTS);
+  const [purchases, setPurchases] = useState<Purchase[]>(INITIAL_PURCHASES);
+  const [expenses, setExpenses] = useState<Expense[]>(INITIAL_EXPENSES);
+  const [staffMembers, setStaffMembers] = useState<StaffMember[]>(INITIAL_STAFF_MEMBERS);
+  const [salaryRecords, setSalaryRecords] = useState<SalaryRecord[]>(INITIAL_SALARY_RECORDS);
   const [enquiries, setEnquiries] = useState<ProjectEnquiry[]>(INITIAL_ENQUIRIES);
   const [services, setServices] = useState<AgencyService[]>(INITIAL_SERVICES);
   const [managedProjects, setManagedProjects] = useState<ManagedProject[]>(INITIAL_MANAGED_PROJECTS);
+  const [completedWorks, setCompletedWorks] = useState<CompletedWorkRecord[]>(INITIAL_COMPLETED_WORKS);
   const [technologies, setTechnologies] = useState<TechnologyItem[]>(INITIAL_TECHNOLOGIES);
   const [testimonials, setTestimonials] = useState<TestimonialItem[]>(INITIAL_TESTIMONIALS);
   const [faqs, setFaqs] = useState<FaqItem[]>(INITIAL_FAQS);
@@ -259,6 +352,23 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return INITIAL_PAYMENT_TERMS;
     }
   });
+
+  const [creditDebitNotes, setCreditDebitNotes] = useState<CreditDebitNote[]>(() => {
+    try {
+      const saved = localStorage.getItem('fusion_forge_credit_debit_notes');
+      return saved ? JSON.parse(saved) : INITIAL_CREDIT_DEBIT_NOTES;
+    } catch {
+      return INITIAL_CREDIT_DEBIT_NOTES;
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('fusion_forge_credit_debit_notes', JSON.stringify(creditDebitNotes));
+    } catch (e) {
+      console.warn('Failed to persist creditDebitNotes to localStorage', e);
+    }
+  }, [creditDebitNotes]);
 
   useEffect(() => {
     try {
@@ -324,6 +434,164 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       console.warn('Failed to persist chatbot settings to localStorage', e);
     }
   }, [chatbotSettings]);
+
+  // Phase 12: Central Notification & Email State (Persisted in Supabase, NOT localStorage)
+  const [notifications, setNotifications] = useState<AppNotification[]>(INITIAL_NOTIFICATIONS);
+  const [emailLogs, setEmailLogs] = useState<EmailLog[]>(INITIAL_EMAIL_LOGS);
+
+  const addNotification = useCallback(async (notifData: Omit<AppNotification, 'id' | 'created_at'>): Promise<AppNotification | undefined> => {
+    // Deduplication check
+    if (isDuplicateEvent(notifications, notifData.event_key, notifData.type, notifData.entity_id)) {
+      return undefined;
+    }
+
+    const newId = `notif_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+    const timestamp = new Date().toISOString();
+    const fullNotif: AppNotification = {
+      id: newId,
+      created_at: timestamp,
+      is_read: false,
+      priority: notifData.priority || 'normal',
+      category: notifData.category || 'system',
+      target_role: notifData.target_role || 'all',
+      metadata: notifData.metadata || {},
+      ...notifData
+    };
+
+    setNotifications(prev => [fullNotif, ...prev]);
+
+    // System audio chime
+    playNotificationChime(fullNotif.priority);
+
+    // Sync to Supabase
+    if (isSupabaseConfigured) {
+      try {
+        await supabase.from('notifications').insert([{
+          id: fullNotif.id,
+          type: fullNotif.type,
+          category: fullNotif.category,
+          title: fullNotif.title,
+          message: fullNotif.message,
+          link: fullNotif.link || null,
+          entity_type: fullNotif.entity_type || null,
+          entity_id: fullNotif.entity_id || null,
+          priority: fullNotif.priority,
+          is_read: false,
+          created_at: fullNotif.created_at,
+          target_role: fullNotif.target_role,
+          target_user_id: fullNotif.target_user_id || null,
+          target_client_id: fullNotif.target_client_id || null,
+          metadata: fullNotif.metadata,
+          event_key: fullNotif.event_key || null
+        }]);
+      } catch (e) {
+        console.warn('[Supabase Notification Insert] Handled fallback:', e);
+      }
+    }
+
+    return fullNotif;
+  }, [notifications]);
+
+  const markNotificationRead = useCallback(async (id: string) => {
+    const timestamp = new Date().toISOString();
+    setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true, read_at: timestamp } : n));
+
+    if (isSupabaseConfigured) {
+      try {
+        await supabase.from('notifications').update({
+          is_read: true,
+          read_at: timestamp
+        }).eq('id', id);
+      } catch (e) {
+        console.warn('[Supabase Notification Mark Read] Error:', e);
+      }
+    }
+  }, []);
+
+  const markAllNotificationsRead = useCallback(async (category?: NotificationCategory) => {
+    const timestamp = new Date().toISOString();
+    setNotifications(prev => prev.map(n => {
+      if (!category || category === 'all' || n.category === category) {
+        return { ...n, is_read: true, read_at: timestamp };
+      }
+      return n;
+    }));
+
+    if (isSupabaseConfigured) {
+      try {
+        let query = supabase.from('notifications').update({
+          is_read: true,
+          read_at: timestamp
+        });
+        if (category && category !== 'all') {
+          query = query.eq('category', category);
+        }
+        await query;
+      } catch (e) {
+        console.warn('[Supabase Notification Mark All Read] Error:', e);
+      }
+    }
+  }, []);
+
+  const deleteNotification = useCallback(async (id: string) => {
+    setNotifications(prev => prev.filter(n => n.id !== id));
+
+    if (isSupabaseConfigured) {
+      try {
+        await supabase.from('notifications').delete().eq('id', id);
+      } catch (e) {
+        console.warn('[Supabase Notification Delete] Error:', e);
+      }
+    }
+  }, []);
+
+  const clearAllNotifications = useCallback(async () => {
+    setNotifications([]);
+
+    if (isSupabaseConfigured) {
+      try {
+        await supabase.from('notifications').delete().neq('id', '');
+      } catch (e) {
+        console.warn('[Supabase Notifications Clear] Error:', e);
+      }
+    }
+  }, []);
+
+  const addEmailLog = useCallback(async (logData: Omit<EmailLog, 'id' | 'created_at'>): Promise<EmailLog> => {
+    const newId = `eml_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+    const timestamp = new Date().toISOString();
+    const fullLog: EmailLog = {
+      id: newId,
+      created_at: timestamp,
+      sender: logData.sender || 'admin@fusionforgecreation.com',
+      ...logData
+    };
+
+    setEmailLogs(prev => [fullLog, ...prev]);
+
+    if (isSupabaseConfigured) {
+      try {
+        await supabase.from('email_logs').insert([{
+          id: fullLog.id,
+          recipient: fullLog.recipient,
+          sender: fullLog.sender,
+          subject: fullLog.subject,
+          category: fullLog.category,
+          status: fullLog.status,
+          message_id: fullLog.message_id || null,
+          error_message: fullLog.error_message || null,
+          entity_type: fullLog.entity_type || null,
+          entity_id: fullLog.entity_id || null,
+          metadata: fullLog.metadata || {},
+          created_at: fullLog.created_at
+        }]);
+      } catch (e) {
+        console.warn('[Supabase Email Log Insert] Error:', e);
+      }
+    }
+
+    return fullLog;
+  }, []);
 
   // Sync state from Supabase PostgreSQL tables according to authoritative schema
   const syncFromDatabase = useCallback(async () => {
@@ -647,6 +915,38 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setFaqs(mappedFaqs);
       }
 
+      // 9B. Fetch Completed Works (Phase 9 Internal History System)
+      try {
+        const { data: cwData } = await supabase
+          .from('completed_works')
+          .select('*')
+          .order('completion_date', { ascending: false });
+
+        if (cwData && cwData.length > 0) {
+          const mappedCW: CompletedWorkRecord[] = cwData.map((cw: any) => ({
+            id: cw.id,
+            clientName: cw.client_name,
+            projectTitle: cw.project_title,
+            workCategory: cw.work_category,
+            completionDate: cw.completion_date,
+            technologyType: cw.technology_type || [],
+            publicUrl: cw.public_url || undefined,
+            webAppUrl: cw.web_app_url || undefined,
+            softwareUrl: cw.software_url || undefined,
+            mobileAppInfo: cw.mobile_app_info || undefined,
+            shortDescription: cw.short_description || '',
+            deliverablesSummary: cw.deliverables_summary || [],
+            sourceProjectId: cw.source_project_id || undefined,
+            isVerified: cw.is_verified ?? true,
+            createdAt: cw.created_at || new Date().toISOString(),
+            updatedAt: cw.updated_at || new Date().toISOString()
+          }));
+          setCompletedWorks(mappedCW);
+        }
+      } catch (cwErr) {
+        console.warn('Completed works table not yet migrated in Supabase, using initial seed data.', cwErr);
+      }
+
       // 10. Fetch Seller Profile
       const { data: sellerData } = await supabase
         .from('seller_profile')
@@ -765,6 +1065,302 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           updated_at: p.updated_at
         }));
         setUsers(mappedUsers);
+      }
+
+      // 12. Fetch Purchases (Phase 10 Supabase Database Integration)
+      try {
+        const { data: purchasesData } = await supabase
+          .from('purchases')
+          .select('*')
+          .order('purchase_date', { ascending: false });
+
+        if (purchasesData && purchasesData.length > 0) {
+          const mappedPurchases: Purchase[] = purchasesData.map((p: any) => ({
+            id: p.id,
+            supplierName: p.supplier_name,
+            supplierGstin: p.supplier_gstin || undefined,
+            supplierEmail: p.supplier_email || undefined,
+            supplierPhone: p.supplier_phone || undefined,
+            supplierAddress: p.supplier_address || undefined,
+            supplierStateCode: p.supplier_state_code || undefined,
+            billNumber: p.bill_number,
+            purchaseDate: p.purchase_date,
+            dueDate: p.due_date || undefined,
+            description: p.description,
+            hsnSacCode: p.hsn_sac_code || undefined,
+            category: p.category || undefined,
+            taxableAmount: Number(p.taxable_amount) || 0,
+            gstRate: Number(p.gst_rate) || 0,
+            cgstAmount: Number(p.cgst_amount) || 0,
+            sgstAmount: Number(p.sgst_amount) || 0,
+            utgstAmount: Number(p.utgst_amount) || 0,
+            igstAmount: Number(p.igst_amount) || 0,
+            totalAmount: Number(p.total_amount) || 0,
+            paymentStatus: p.payment_status || 'pending',
+            paymentMode: p.payment_mode || undefined,
+            paymentDate: p.payment_date || undefined,
+            paymentRef: p.payment_ref || undefined,
+            attachmentUrl: p.attachment_url || undefined,
+            attachmentName: p.attachment_name || undefined,
+            notes: p.notes || undefined,
+            isItcClaimable: p.is_itc_claimable ?? true,
+            isReverseCharge: p.is_reverse_charge ?? false,
+            created_at: p.created_at,
+            updated_at: p.updated_at
+          }));
+          setPurchases(mappedPurchases);
+        }
+      } catch (purErr) {
+        console.warn('[Supabase Purchases Sync] Non-critical fallback:', purErr);
+      }
+
+      // 13. Fetch Expenses (Phase 10 Supabase Database Integration)
+      try {
+        const { data: expensesData } = await supabase
+          .from('expenses')
+          .select('*')
+          .order('expense_date', { ascending: false });
+
+        if (expensesData && expensesData.length > 0) {
+          const mappedExpenses: Expense[] = expensesData.map((e: any) => ({
+            id: e.id,
+            expenseDate: e.expense_date,
+            category: e.category,
+            description: e.description,
+            vendorName: e.vendor_name,
+            vendorGstin: e.vendor_gstin || undefined,
+            amount: Number(e.amount) || 0,
+            gstApplicable: e.gst_applicable ?? false,
+            taxableAmount: Number(e.taxable_amount) || undefined,
+            gstRate: Number(e.gst_rate) || undefined,
+            gstAmount: Number(e.gst_amount) || undefined,
+            cgstAmount: Number(e.cgst_amount) || undefined,
+            sgstAmount: Number(e.sgst_amount) || undefined,
+            igstAmount: Number(e.igst_amount) || undefined,
+            isItcEligible: e.is_itc_eligible ?? true,
+            paymentMode: e.payment_mode || 'UPI',
+            referenceNumber: e.reference_number || undefined,
+            attachmentUrl: e.attachment_url || undefined,
+            attachmentName: e.attachment_name || undefined,
+            paidBy: e.paid_by || undefined,
+            status: e.status || 'paid',
+            notes: e.notes || undefined,
+            created_at: e.created_at,
+            updated_at: e.updated_at
+          }));
+          setExpenses(mappedExpenses);
+        }
+      } catch (expErr) {
+        console.warn('[Supabase Expenses Sync] Non-critical fallback:', expErr);
+      }
+
+      // 14. Fetch Staff Members (Phase 10 Supabase Database Integration)
+      try {
+        const { data: staffData } = await supabase
+          .from('staff_members')
+          .select('*')
+          .order('employee_id', { ascending: true });
+
+        if (staffData && staffData.length > 0) {
+          const mappedStaff: StaffMember[] = staffData.map((s: any) => ({
+            id: s.id,
+            employeeId: s.employee_id,
+            fullName: s.full_name,
+            email: s.email,
+            phone: s.phone || undefined,
+            designation: s.designation,
+            department: s.department,
+            joiningDate: s.joining_date,
+            panNumber: s.pan_number || undefined,
+            bankAccountName: s.bank_account_name || undefined,
+            bankName: s.bank_name || undefined,
+            bankAccountNumber: s.bank_account_number || undefined,
+            bankIfsc: s.bank_ifsc || undefined,
+            baseSalary: Number(s.base_salary) || 0,
+            hraAllowance: Number(s.hra_allowance) || 0,
+            specialAllowance: Number(s.special_allowance) || 0,
+            pfApplicable: s.pf_applicable ?? true,
+            esiApplicable: s.esi_applicable ?? false,
+            tdsApplicable: s.tds_applicable ?? true,
+            isActive: s.is_active ?? true,
+            created_at: s.created_at,
+            updated_at: s.updated_at
+          }));
+          setStaffMembers(mappedStaff);
+        }
+      } catch (stfErr) {
+        console.warn('[Supabase Staff Sync] Non-critical fallback:', stfErr);
+      }
+
+      // 15. Fetch Salary Records (Phase 10 Supabase Database Integration)
+      try {
+        const { data: salaryData } = await supabase
+          .from('salary_records')
+          .select('*')
+          .order('period_year', { ascending: false })
+          .order('period_month', { ascending: false });
+
+        if (salaryData && salaryData.length > 0) {
+          const mappedSalary: SalaryRecord[] = salaryData.map((sal: any) => ({
+            id: sal.id,
+            employeeId: sal.employee_id,
+            employeeName: sal.employee_name,
+            employeeCode: sal.employee_code || undefined,
+            designation: sal.designation || undefined,
+            department: sal.department || undefined,
+            period: sal.period,
+            periodMonth: sal.period_month,
+            periodYear: Number(sal.period_year),
+            basicSalary: Number(sal.basic_salary) || 0,
+            hra: Number(sal.hra) || 0,
+            specialAllowance: Number(sal.special_allowance) || 0,
+            bonusOrIncentive: Number(sal.bonus_or_incentive) || 0,
+            grossSalary: Number(sal.gross_salary) || 0,
+            providentFund: Number(sal.provident_fund) || 0,
+            esi: Number(sal.esi) || 0,
+            professionalTax: Number(sal.professional_tax) || 0,
+            tdsDeduction: Number(sal.tds_deduction) || 0,
+            advanceDeduction: Number(sal.advance_deduction) || 0,
+            totalDeductions: Number(sal.total_deductions) || 0,
+            netSalary: Number(sal.net_salary) || 0,
+            paymentDate: sal.payment_date || undefined,
+            paymentStatus: sal.payment_status || 'processing',
+            paymentMode: sal.payment_mode || undefined,
+            transactionReference: sal.transaction_reference || undefined,
+            payslipGenerated: sal.payslip_generated ?? true,
+            payslipNumber: sal.payslip_number || undefined,
+            notes: sal.notes || undefined,
+            created_at: sal.created_at,
+            updated_at: sal.updated_at
+          }));
+          setSalaryRecords(mappedSalary);
+        }
+      } catch (salErr) {
+        console.warn('[Supabase Salary Sync] Non-critical fallback:', salErr);
+      }
+
+      // 16. Fetch Credit/Debit Notes (Phase 11 GSTR-1 CDNR Statutory Compliance)
+      try {
+        const { data: cdnData } = await supabase
+          .from('credit_debit_notes')
+          .select('*')
+          .order('issue_date', { ascending: false });
+
+        if (cdnData && cdnData.length > 0) {
+          const mappedNotes: CreditDebitNote[] = cdnData.map((cdn: any) => ({
+            id: cdn.id,
+            noteNumber: cdn.note_number,
+            noteType: cdn.note_type || 'credit',
+            invoiceId: cdn.invoice_id,
+            invoiceNumber: cdn.invoice_number,
+            invoiceDate: cdn.invoice_date,
+            clientId: cdn.client_id,
+            clientName: cdn.client_name,
+            clientCompany: cdn.client_company,
+            clientGstin: cdn.client_gstin || '',
+            clientAddress: cdn.client_address || '',
+            sellerName: cdn.seller_name || agencyConfig.company_name,
+            sellerGstin: cdn.seller_gstin || agencyConfig.gstin,
+            sellerState: cdn.seller_state || agencyConfig.state,
+            sellerStateCode: cdn.seller_state_code || agencyConfig.state_code,
+            buyerState: cdn.buyer_state || '',
+            buyerStateCode: cdn.buyer_state_code || '',
+            placeOfSupply: cdn.place_of_supply || '',
+            issueDate: cdn.issue_date,
+            reason: cdn.reason || '02-Post Sale Discount',
+            reasonNotes: cdn.reason_notes || '',
+            reverseCharge: cdn.reverse_charge || 'No',
+            items: cdn.items || [
+              {
+                id: '1',
+                description: 'Statutory Credit Adjustment on Services',
+                sacCode: '998314',
+                quantity: 1,
+                rate: Number(cdn.taxable_amount) || 0,
+                amount: Number(cdn.taxable_amount) || 0
+              }
+            ],
+            subtotal: Number(cdn.subtotal) || Number(cdn.taxable_amount) || 0,
+            taxableAmount: Number(cdn.taxable_amount) || 0,
+            gstType: cdn.gst_type || (Number(cdn.igst_amount) > 0 ? 'igst' : 'cgst_utgst'),
+            gstRate: Number(cdn.gst_rate) || 18,
+            cgstAmount: Number(cdn.cgst_amount) || 0,
+            sgstAmount: Number(cdn.sgst_amount) || 0,
+            utgstAmount: Number(cdn.utgst_amount) || 0,
+            igstAmount: Number(cdn.igst_amount) || 0,
+            totalTax: Number(cdn.total_tax) || (Number(cdn.cgst_amount) || 0) + (Number(cdn.sgst_amount) || 0) + (Number(cdn.utgst_amount) || 0) + (Number(cdn.igst_amount) || 0),
+            totalAmount: Number(cdn.total_amount) || 0,
+            amountInWords: cdn.amount_in_words || '',
+            status: cdn.status || 'issued',
+            createdBy: cdn.created_by || 'Fusion Forge Creation',
+            created_at: cdn.created_at,
+            updated_at: cdn.updated_at
+          }));
+          setCreditDebitNotes(mappedNotes);
+        }
+      } catch (cdnErr) {
+        console.warn('[Supabase Credit Debit Notes Sync] Non-critical fallback:', cdnErr);
+      }
+
+      // 17. Fetch Notifications (Phase 12 Central Notification & Email System)
+      try {
+        const { data: notifsData } = await supabase
+          .from('notifications')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (notifsData && notifsData.length > 0) {
+          const mappedNotifs: AppNotification[] = notifsData.map((n: any) => ({
+            id: n.id,
+            type: n.type,
+            category: n.category || 'system',
+            title: n.title,
+            message: n.message,
+            link: n.link || undefined,
+            entity_type: n.entity_type || undefined,
+            entity_id: n.entity_id || undefined,
+            priority: n.priority || 'normal',
+            is_read: n.is_read ?? false,
+            read_at: n.read_at || undefined,
+            created_at: n.created_at,
+            target_role: n.target_role || 'all',
+            target_user_id: n.target_user_id || undefined,
+            target_client_id: n.target_client_id || undefined,
+            metadata: n.metadata || {},
+            event_key: n.event_key || undefined
+          }));
+          setNotifications(mappedNotifs);
+        }
+      } catch (notifErr) {
+        console.warn('[Supabase Notifications Sync] Non-critical fallback:', notifErr);
+      }
+
+      // 18. Fetch Email Logs (Phase 12 Central Notification & Email System)
+      try {
+        const { data: emailLogsData } = await supabase
+          .from('email_logs')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (emailLogsData && emailLogsData.length > 0) {
+          const mappedLogs: EmailLog[] = emailLogsData.map((e: any) => ({
+            id: e.id,
+            recipient: e.recipient,
+            sender: e.sender || 'admin@fusionforgecreation.com',
+            subject: e.subject,
+            category: e.category || 'general',
+            status: e.status || 'sent',
+            message_id: e.message_id || undefined,
+            error_message: e.error_message || undefined,
+            entity_type: e.entity_type || undefined,
+            entity_id: e.entity_id || undefined,
+            metadata: e.metadata || {},
+            created_at: e.created_at
+          }));
+          setEmailLogs(mappedLogs);
+        }
+      } catch (emlErr) {
+        console.warn('[Supabase Email Logs Sync] Non-critical fallback:', emlErr);
       }
 
       setDbConnected(true);
@@ -1122,11 +1718,21 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const convertQuoteToInvoice = (quoteId: string): Invoice | null => {
     const quote = quotations.find(q => q.id === quoteId);
     if (!quote) return null;
+
+    // Idempotency: Prevent duplicate invoices if already converted
+    if (quote.convertedInvoiceId) {
+      const existingInv = invoices.find(i => i.id === quote.convertedInvoiceId || i.quoteId === quote.id);
+      if (existingInv) {
+        return existingInv;
+      }
+    }
+
     const invNum = `FFC-2026-${String(invoices.length + 1).padStart(4, '0')}`;
     const client = clients.find(c => c.id === quote.clientId);
     
     const sellerCode = quote.sellerStateCode || '21';
     const buyerCode = quote.buyerStateCode || client?.stateCode || '24';
+    const isGstExplicitlyDisabled = quote.gstApplicable === false || quote.gstType === 'none';
     
     const gstCalc = calculateGstInvoiceTotals({
       sellerStateCode: sellerCode,
@@ -1134,9 +1740,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       items: quote.items,
       discountType: quote.discountType,
       discountValue: quote.discountValue,
-      gstRate: quote.gstRate ?? 18,
+      gstRate: isGstExplicitlyDisabled ? 0 : (quote.gstRate ?? 18),
       currency: quote.currency || 'INR',
-      overrideGstType: quote.gstType === 'none' ? 'none' : undefined
+      overrideGstType: isGstExplicitlyDisabled ? 'none' : undefined
     });
 
     const newInvoice: Invoice = {
@@ -1148,8 +1754,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       clientName: quote.clientName,
       clientCompany: quote.clientCompany,
       clientEmail: quote.clientEmail,
-      clientAddress: client?.address || '',
-      clientGstin: client?.gstin || '',
+      clientAddress: client?.address || quote.clientAddress || '',
+      clientGstin: client?.gstin || quote.clientGstin || '',
       sellerName: agencyConfig.name,
       sellerAddress: `${agencyConfig.address}, ${agencyConfig.city}, ${agencyConfig.state} - ${agencyConfig.postalCode}`,
       sellerGstin: agencyConfig.gstin,
@@ -1157,8 +1763,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       sellerStateCode: sellerCode,
       buyerCompany: quote.clientCompany,
       buyerName: quote.clientName,
-      buyerAddress: client?.address || '',
-      buyerGstin: client?.gstin || '—',
+      buyerAddress: client?.address || quote.clientAddress || '',
+      buyerGstin: client?.gstin || quote.clientGstin || '—',
       buyerState: client?.state || '',
       buyerStateCode: buyerCode,
       supplyType: gstCalc.supplyType,
@@ -1173,18 +1779,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       discountValue: quote.discountValue,
       discountAmount: gstCalc.discountAmount,
       taxableAmount: gstCalc.taxableAmount,
-      gstType: gstCalc.gstType,
-      gstRate: gstCalc.gstRate,
-      cgstAmount: gstCalc.cgstAmount,
-      sgstAmount: gstCalc.sgstAmount,
-      utgstAmount: gstCalc.utgstAmount,
-      igstAmount: gstCalc.igstAmount,
-      totalAmount: gstCalc.grandTotal,
+      gstType: isGstExplicitlyDisabled ? 'none' : gstCalc.gstType,
+      gstRate: isGstExplicitlyDisabled ? 0 : gstCalc.gstRate,
+      cgstAmount: isGstExplicitlyDisabled ? 0 : gstCalc.cgstAmount,
+      sgstAmount: isGstExplicitlyDisabled ? 0 : gstCalc.sgstAmount,
+      utgstAmount: isGstExplicitlyDisabled ? 0 : gstCalc.utgstAmount,
+      igstAmount: isGstExplicitlyDisabled ? 0 : gstCalc.igstAmount,
+      totalAmount: isGstExplicitlyDisabled ? gstCalc.taxableAmount : gstCalc.grandTotal,
       amountInWords: gstCalc.amountInWords,
       paidAmount: 0,
-      balanceDue: gstCalc.grandTotal,
+      balanceDue: isGstExplicitlyDisabled ? gstCalc.taxableAmount : gstCalc.grandTotal,
       status: 'issued',
-      paymentTerms: 'Payment due within 15 days.',
+      paymentTerms: quote.paymentTerms || 'Payment due within 15 days.',
       bankDetails: agencyConfig.bankDetails,
       notes: quote.notes,
       createdAt: new Date().toISOString(),
@@ -1192,7 +1798,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
 
     setInvoices(prev => [newInvoice, ...prev]);
-    updateQuotation(quote.id, { status: 'converted', convertedInvoiceId: newInvoice.id });
+    updateQuotation(quote.id, { 
+      status: 'converted', 
+      convertedInvoiceId: newInvoice.id,
+      updatedAt: new Date().toISOString()
+    });
 
     addAuditLog({
       user_id: currentUser.id,
@@ -1201,7 +1811,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       action: 'CREATE',
       table_name: 'invoices',
       record_id: newInvoice.id,
-      details: `Converted Quotation ${quote.quoteNumber} into Tax Invoice ${newInvoice.invoiceNumber}`
+      details: `SEND FOR INVOICE action completed: Quotation ${quote.quoteNumber} converted to Tax Invoice ${newInvoice.invoiceNumber} (Total: ₹ ${newInvoice.totalAmount.toLocaleString('en-IN')})`
     });
 
     return newInvoice;
@@ -1515,6 +2125,39 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return newPayment;
   };
 
+  const updatePayment = (id: string, data: Partial<Payment>) => {
+    setPayments(prev => prev.map(p => {
+      if (p.id === id) {
+        return {
+          ...p,
+          ...data,
+          updatedAt: new Date().toISOString()
+        };
+      }
+      return p;
+    }));
+
+    if (isSupabaseConfigured) {
+      const dbUpdates: any = {
+        updated_at: new Date().toISOString()
+      };
+      if (data.emailStatus) {
+        dbUpdates.email_status = data.emailStatus.status;
+        dbUpdates.email_sent_at = data.emailStatus.sent_at || data.emailStatus.sentAt;
+        dbUpdates.email_recipient = data.emailStatus.recipient;
+        dbUpdates.email_error = data.emailStatus.error;
+        dbUpdates.email_message_id = data.emailStatus.messageId;
+      }
+      if (data.email_status) dbUpdates.email_status = data.email_status;
+      if (data.email_sent_at) dbUpdates.email_sent_at = data.email_sent_at;
+      if (data.email_recipient) dbUpdates.email_recipient = data.email_recipient;
+      if (data.email_error) dbUpdates.email_error = data.email_error;
+      if (data.notes !== undefined) dbUpdates.notes = data.notes;
+
+      supabase.from('payments').update(dbUpdates).eq('id', id).then();
+    }
+  };
+
   const deletePayment = (id: string) => {
     setPayments(prev => prev.filter(p => p.id !== id));
 
@@ -1735,15 +2378,528 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   // CRUD for Managed Projects
   const addManagedProject = (proj: Omit<ManagedProject, 'id'>): ManagedProject => {
-    const newProj: ManagedProject = { ...proj, id: `proj_${Date.now()}` };
+    const isCompleted = proj.status === 'completed';
+    const completionDate = isCompleted ? (proj.completionDate || new Date().toISOString().split('T')[0]) : proj.completionDate;
+    const progress = isCompleted ? 100 : (proj.progressPercentage ?? 0);
+
+    const initialHistory: ProjectStatusHistoryItem[] = [
+      {
+        id: `hist_${Date.now()}_init`,
+        projectId: `proj_${Date.now()}`,
+        previousStatus: undefined,
+        newStatus: proj.status,
+        changedBy: currentUser.name || 'Super Admin',
+        changedByEmail: currentUser.email || 'admin@fusionforgecreation.com',
+        notes: `Project engagement initiated in ${proj.status} status.`,
+        emailSentToClient: false,
+        timestamp: new Date().toISOString()
+      }
+    ];
+
+    const newProj: ManagedProject = {
+      ...proj,
+      id: `proj_${Date.now()}`,
+      progressPercentage: progress,
+      completionDate,
+      statusHistory: proj.statusHistory || initialHistory
+    };
+
     setManagedProjects(prev => [newProj, ...prev]);
+
+    addAuditLog({
+      user_id: currentUser.id,
+      user_email: currentUser.email,
+      user_role: currentUser.role,
+      action: 'CREATE',
+      table_name: 'projects',
+      record_id: newProj.id,
+      details: `Created Project: "${newProj.title}" for ${newProj.clientName} (Budget: ₹ ${newProj.budget?.toLocaleString('en-IN') || 0}, Status: ${newProj.status})`
+    });
+
+    if (isSupabaseConfigured) {
+      supabase.from('projects').insert({
+        id: newProj.id,
+        title: newProj.title,
+        slug: newProj.title.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+        client_name: newProj.clientName,
+        description: newProj.notes || newProj.title,
+        technologies: newProj.techStack || [],
+        live_url: newProj.publicUrl || newProj.webAppUrl || ''
+      }).then();
+    }
+
     return newProj;
   };
-  const updateManagedProject = (id: string, data: Partial<ManagedProject>) => {
-    setManagedProjects(prev => prev.map(p => p.id === id ? { ...p, ...data } : p));
+
+  const sendProjectStatusEmail = async (
+    projectId: string,
+    newStatus: ProjectStatus | string,
+    customNotes?: string
+  ): Promise<{ success: boolean; messageId?: string; error?: string }> => {
+    const project = managedProjects.find(p => p.id === projectId);
+    if (!project) {
+      return { success: false, error: 'Project not found' };
+    }
+
+    const client = clients.find(c => c.id === project.clientId || c.name === project.clientName);
+    const recipientEmail = project.clientEmail || client?.email;
+    const recipientName = project.clientName || client?.name || 'Valued Client';
+
+    if (!recipientEmail) {
+      return { success: false, error: 'No client email address associated with this project.' };
+    }
+
+    const emailResult = await sendProjectStatusEmailBackend(
+      project,
+      newStatus,
+      project.status,
+      recipientEmail,
+      undefined,
+      customNotes,
+      agencyConfig
+    );
+
+    // Update status history on the project
+    const historyItem: ProjectStatusHistoryItem = {
+      id: `hist_${Date.now()}`,
+      projectId: project.id,
+      previousStatus: project.status,
+      newStatus: newStatus as ProjectStatus,
+      changedBy: currentUser.name || 'Super Admin',
+      changedByEmail: currentUser.email || 'admin@fusionforgecreation.com',
+      notes: customNotes || `Status updated to ${newStatus}.`,
+      emailSentToClient: emailResult.success,
+      clientEmail: recipientEmail,
+      timestamp: new Date().toISOString(),
+      messageId: emailResult.messageId
+    };
+
+    setManagedProjects(prev => prev.map(p => {
+      if (p.id === projectId) {
+        const history = [...(p.statusHistory || []), historyItem];
+        return {
+          ...p,
+          lastEmailSentAt: new Date().toISOString(),
+          lastEmailStatus: emailResult.success ? 'sent' : 'failed',
+          lastEmailError: emailResult.error,
+          statusHistory: history
+        };
+      }
+      return p;
+    }));
+
+    if (isSupabaseConfigured) {
+      supabase.from('project_status_history').insert({
+        project_id: project.id,
+        previous_status: project.status,
+        new_status: newStatus,
+        changed_by: currentUser.email || 'admin@fusionforgecreation.com',
+        notes: customNotes || '',
+        email_sent: emailResult.success,
+        email_recipient: recipientEmail,
+        message_id: emailResult.messageId || null
+      }).then();
+    }
+
+    return emailResult;
   };
+
+  const updateManagedProject = async (
+    id: string,
+    data: Partial<ManagedProject>,
+    sendEmailNotification: boolean = false,
+    emailSubject?: string,
+    emailNotes?: string
+  ): Promise<ManagedProject | undefined> => {
+    const existing = managedProjects.find(p => p.id === id);
+    if (!existing) return undefined;
+
+    const statusChanged = data.status && data.status !== existing.status;
+    const isNowCompleted = data.status === 'completed';
+
+    const updatedData: Partial<ManagedProject> = { ...data };
+
+    if (isNowCompleted) {
+      if (updatedData.progressPercentage === undefined) {
+        updatedData.progressPercentage = 100;
+      }
+      if (!updatedData.completionDate) {
+        updatedData.completionDate = new Date().toISOString().split('T')[0];
+      }
+    }
+
+    let historyItem: ProjectStatusHistoryItem | null = null;
+    let emailOutcome: { success: boolean; messageId?: string; error?: string } | null = null;
+
+    // Send email if requested or if status changed and project has client email
+    const client = clients.find(c => c.id === existing.clientId || c.name === existing.clientName);
+    const targetEmail = data.clientEmail || existing.clientEmail || client?.email;
+    const targetName = data.clientName || existing.clientName || client?.name || 'Valued Client';
+
+    if (statusChanged || sendEmailNotification) {
+      if (sendEmailNotification && targetEmail) {
+        emailOutcome = await sendProjectStatusEmailBackend(
+          { ...existing, ...updatedData },
+          data.status || existing.status,
+          existing.status,
+          targetEmail,
+          emailSubject,
+          emailNotes || data.notes || existing.notes,
+          agencyConfig
+        );
+      }
+
+      historyItem = {
+        id: `hist_${Date.now()}`,
+        projectId: id,
+        previousStatus: existing.status,
+        newStatus: (data.status || existing.status) as ProjectStatus,
+        changedBy: currentUser.name || 'Super Admin',
+        changedByEmail: currentUser.email || 'admin@fusionforgecreation.com',
+        notes: emailNotes || (isNowCompleted ? 'Project marked Completed with deliverables verified.' : `Status updated to ${data.status || existing.status}`),
+        emailSentToClient: emailOutcome ? emailOutcome.success : false,
+        clientEmail: targetEmail,
+        timestamp: new Date().toISOString(),
+        messageId: emailOutcome?.messageId
+      };
+    }
+
+    let updatedProject: ManagedProject | undefined;
+
+    setManagedProjects(prev => prev.map(p => {
+      if (p.id === id) {
+        const history = historyItem ? [...(p.statusHistory || []), historyItem] : (p.statusHistory || []);
+        updatedProject = {
+          ...p,
+          ...updatedData,
+          statusHistory: history,
+          ...(emailOutcome ? {
+            lastEmailSentAt: new Date().toISOString(),
+            lastEmailStatus: emailOutcome.success ? 'sent' : 'failed',
+            lastEmailError: emailOutcome.error
+          } : {})
+        };
+        return updatedProject;
+      }
+      return p;
+    }));
+
+    addAuditLog({
+      user_id: currentUser.id,
+      user_email: currentUser.email,
+      user_role: currentUser.role,
+      action: 'UPDATE',
+      table_name: 'projects',
+      record_id: id,
+      details: isNowCompleted 
+        ? `Project "${data.title || existing.title}" completed. (Email notified: ${emailOutcome?.success ? 'Yes' : 'No'} to ${targetEmail || 'N/A'})`
+        : `Updated Project "${data.title || existing.title}" status to ${data.status || existing.status}`
+    });
+
+    if (isSupabaseConfigured) {
+      if (historyItem) {
+        supabase.from('project_status_history').insert({
+          project_id: id,
+          previous_status: existing.status,
+          new_status: data.status || existing.status,
+          changed_by: currentUser.email || 'admin@fusionforgecreation.com',
+          notes: historyItem.notes,
+          email_sent: historyItem.emailSentToClient,
+          email_recipient: targetEmail || null,
+          message_id: historyItem.messageId || null
+        }).then();
+      }
+
+      supabase.from('projects').update({
+        title: data.title || existing.title,
+        description: data.notes || existing.notes || '',
+        technologies: data.techStack || existing.techStack || [],
+        live_url: data.publicUrl || data.webAppUrl || existing.publicUrl || ''
+      }).eq('id', id).then();
+    }
+
+    return updatedProject;
+  };
+
   const deleteManagedProject = (id: string) => {
+    const proj = managedProjects.find(p => p.id === id);
     setManagedProjects(prev => prev.filter(p => p.id !== id));
+
+    addAuditLog({
+      user_id: currentUser.id,
+      user_email: currentUser.email,
+      user_role: currentUser.role,
+      action: 'DELETE',
+      table_name: 'projects',
+      record_id: id,
+      details: `Deleted project: ${proj?.title || id}`
+    });
+
+    if (isSupabaseConfigured) {
+      supabase.from('projects').delete().eq('id', id).then();
+    }
+  };
+
+  // Phase 9: Completed Work Record System (Company Historical Work Portfolio)
+  const addCompletedWork = (data: Omit<CompletedWorkRecord, 'id' | 'createdAt' | 'updatedAt'>): CompletedWorkRecord => {
+    const newRecord: CompletedWorkRecord = {
+      ...data,
+      id: `cw_${Date.now()}`,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+
+    setCompletedWorks(prev => [newRecord, ...prev]);
+
+    addAuditLog({
+      user_id: currentUser.id,
+      user_email: currentUser.email,
+      user_role: currentUser.role,
+      action: 'CREATE',
+      table_name: 'completed_works',
+      record_id: newRecord.id,
+      details: `Archived completed work: "${newRecord.projectTitle}" for ${newRecord.clientName} (${newRecord.workCategory})`
+    });
+
+    if (isSupabaseConfigured) {
+      supabase.from('completed_works').insert({
+        id: newRecord.id,
+        client_name: newRecord.clientName,
+        project_title: newRecord.projectTitle,
+        work_category: newRecord.workCategory,
+        completion_date: newRecord.completionDate,
+        technology_type: newRecord.technologyType,
+        public_url: newRecord.publicUrl || null,
+        web_app_url: newRecord.webAppUrl || null,
+        software_url: newRecord.softwareUrl || null,
+        mobile_app_info: newRecord.mobileAppInfo || null,
+        short_description: newRecord.shortDescription,
+        deliverables_summary: newRecord.deliverablesSummary,
+        source_project_id: newRecord.sourceProjectId || null,
+        is_verified: newRecord.isVerified
+      }).then();
+    }
+
+    return newRecord;
+  };
+
+  const updateCompletedWork = (id: string, data: Partial<CompletedWorkRecord>) => {
+    setCompletedWorks(prev => prev.map(cw => cw.id === id ? { ...cw, ...data, updatedAt: new Date().toISOString() } : cw));
+
+    if (isSupabaseConfigured) {
+      supabase.from('completed_works').update({
+        ...(data.clientName !== undefined ? { client_name: data.clientName } : {}),
+        ...(data.projectTitle !== undefined ? { project_title: data.projectTitle } : {}),
+        ...(data.workCategory !== undefined ? { work_category: data.workCategory } : {}),
+        ...(data.completionDate !== undefined ? { completion_date: data.completionDate } : {}),
+        ...(data.technologyType !== undefined ? { technology_type: data.technologyType } : {}),
+        ...(data.publicUrl !== undefined ? { public_url: data.publicUrl } : {}),
+        ...(data.webAppUrl !== undefined ? { web_app_url: data.webAppUrl } : {}),
+        ...(data.softwareUrl !== undefined ? { software_url: data.softwareUrl } : {}),
+        ...(data.mobileAppInfo !== undefined ? { mobile_app_info: data.mobileAppInfo } : {}),
+        ...(data.shortDescription !== undefined ? { short_description: data.shortDescription } : {}),
+        ...(data.deliverablesSummary !== undefined ? { deliverables_summary: data.deliverablesSummary } : {}),
+        ...(data.isVerified !== undefined ? { is_verified: data.isVerified } : {}),
+        updated_at: new Date().toISOString()
+      }).eq('id', id).then();
+    }
+  };
+
+  const deleteCompletedWork = (id: string) => {
+    setCompletedWorks(prev => prev.filter(cw => cw.id !== id));
+
+    if (isSupabaseConfigured) {
+      supabase.from('completed_works').delete().eq('id', id).then();
+    }
+  };
+
+  const archiveProjectToCompletedWork = (projectId: string): CompletedWorkRecord | null => {
+    const proj = managedProjects.find(p => p.id === projectId);
+    if (!proj) return null;
+
+    // Check if already archived
+    const existing = completedWorks.find(cw => cw.sourceProjectId === projectId);
+    if (existing) return existing;
+
+    const newRecord = addCompletedWork({
+      clientName: proj.clientName || 'Valued Client',
+      projectTitle: proj.title,
+      workCategory: proj.category || 'Software Engineering',
+      completionDate: proj.completionDate || new Date().toISOString().split('T')[0],
+      technologyType: proj.techStack && proj.techStack.length > 0 ? proj.techStack : ['Full-Stack Engine', 'Cloud Services'],
+      publicUrl: proj.publicUrl,
+      webAppUrl: proj.webAppUrl,
+      softwareUrl: proj.softwareUrl,
+      mobileAppInfo: proj.mobileAppInfo,
+      shortDescription: proj.notes || `Successfully completed commercial engineering milestone for ${proj.clientName}.`,
+      deliverablesSummary: proj.deliverables && proj.deliverables.length > 0 ? proj.deliverables : ['Architectural Blueprint', 'Production Release', 'Documentation Transfer'],
+      sourceProjectId: proj.id,
+      isVerified: true
+    });
+
+    return newRecord;
+  };
+
+  // Phase 9: Seamless Invoicing from Project Engagement with duplicate protection & eligibility check
+  const createInvoiceFromProject = (
+    projectId: string,
+    overrideDuplicateWarning: boolean = false
+  ): { success: boolean; invoice?: Invoice; message?: string; alreadyInvoiced?: boolean; existingInvoiceNumber?: string } => {
+    const project = managedProjects.find(p => p.id === projectId);
+    if (!project) {
+      return { success: false, message: 'Project engagement not found.' };
+    }
+
+    // Eligibility check
+    if ((project.status as string) === 'cancelled' || (project.status as string) === 'on_hold') {
+      return {
+        success: false,
+        message: `Cannot generate an invoice for a project engagement with status "${project.status}".`
+      };
+    }
+
+    // Duplicate Prevention Check
+    const existingInvoice = invoices.find(
+      inv => !inv.is_deleted && (
+        inv.projectId === projectId || 
+        (project.invoicedIds && project.invoicedIds.includes(inv.id))
+      )
+    );
+
+    if (existingInvoice && !overrideDuplicateWarning) {
+      return {
+        success: false,
+        alreadyInvoiced: true,
+        existingInvoiceNumber: existingInvoice.invoiceNumber,
+        invoice: existingInvoice,
+        message: `An invoice (${existingInvoice.invoiceNumber}) already exists for "${project.title}".`
+      };
+    }
+
+    // Match client
+    const client = clients.find(c => c.id === project.clientId || c.name.toLowerCase() === (project.clientName || '').toLowerCase());
+    const clientId = client?.id || project.clientId || (clients.length > 0 ? clients[0].id : 'client_1');
+    const clientName = client?.name || project.clientName || 'Valued Client';
+    const clientCompany = client?.companyName || project.clientName || clientName;
+    const clientEmail = project.clientEmail || client?.email || '';
+
+    // Create itemized deliverable lines
+    const deliverablesList = project.deliverables && project.deliverables.length > 0 
+      ? project.deliverables 
+      : [`Full-cycle software engineering: ${project.title}`];
+
+    const totalBudget = project.budget || 50000;
+    const perItemPrice = deliverablesList.length > 1 
+      ? Math.round(totalBudget / deliverablesList.length) 
+      : totalBudget;
+
+    const items = deliverablesList.map((deliv, idx) => ({
+      id: `item_proj_${Date.now()}_${idx}`,
+      description: `${deliv} - ${project.title} (${project.category || 'Software'})`,
+      quantity: 1,
+      rate: idx === deliverablesList.length - 1 ? (totalBudget - (perItemPrice * (deliverablesList.length - 1))) : perItemPrice,
+      amount: idx === deliverablesList.length - 1 ? (totalBudget - (perItemPrice * (deliverablesList.length - 1))) : perItemPrice,
+      sac_code: '998314',
+      taxable_amount: idx === deliverablesList.length - 1 ? (totalBudget - (perItemPrice * (deliverablesList.length - 1))) : perItemPrice,
+      gst_rate: 18
+    }));
+
+    const todayStr = new Date().toISOString().split('T')[0];
+    const dueDate = new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+    const sellerCode = agencyConfig.state_code || '21';
+    const buyerCode = client?.stateCode || '24';
+
+    const gstCalc = calculateGstInvoiceTotals({
+      sellerStateCode: sellerCode,
+      buyerStateCode: buyerCode,
+      items,
+      discountType: 'percentage',
+      discountValue: 0,
+      gstRate: 18,
+      currency: 'INR'
+    });
+
+    const invoiceData: Omit<Invoice, 'id' | 'createdAt' | 'updatedAt' | 'invoiceNumber'> = {
+      clientId,
+      clientName,
+      clientCompany,
+      clientEmail,
+      clientAddress: client?.address || '',
+      clientGstin: client?.gstin || '',
+      sellerName: agencyConfig.name,
+      sellerAddress: `${agencyConfig.address}, ${agencyConfig.city}, ${agencyConfig.state} - ${agencyConfig.postalCode}`,
+      sellerGstin: agencyConfig.gstin,
+      sellerState: agencyConfig.state,
+      sellerStateCode: sellerCode,
+      buyerCompany: clientCompany,
+      buyerName: clientName,
+      buyerAddress: client?.address || '',
+      buyerGstin: client?.gstin || '—',
+      buyerState: client?.state || '',
+      buyerStateCode: buyerCode,
+      supplyType: gstCalc.supplyType,
+      taxLabel: gstCalc.taxLabel,
+      title: `${project.title} - Professional Engineering Deliverables`,
+      projectId: project.id,
+      projectTitle: project.title,
+      projectStatusAtBilling: project.status,
+      issueDate: todayStr,
+      dueDate,
+      currency: 'INR',
+      items,
+      subtotal: gstCalc.subtotal,
+      discountType: 'percentage',
+      discountValue: 0,
+      discountAmount: 0,
+      taxableAmount: gstCalc.taxableAmount,
+      gstType: gstCalc.gstType,
+      gstRate: 18,
+      cgstAmount: gstCalc.cgstAmount,
+      sgstAmount: gstCalc.sgstAmount,
+      utgstAmount: gstCalc.utgstAmount,
+      igstAmount: gstCalc.igstAmount,
+      totalAmount: gstCalc.grandTotal,
+      amountInWords: gstCalc.amountInWords,
+      paidAmount: 0,
+      balanceDue: gstCalc.grandTotal,
+      notes: `Tax invoice for completed deliverables under engagement: ${project.title} (${project.category || 'Software'}). Status at billing: ${project.status.toUpperCase()}.`,
+      paymentTerms: 'Payment is due within 15 calendar days from the invoice issue date. GST billed under SAC 998314.',
+      bankDetails: agencyConfig.bankDetails,
+      status: 'issued'
+    };
+
+    const newInvoice = addInvoice(invoiceData);
+
+    // Update project with invoiced metadata
+    const newInvoicedAmount = (project.invoicedAmount || 0) + newInvoice.totalAmount;
+    const newInvoicedIds = [...(project.invoicedIds || []), newInvoice.id];
+
+    setManagedProjects(prev => prev.map(p => {
+      if (p.id === projectId) {
+        return {
+          ...p,
+          invoicedAmount: newInvoicedAmount,
+          invoicedIds: newInvoicedIds
+        };
+      }
+      return p;
+    }));
+
+    addAuditLog({
+      user_id: currentUser.id,
+      user_email: currentUser.email,
+      user_role: currentUser.role,
+      action: 'CREATE',
+      table_name: 'invoices',
+      record_id: newInvoice.id,
+      details: `Generated Tax Invoice ${newInvoice.invoiceNumber} from Project "${project.title}" (Total: ₹ ${newInvoice.totalAmount.toLocaleString('en-IN')})`
+    });
+
+    return {
+      success: true,
+      invoice: newInvoice,
+      message: `Tax Invoice ${newInvoice.invoiceNumber} created and linked to "${project.title}".`
+    };
   };
 
   // CRUD for Technologies
@@ -2357,6 +3513,759 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     });
   };
 
+  // ==========================================
+  // PHASE 10: PURCHASES, EXPENSES, STAFF & SALARY CRUD
+  // ==========================================
+
+  const addPurchase = async (purchaseData: Omit<Purchase, 'id' | 'created_at' | 'updated_at'>): Promise<Purchase> => {
+    const newId = `pur_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+    const nowIso = new Date().toISOString();
+    
+    const newPurchase: Purchase = {
+      ...purchaseData,
+      id: newId,
+      created_at: nowIso,
+      updated_at: nowIso
+    };
+
+    setPurchases(prev => [newPurchase, ...prev]);
+
+    if (isSupabaseConfigured) {
+      try {
+        await supabase.from('purchases').insert([{
+          id: newPurchase.id,
+          supplier_name: newPurchase.supplierName,
+          supplier_gstin: newPurchase.supplierGstin || null,
+          supplier_email: newPurchase.supplierEmail || null,
+          supplier_phone: newPurchase.supplierPhone || null,
+          supplier_address: newPurchase.supplierAddress || null,
+          supplier_state_code: newPurchase.supplierStateCode || null,
+          bill_number: newPurchase.billNumber,
+          purchase_date: newPurchase.purchaseDate,
+          due_date: newPurchase.dueDate || null,
+          description: newPurchase.description,
+          hsn_sac_code: newPurchase.hsnSacCode || null,
+          category: newPurchase.category || null,
+          taxable_amount: newPurchase.taxableAmount,
+          gst_rate: newPurchase.gstRate,
+          cgst_amount: newPurchase.cgstAmount,
+          sgst_amount: newPurchase.sgstAmount,
+          utgst_amount: newPurchase.utgstAmount,
+          igst_amount: newPurchase.igstAmount,
+          total_amount: newPurchase.totalAmount,
+          payment_status: newPurchase.paymentStatus,
+          payment_mode: newPurchase.paymentMode || null,
+          payment_date: newPurchase.paymentDate || null,
+          payment_ref: newPurchase.paymentRef || null,
+          attachment_url: newPurchase.attachmentUrl || null,
+          attachment_name: newPurchase.attachmentName || null,
+          notes: newPurchase.notes || null,
+          is_itc_claimable: newPurchase.isItcClaimable,
+          is_reverse_charge: newPurchase.isReverseCharge
+        }]);
+      } catch (err) {
+        console.warn('[Supabase Purchase Insert] Error:', err);
+      }
+    }
+
+    addAuditLog({
+      user_id: currentUser.id,
+      user_email: currentUser.email,
+      user_role: currentUser.role,
+      action: 'CREATE',
+      table_name: 'purchases',
+      record_id: newPurchase.id,
+      details: `Recorded purchase bill #${newPurchase.billNumber} from ${newPurchase.supplierName} (Total: ₹ ${newPurchase.totalAmount.toLocaleString('en-IN')})`
+    });
+
+    return newPurchase;
+  };
+
+  const updatePurchase = async (id: string, data: Partial<Purchase>) => {
+    setPurchases(prev => prev.map(p => p.id === id ? { ...p, ...data, updated_at: new Date().toISOString() } : p));
+
+    if (isSupabaseConfigured) {
+      try {
+        const updatePayload: Record<string, any> = { updated_at: new Date().toISOString() };
+        if (data.supplierName !== undefined) updatePayload.supplier_name = data.supplierName;
+        if (data.supplierGstin !== undefined) updatePayload.supplier_gstin = data.supplierGstin;
+        if (data.supplierEmail !== undefined) updatePayload.supplier_email = data.supplierEmail;
+        if (data.supplierPhone !== undefined) updatePayload.supplier_phone = data.supplierPhone;
+        if (data.supplierAddress !== undefined) updatePayload.supplier_address = data.supplierAddress;
+        if (data.supplierStateCode !== undefined) updatePayload.supplier_state_code = data.supplierStateCode;
+        if (data.billNumber !== undefined) updatePayload.bill_number = data.billNumber;
+        if (data.purchaseDate !== undefined) updatePayload.purchase_date = data.purchaseDate;
+        if (data.dueDate !== undefined) updatePayload.due_date = data.dueDate;
+        if (data.description !== undefined) updatePayload.description = data.description;
+        if (data.hsnSacCode !== undefined) updatePayload.hsn_sac_code = data.hsnSacCode;
+        if (data.category !== undefined) updatePayload.category = data.category;
+        if (data.taxableAmount !== undefined) updatePayload.taxable_amount = data.taxableAmount;
+        if (data.gstRate !== undefined) updatePayload.gst_rate = data.gstRate;
+        if (data.cgstAmount !== undefined) updatePayload.cgst_amount = data.cgstAmount;
+        if (data.sgstAmount !== undefined) updatePayload.sgst_amount = data.sgstAmount;
+        if (data.utgstAmount !== undefined) updatePayload.utgst_amount = data.utgstAmount;
+        if (data.igstAmount !== undefined) updatePayload.igst_amount = data.igstAmount;
+        if (data.totalAmount !== undefined) updatePayload.total_amount = data.totalAmount;
+        if (data.paymentStatus !== undefined) updatePayload.payment_status = data.paymentStatus;
+        if (data.paymentMode !== undefined) updatePayload.payment_mode = data.paymentMode;
+        if (data.paymentDate !== undefined) updatePayload.payment_date = data.paymentDate;
+        if (data.paymentRef !== undefined) updatePayload.payment_ref = data.paymentRef;
+        if (data.attachmentUrl !== undefined) updatePayload.attachment_url = data.attachmentUrl;
+        if (data.attachmentName !== undefined) updatePayload.attachment_name = data.attachmentName;
+        if (data.notes !== undefined) updatePayload.notes = data.notes;
+        if (data.isItcClaimable !== undefined) updatePayload.is_itc_claimable = data.isItcClaimable;
+        if (data.isReverseCharge !== undefined) updatePayload.is_reverse_charge = data.isReverseCharge;
+
+        await supabase.from('purchases').update(updatePayload).eq('id', id);
+      } catch (err) {
+        console.warn('[Supabase Purchase Update] Error:', err);
+      }
+    }
+
+    addAuditLog({
+      user_id: currentUser.id,
+      user_email: currentUser.email,
+      user_role: currentUser.role,
+      action: 'UPDATE',
+      table_name: 'purchases',
+      record_id: id,
+      details: `Updated purchase record ${id}`
+    });
+  };
+
+  const deletePurchase = async (id: string) => {
+    const target = purchases.find(p => p.id === id);
+    setPurchases(prev => prev.filter(p => p.id !== id));
+
+    if (isSupabaseConfigured) {
+      try {
+        await supabase.from('purchases').delete().eq('id', id);
+      } catch (err) {
+        console.warn('[Supabase Purchase Delete] Error:', err);
+      }
+    }
+
+    addAuditLog({
+      user_id: currentUser.id,
+      user_email: currentUser.email,
+      user_role: currentUser.role,
+      action: 'DELETE',
+      table_name: 'purchases',
+      record_id: id,
+      details: `Deleted purchase bill #${target?.billNumber || id} from ${target?.supplierName || 'vendor'}`
+    });
+  };
+
+  const markPurchasePaid = async (id: string, paymentMode = 'Bank Transfer', paymentRef = '', paymentDate = new Date().toISOString().split('T')[0]) => {
+    await updatePurchase(id, {
+      paymentStatus: 'paid',
+      paymentMode,
+      paymentRef,
+      paymentDate
+    });
+  };
+
+  const addExpense = async (expenseData: Omit<Expense, 'id' | 'created_at' | 'updated_at'>): Promise<Expense> => {
+    const newId = `exp_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+    const nowIso = new Date().toISOString();
+
+    const newExpense: Expense = {
+      ...expenseData,
+      id: newId,
+      created_at: nowIso,
+      updated_at: nowIso
+    };
+
+    setExpenses(prev => [newExpense, ...prev]);
+
+    if (isSupabaseConfigured) {
+      try {
+        await supabase.from('expenses').insert([{
+          id: newExpense.id,
+          expense_date: newExpense.expenseDate,
+          category: newExpense.category,
+          description: newExpense.description,
+          vendor_name: newExpense.vendorName,
+          vendor_gstin: newExpense.vendorGstin || null,
+          amount: newExpense.amount,
+          gst_applicable: newExpense.gstApplicable,
+          taxable_amount: newExpense.taxableAmount || null,
+          gst_rate: newExpense.gstRate || null,
+          gst_amount: newExpense.gstAmount || null,
+          cgst_amount: newExpense.cgstAmount || null,
+          sgst_amount: newExpense.sgstAmount || null,
+          igst_amount: newExpense.igstAmount || null,
+          is_itc_eligible: newExpense.isItcEligible,
+          payment_mode: newExpense.paymentMode,
+          reference_number: newExpense.referenceNumber || null,
+          attachment_url: newExpense.attachmentUrl || null,
+          attachment_name: newExpense.attachmentName || null,
+          paid_by: newExpense.paidBy || null,
+          status: newExpense.status,
+          notes: newExpense.notes || null
+        }]);
+      } catch (err) {
+        console.warn('[Supabase Expense Insert] Error:', err);
+      }
+    }
+
+    addAuditLog({
+      user_id: currentUser.id,
+      user_email: currentUser.email,
+      user_role: currentUser.role,
+      action: 'CREATE',
+      table_name: 'expenses',
+      record_id: newExpense.id,
+      details: `Logged expense: ${newExpense.category} - ${newExpense.description} (₹ ${newExpense.amount.toLocaleString('en-IN')})`
+    });
+
+    return newExpense;
+  };
+
+  const updateExpense = async (id: string, data: Partial<Expense>) => {
+    setExpenses(prev => prev.map(e => e.id === id ? { ...e, ...data, updated_at: new Date().toISOString() } : e));
+
+    if (isSupabaseConfigured) {
+      try {
+        const updatePayload: Record<string, any> = { updated_at: new Date().toISOString() };
+        if (data.expenseDate !== undefined) updatePayload.expense_date = data.expenseDate;
+        if (data.category !== undefined) updatePayload.category = data.category;
+        if (data.description !== undefined) updatePayload.description = data.description;
+        if (data.vendorName !== undefined) updatePayload.vendor_name = data.vendorName;
+        if (data.vendorGstin !== undefined) updatePayload.vendor_gstin = data.vendorGstin;
+        if (data.amount !== undefined) updatePayload.amount = data.amount;
+        if (data.gstApplicable !== undefined) updatePayload.gst_applicable = data.gstApplicable;
+        if (data.taxableAmount !== undefined) updatePayload.taxable_amount = data.taxableAmount;
+        if (data.gstRate !== undefined) updatePayload.gst_rate = data.gstRate;
+        if (data.gstAmount !== undefined) updatePayload.gst_amount = data.gstAmount;
+        if (data.cgstAmount !== undefined) updatePayload.cgst_amount = data.cgstAmount;
+        if (data.sgstAmount !== undefined) updatePayload.sgst_amount = data.sgstAmount;
+        if (data.igstAmount !== undefined) updatePayload.igst_amount = data.igstAmount;
+        if (data.isItcEligible !== undefined) updatePayload.is_itc_eligible = data.isItcEligible;
+        if (data.paymentMode !== undefined) updatePayload.payment_mode = data.paymentMode;
+        if (data.referenceNumber !== undefined) updatePayload.reference_number = data.referenceNumber;
+        if (data.attachmentUrl !== undefined) updatePayload.attachment_url = data.attachmentUrl;
+        if (data.attachmentName !== undefined) updatePayload.attachment_name = data.attachmentName;
+        if (data.paidBy !== undefined) updatePayload.paid_by = data.paidBy;
+        if (data.status !== undefined) updatePayload.status = data.status;
+        if (data.notes !== undefined) updatePayload.notes = data.notes;
+
+        await supabase.from('expenses').update(updatePayload).eq('id', id);
+      } catch (err) {
+        console.warn('[Supabase Expense Update] Error:', err);
+      }
+    }
+
+    addAuditLog({
+      user_id: currentUser.id,
+      user_email: currentUser.email,
+      user_role: currentUser.role,
+      action: 'UPDATE',
+      table_name: 'expenses',
+      record_id: id,
+      details: `Updated expense record ${id}`
+    });
+  };
+
+  const deleteExpense = async (id: string) => {
+    const target = expenses.find(e => e.id === id);
+    setExpenses(prev => prev.filter(e => e.id !== id));
+
+    if (isSupabaseConfigured) {
+      try {
+        await supabase.from('expenses').delete().eq('id', id);
+      } catch (err) {
+        console.warn('[Supabase Expense Delete] Error:', err);
+      }
+    }
+
+    addAuditLog({
+      user_id: currentUser.id,
+      user_email: currentUser.email,
+      user_role: currentUser.role,
+      action: 'DELETE',
+      table_name: 'expenses',
+      record_id: id,
+      details: `Deleted expense "${target?.description || id}" (₹ ${target?.amount.toLocaleString('en-IN')})`
+    });
+  };
+
+  const addStaffMember = async (staffData: Omit<StaffMember, 'id' | 'created_at' | 'updated_at'>): Promise<StaffMember> => {
+    const newId = `stf_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+    const nowIso = new Date().toISOString();
+
+    const newStaff: StaffMember = {
+      ...staffData,
+      id: newId,
+      created_at: nowIso,
+      updated_at: nowIso
+    };
+
+    setStaffMembers(prev => [...prev, newStaff]);
+
+    if (isSupabaseConfigured) {
+      try {
+        await supabase.from('staff_members').insert([{
+          id: newStaff.id,
+          employee_id: newStaff.employeeId,
+          full_name: newStaff.fullName,
+          email: newStaff.email,
+          phone: newStaff.phone || null,
+          designation: newStaff.designation,
+          department: newStaff.department,
+          joining_date: newStaff.joiningDate,
+          pan_number: newStaff.panNumber || null,
+          bank_account_name: newStaff.bankAccountName || null,
+          bank_name: newStaff.bankName || null,
+          bank_account_number: newStaff.bankAccountNumber || null,
+          bank_ifsc: newStaff.bankIfsc || null,
+          base_salary: newStaff.baseSalary,
+          hra_allowance: newStaff.hraAllowance,
+          special_allowance: newStaff.specialAllowance,
+          pf_applicable: newStaff.pfApplicable,
+          esi_applicable: newStaff.esiApplicable,
+          tds_applicable: newStaff.tdsApplicable,
+          is_active: newStaff.isActive
+        }]);
+      } catch (err) {
+        console.warn('[Supabase Staff Insert] Error:', err);
+      }
+    }
+
+    addAuditLog({
+      user_id: currentUser.id,
+      user_email: currentUser.email,
+      user_role: currentUser.role,
+      action: 'CREATE',
+      table_name: 'staff_members',
+      record_id: newStaff.id,
+      details: `Onboarded employee: ${newStaff.fullName} (${newStaff.employeeId}) - ${newStaff.designation}`
+    });
+
+    return newStaff;
+  };
+
+  const updateStaffMember = async (id: string, data: Partial<StaffMember>) => {
+    setStaffMembers(prev => prev.map(s => s.id === id ? { ...s, ...data, updated_at: new Date().toISOString() } : s));
+
+    if (isSupabaseConfigured) {
+      try {
+        const updatePayload: Record<string, any> = { updated_at: new Date().toISOString() };
+        if (data.employeeId !== undefined) updatePayload.employee_id = data.employeeId;
+        if (data.fullName !== undefined) updatePayload.full_name = data.fullName;
+        if (data.email !== undefined) updatePayload.email = data.email;
+        if (data.phone !== undefined) updatePayload.phone = data.phone;
+        if (data.designation !== undefined) updatePayload.designation = data.designation;
+        if (data.department !== undefined) updatePayload.department = data.department;
+        if (data.joiningDate !== undefined) updatePayload.joining_date = data.joiningDate;
+        if (data.panNumber !== undefined) updatePayload.pan_number = data.panNumber;
+        if (data.bankAccountName !== undefined) updatePayload.bank_account_name = data.bankAccountName;
+        if (data.bankName !== undefined) updatePayload.bank_name = data.bankName;
+        if (data.bankAccountNumber !== undefined) updatePayload.bank_account_number = data.bankAccountNumber;
+        if (data.bankIfsc !== undefined) updatePayload.bank_ifsc = data.bankIfsc;
+        if (data.baseSalary !== undefined) updatePayload.base_salary = data.baseSalary;
+        if (data.hraAllowance !== undefined) updatePayload.hra_allowance = data.hraAllowance;
+        if (data.specialAllowance !== undefined) updatePayload.special_allowance = data.specialAllowance;
+        if (data.pfApplicable !== undefined) updatePayload.pf_applicable = data.pfApplicable;
+        if (data.esiApplicable !== undefined) updatePayload.esi_applicable = data.esiApplicable;
+        if (data.tdsApplicable !== undefined) updatePayload.tds_applicable = data.tdsApplicable;
+        if (data.isActive !== undefined) updatePayload.is_active = data.isActive;
+
+        await supabase.from('staff_members').update(updatePayload).eq('id', id);
+      } catch (err) {
+        console.warn('[Supabase Staff Update] Error:', err);
+      }
+    }
+
+    addAuditLog({
+      user_id: currentUser.id,
+      user_email: currentUser.email,
+      user_role: currentUser.role,
+      action: 'UPDATE',
+      table_name: 'staff_members',
+      record_id: id,
+      details: `Updated employee profile ${id}`
+    });
+  };
+
+  const deleteStaffMember = async (id: string) => {
+    const target = staffMembers.find(s => s.id === id);
+    setStaffMembers(prev => prev.filter(s => s.id !== id));
+
+    if (isSupabaseConfigured) {
+      try {
+        await supabase.from('staff_members').delete().eq('id', id);
+      } catch (err) {
+        console.warn('[Supabase Staff Delete] Error:', err);
+      }
+    }
+
+    addAuditLog({
+      user_id: currentUser.id,
+      user_email: currentUser.email,
+      user_role: currentUser.role,
+      action: 'DELETE',
+      table_name: 'staff_members',
+      record_id: id,
+      details: `Removed staff record: ${target?.fullName || id} (${target?.employeeId || ''})`
+    });
+  };
+
+  const addSalaryRecord = async (salaryData: Omit<SalaryRecord, 'id' | 'created_at' | 'updated_at'>): Promise<SalaryRecord> => {
+    const newId = `sal_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+    const nowIso = new Date().toISOString();
+
+    const newSalary: SalaryRecord = {
+      ...salaryData,
+      id: newId,
+      created_at: nowIso,
+      updated_at: nowIso
+    };
+
+    setSalaryRecords(prev => [newSalary, ...prev]);
+
+    if (isSupabaseConfigured) {
+      try {
+        await supabase.from('salary_records').insert([{
+          id: newSalary.id,
+          employee_id: newSalary.employeeId,
+          employee_name: newSalary.employeeName,
+          employee_code: newSalary.employeeCode || null,
+          designation: newSalary.designation || null,
+          department: newSalary.department || null,
+          period: newSalary.period,
+          period_month: newSalary.periodMonth,
+          period_year: newSalary.periodYear,
+          basic_salary: newSalary.basicSalary,
+          hra: newSalary.hra,
+          special_allowance: newSalary.specialAllowance,
+          bonus_or_incentive: newSalary.bonusOrIncentive,
+          gross_salary: newSalary.grossSalary,
+          provident_fund: newSalary.providentFund,
+          esi: newSalary.esi,
+          professional_tax: newSalary.professionalTax,
+          tds_deduction: newSalary.tdsDeduction,
+          advance_deduction: newSalary.advanceDeduction,
+          total_deductions: newSalary.totalDeductions,
+          net_salary: newSalary.netSalary,
+          payment_date: newSalary.paymentDate || null,
+          payment_status: newSalary.paymentStatus,
+          payment_mode: newSalary.paymentMode || null,
+          transaction_reference: newSalary.transactionReference || null,
+          payslip_generated: newSalary.payslipGenerated,
+          payslip_number: newSalary.payslipNumber || null,
+          notes: newSalary.notes || null
+        }]);
+      } catch (err) {
+        console.warn('[Supabase Salary Insert] Error:', err);
+      }
+    }
+
+    addAuditLog({
+      user_id: currentUser.id,
+      user_email: currentUser.email,
+      user_role: currentUser.role,
+      action: 'CREATE',
+      table_name: 'salary_records',
+      record_id: newSalary.id,
+      details: `Generated payroll record for ${newSalary.employeeName} - ${newSalary.period} (Net: ₹ ${newSalary.netSalary.toLocaleString('en-IN')})`
+    });
+
+    return newSalary;
+  };
+
+  const updateSalaryRecord = async (id: string, data: Partial<SalaryRecord>) => {
+    setSalaryRecords(prev => prev.map(sal => sal.id === id ? { ...sal, ...data, updated_at: new Date().toISOString() } : sal));
+
+    if (isSupabaseConfigured) {
+      try {
+        const updatePayload: Record<string, any> = { updated_at: new Date().toISOString() };
+        if (data.employeeId !== undefined) updatePayload.employee_id = data.employeeId;
+        if (data.employeeName !== undefined) updatePayload.employee_name = data.employeeName;
+        if (data.employeeCode !== undefined) updatePayload.employee_code = data.employeeCode;
+        if (data.designation !== undefined) updatePayload.designation = data.designation;
+        if (data.department !== undefined) updatePayload.department = data.department;
+        if (data.period !== undefined) updatePayload.period = data.period;
+        if (data.periodMonth !== undefined) updatePayload.period_month = data.periodMonth;
+        if (data.periodYear !== undefined) updatePayload.period_year = data.periodYear;
+        if (data.basicSalary !== undefined) updatePayload.basic_salary = data.basicSalary;
+        if (data.hra !== undefined) updatePayload.hra = data.hra;
+        if (data.specialAllowance !== undefined) updatePayload.special_allowance = data.specialAllowance;
+        if (data.bonusOrIncentive !== undefined) updatePayload.bonus_or_incentive = data.bonusOrIncentive;
+        if (data.grossSalary !== undefined) updatePayload.gross_salary = data.grossSalary;
+        if (data.providentFund !== undefined) updatePayload.provident_fund = data.providentFund;
+        if (data.esi !== undefined) updatePayload.esi = data.esi;
+        if (data.professionalTax !== undefined) updatePayload.professional_tax = data.professionalTax;
+        if (data.tdsDeduction !== undefined) updatePayload.tds_deduction = data.tdsDeduction;
+        if (data.advanceDeduction !== undefined) updatePayload.advance_deduction = data.advanceDeduction;
+        if (data.totalDeductions !== undefined) updatePayload.total_deductions = data.totalDeductions;
+        if (data.netSalary !== undefined) updatePayload.net_salary = data.netSalary;
+        if (data.paymentDate !== undefined) updatePayload.payment_date = data.paymentDate;
+        if (data.paymentStatus !== undefined) updatePayload.payment_status = data.paymentStatus;
+        if (data.paymentMode !== undefined) updatePayload.payment_mode = data.paymentMode;
+        if (data.transactionReference !== undefined) updatePayload.transaction_reference = data.transactionReference;
+        if (data.payslipGenerated !== undefined) updatePayload.payslip_generated = data.payslipGenerated;
+        if (data.payslipNumber !== undefined) updatePayload.payslip_number = data.payslipNumber;
+        if (data.notes !== undefined) updatePayload.notes = data.notes;
+
+        await supabase.from('salary_records').update(updatePayload).eq('id', id);
+      } catch (err) {
+        console.warn('[Supabase Salary Update] Error:', err);
+      }
+    }
+
+    addAuditLog({
+      user_id: currentUser.id,
+      user_email: currentUser.email,
+      user_role: currentUser.role,
+      action: 'UPDATE',
+      table_name: 'salary_records',
+      record_id: id,
+      details: `Updated salary disbursement record ${id}`
+    });
+  };
+
+  const deleteSalaryRecord = async (id: string) => {
+    const target = salaryRecords.find(s => s.id === id);
+    setSalaryRecords(prev => prev.filter(s => s.id !== id));
+
+    if (isSupabaseConfigured) {
+      try {
+        await supabase.from('salary_records').delete().eq('id', id);
+      } catch (err) {
+        console.warn('[Supabase Salary Delete] Error:', err);
+      }
+    }
+
+    addAuditLog({
+      user_id: currentUser.id,
+      user_email: currentUser.email,
+      user_role: currentUser.role,
+      action: 'DELETE',
+      table_name: 'salary_records',
+      record_id: id,
+      details: `Deleted salary record for ${target?.employeeName || id} (${target?.period || ''})`
+    });
+  };
+
+  const markSalaryPaid = async (id: string, paymentMode = 'NEFT/RTGS', transactionRef = '', paymentDate = new Date().toISOString().split('T')[0]) => {
+    await updateSalaryRecord(id, {
+      paymentStatus: 'paid',
+      paymentMode,
+      transactionReference: transactionRef,
+      paymentDate
+    });
+  };
+
+  const generateMonthlyPayroll = async (periodMonth: string, periodYear: number): Promise<{ count: number; message: string }> => {
+    const activeStaff = staffMembers.filter(s => s.isActive);
+    let createdCount = 0;
+    const periodLabel = `${periodMonth} ${periodYear}`;
+    const monthNum = ('0' + (new Date(`${periodMonth} 1, ${periodYear}`).getMonth() + 1)).slice(-2);
+
+    for (const staff of activeStaff) {
+      // Check if already generated
+      const existing = salaryRecords.find(r => r.employeeId === staff.id && r.periodMonth === periodMonth && r.periodYear === periodYear);
+      if (existing) continue;
+
+      const basic = staff.baseSalary;
+      const hra = staff.hraAllowance;
+      const special = staff.specialAllowance;
+      const gross = basic + hra + special;
+
+      const pf = staff.pfApplicable ? Math.round(basic * 0.12) : 0;
+      const esi = staff.esiApplicable ? Math.round(gross * 0.0075) : 0;
+      const pt = gross > 15000 ? 200 : 0;
+      const tds = staff.tdsApplicable ? Math.round(gross * 0.05) : 0;
+      const totalDeductions = pf + esi + pt + tds;
+      const net = gross - totalDeductions;
+
+      const payslipNumber = `PS-${periodYear}${monthNum}-${staff.employeeId}`;
+
+      await addSalaryRecord({
+        employeeId: staff.id,
+        employeeName: staff.fullName,
+        employeeCode: staff.employeeId,
+        designation: staff.designation,
+        department: staff.department,
+        period: periodLabel,
+        periodMonth,
+        periodYear,
+        basicSalary: basic,
+        hra,
+        specialAllowance: special,
+        bonusOrIncentive: 0,
+        grossSalary: gross,
+        providentFund: pf,
+        esi,
+        professionalTax: pt,
+        tdsDeduction: tds,
+        advanceDeduction: 0,
+        totalDeductions,
+        netSalary: net,
+        paymentStatus: 'processing',
+        payslipGenerated: true,
+        payslipNumber,
+        notes: `Auto-generated payroll cycle for ${periodLabel}`
+      });
+
+      createdCount++;
+    }
+
+    return {
+      count: createdCount,
+      message: `Generated ${createdCount} payroll records for ${periodLabel}.`
+    };
+  };
+
+  // Phase 11: Credit & Debit Note Management (GSTR-1 CDNR Statutory Compliance)
+  const generateNoteNumber = useCallback((type: 'credit' | 'debit'): string => {
+    const prefix = type === 'credit' ? 'CN-2026-' : 'DN-2026-';
+    const matchingNotes = creditDebitNotes.filter(n => n.noteType === type);
+    const nextNum = String(matchingNotes.length + 1).padStart(4, '0');
+    return `${prefix}${nextNum}`;
+  }, [creditDebitNotes]);
+
+  const addCreditDebitNote = async (noteData: Omit<CreditDebitNote, 'id' | 'created_at' | 'updated_at'>): Promise<CreditDebitNote> => {
+    const id = `cdn_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+    const now = new Date().toISOString();
+    const noteNumber = noteData.noteNumber || generateNoteNumber(noteData.noteType);
+
+    const newNote: CreditDebitNote = {
+      ...noteData,
+      id,
+      noteNumber,
+      created_at: now,
+      updated_at: now
+    };
+
+    setCreditDebitNotes(prev => [newNote, ...prev]);
+
+    if (isSupabaseConfigured) {
+      try {
+        await supabase.from('credit_debit_notes').insert([{
+          id: newNote.id,
+          note_number: newNote.noteNumber,
+          note_type: newNote.noteType,
+          invoice_id: newNote.invoiceId,
+          invoice_number: newNote.invoiceNumber,
+          invoice_date: newNote.invoiceDate,
+          client_id: newNote.clientId,
+          client_name: newNote.clientName,
+          client_company: newNote.clientCompany,
+          client_gstin: newNote.clientGstin || null,
+          client_address: newNote.clientAddress || null,
+          seller_name: newNote.sellerName,
+          seller_gstin: newNote.sellerGstin,
+          seller_state: newNote.sellerState,
+          seller_state_code: newNote.sellerStateCode,
+          buyer_state: newNote.buyerState,
+          buyer_state_code: newNote.buyerStateCode,
+          place_of_supply: newNote.placeOfSupply,
+          issue_date: newNote.issueDate,
+          reason: newNote.reason,
+          reason_notes: newNote.reasonNotes || null,
+          reverse_charge: newNote.reverseCharge,
+          items: newNote.items,
+          subtotal: newNote.subtotal,
+          taxable_amount: newNote.taxableAmount,
+          gst_type: newNote.gstType,
+          gst_rate: newNote.gstRate,
+          cgst_amount: newNote.cgstAmount,
+          sgst_amount: newNote.sgstAmount,
+          utgst_amount: newNote.utgstAmount,
+          igst_amount: newNote.igstAmount,
+          total_tax: newNote.totalTax,
+          total_amount: newNote.totalAmount,
+          amount_in_words: newNote.amountInWords || null,
+          status: newNote.status,
+          created_by: currentUser.name || 'Fusion Forge Creation'
+        }]);
+      } catch (err) {
+        console.warn('[Supabase Credit Debit Note Insert] Non-critical fallback:', err);
+      }
+    }
+
+    addAuditLog({
+      user_id: currentUser.id,
+      user_email: currentUser.email,
+      user_role: currentUser.role,
+      action: 'CREATE',
+      table_name: 'credit_debit_notes',
+      record_id: newNote.id,
+      details: `Created ${newNote.noteType.toUpperCase()} NOTE ${newNote.noteNumber} against Invoice ${newNote.invoiceNumber} for ${newNote.clientCompany} (₹ ${newNote.totalAmount.toLocaleString('en-IN')})`
+    });
+
+    return newNote;
+  };
+
+  const updateCreditDebitNote = async (id: string, data: Partial<CreditDebitNote>) => {
+    setCreditDebitNotes(prev => prev.map(cdn => cdn.id === id ? { ...cdn, ...data, updated_at: new Date().toISOString() } : cdn));
+
+    if (isSupabaseConfigured) {
+      try {
+        const updatePayload: Record<string, any> = { updated_at: new Date().toISOString() };
+        if (data.noteNumber !== undefined) updatePayload.note_number = data.noteNumber;
+        if (data.noteType !== undefined) updatePayload.note_type = data.noteType;
+        if (data.invoiceNumber !== undefined) updatePayload.invoice_number = data.invoiceNumber;
+        if (data.invoiceDate !== undefined) updatePayload.invoice_date = data.invoiceDate;
+        if (data.clientCompany !== undefined) updatePayload.client_company = data.clientCompany;
+        if (data.clientGstin !== undefined) updatePayload.client_gstin = data.clientGstin;
+        if (data.placeOfSupply !== undefined) updatePayload.place_of_supply = data.placeOfSupply;
+        if (data.issueDate !== undefined) updatePayload.issue_date = data.issueDate;
+        if (data.reason !== undefined) updatePayload.reason = data.reason;
+        if (data.reasonNotes !== undefined) updatePayload.reason_notes = data.reasonNotes;
+        if (data.reverseCharge !== undefined) updatePayload.reverse_charge = data.reverseCharge;
+        if (data.items !== undefined) updatePayload.items = data.items;
+        if (data.taxableAmount !== undefined) updatePayload.taxable_amount = data.taxableAmount;
+        if (data.cgstAmount !== undefined) updatePayload.cgst_amount = data.cgstAmount;
+        if (data.sgstAmount !== undefined) updatePayload.sgst_amount = data.sgstAmount;
+        if (data.utgstAmount !== undefined) updatePayload.utgst_amount = data.utgstAmount;
+        if (data.igstAmount !== undefined) updatePayload.igst_amount = data.igstAmount;
+        if (data.totalTax !== undefined) updatePayload.total_tax = data.totalTax;
+        if (data.totalAmount !== undefined) updatePayload.total_amount = data.totalAmount;
+        if (data.status !== undefined) updatePayload.status = data.status;
+
+        await supabase.from('credit_debit_notes').update(updatePayload).eq('id', id);
+      } catch (err) {
+        console.warn('[Supabase Credit Debit Note Update] Error:', err);
+      }
+    }
+
+    addAuditLog({
+      user_id: currentUser.id,
+      user_email: currentUser.email,
+      user_role: currentUser.role,
+      action: 'UPDATE',
+      table_name: 'credit_debit_notes',
+      record_id: id,
+      details: `Updated Credit/Debit note ${id}`
+    });
+  };
+
+  const deleteCreditDebitNote = async (id: string) => {
+    const target = creditDebitNotes.find(c => c.id === id);
+    setCreditDebitNotes(prev => prev.filter(c => c.id !== id));
+
+    if (isSupabaseConfigured) {
+      try {
+        await supabase.from('credit_debit_notes').delete().eq('id', id);
+      } catch (err) {
+        console.warn('[Supabase Credit Debit Note Delete] Error:', err);
+      }
+    }
+
+    addAuditLog({
+      user_id: currentUser.id,
+      user_email: currentUser.email,
+      user_role: currentUser.role,
+      action: 'DELETE',
+      table_name: 'credit_debit_notes',
+      record_id: id,
+      details: `Deleted ${target?.noteType || 'Note'} ${target?.noteNumber || id} for ${target?.clientCompany || ''}`
+    });
+  };
+
   const updateAgencyConfig = (data: Partial<typeof AGENCY_CONFIG>) => {
     setAgencyConfig(prev => ({ ...prev, ...data }));
 
@@ -2421,16 +4330,42 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       quotations,
       invoices,
       payments,
+      creditDebitNotes,
+      creditNotes: creditDebitNotes,
+      purchases,
+      expenses,
+      staffMembers,
+      salaryRecords,
       enquiries,
       portfolio,
       services,
       managedProjects,
+      completedWorks,
       technologies,
       testimonials,
       faqs,
       chatbotQAs,
       chatbotSettings,
       users,
+      addCreditDebitNote,
+      updateCreditDebitNote,
+      deleteCreditDebitNote,
+      generateNoteNumber,
+      addPurchase,
+      updatePurchase,
+      deletePurchase,
+      markPurchasePaid,
+      addExpense,
+      updateExpense,
+      deleteExpense,
+      addStaffMember,
+      updateStaffMember,
+      deleteStaffMember,
+      addSalaryRecord,
+      updateSalaryRecord,
+      deleteSalaryRecord,
+      generateMonthlyPayroll,
+      markSalaryPaid,
       addClient,
       updateClient,
       deleteClient,
@@ -2445,7 +4380,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       deleteInvoice,
       softDeleteInvoice,
       restoreInvoice,
+      createInvoiceFromProject,
       recordPayment,
+      updatePayment,
       deletePayment,
       addEnquiry,
       updateEnquiryStatus,
@@ -2457,6 +4394,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       addManagedProject,
       updateManagedProject,
       deleteManagedProject,
+      sendProjectStatusEmail,
+      addCompletedWork,
+      updateCompletedWork,
+      deleteCompletedWork,
+      archiveProjectToCompletedWork,
       addTechnology,
       updateTechnology,
       deleteTechnology,

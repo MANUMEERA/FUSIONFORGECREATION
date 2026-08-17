@@ -112,6 +112,8 @@ export interface GstCalculationParams {
   gstRate?: number; // default 18
   currency?: 'INR' | 'USD' | 'EUR';
   overrideGstType?: GSTType; // Optional manual override, e.g. for tax-exempt exports
+  invoiceType?: 'Regular' | 'SEZ Supply with Tax' | 'SEZ Supply without Tax' | 'Deemed Exports';
+  lutArn?: string;
 }
 
 export interface GstCalculationResult {
@@ -141,6 +143,8 @@ export interface GstCalculationResult {
   gstType: GSTType; // 'cgst_sgst' | 'cgst_utgst' | 'igst' | 'none'
   gstRate: number;
   taxLabel: string; // e.g. "CGST + UTGST", "CGST + SGST", "IGST", or "Tax Exempt"
+  invoiceType: 'Regular' | 'SEZ Supply with Tax' | 'SEZ Supply without Tax' | 'Deemed Exports';
+  lutArn?: string;
   
   // Breakdown amounts
   cgstRate: number;
@@ -221,6 +225,9 @@ export function calculateGstInvoiceTotals(params: GstCalculationParams): GstCalc
   const taxableAmount = Math.max(0, Math.round((subtotal - discountAmount) * 100) / 100);
 
   // 4. Supply Classification & Tax Breakdown
+  const invoiceType = params.invoiceType || 'Regular';
+  const lutArn = params.lutArn || '';
+
   const isIntraState = sellerCode === buyerCode;
   const isInterState = !isIntraState;
   const isUnionTerritory = isIntraState && UT_WITHOUT_LEGISLATURE_CODES.has(sellerCode);
@@ -238,7 +245,19 @@ export function calculateGstInvoiceTotals(params: GstCalculationParams): GstCalc
   let igstRate = 0;
   let igstAmount = 0;
 
-  if (params.overrideGstType === 'none' || gstRate === 0) {
+  if (invoiceType === 'SEZ Supply without Tax') {
+    // Zero-rated supply to SEZ under Letter of Undertaking (LUT) / Bond without payment of IGST
+    gstType = 'none';
+    supplyType = 'EXEMPT';
+    taxLabel = lutArn ? `SEZ Zero-Rated (LUT ARN: ${lutArn})` : 'SEZ Zero-Rated Supply (Under LUT)';
+  } else if (invoiceType === 'SEZ Supply with Tax') {
+    // Supply to SEZ unit is deemed Inter-State under IGST Act Section 7(5)(b), IGST is charged in full
+    supplyType = 'INTER_STATE';
+    gstType = 'igst';
+    igstRate = gstRate;
+    igstAmount = Math.round((taxableAmount * gstRate) / 100 * 100) / 100;
+    taxLabel = `SEZ Supply (IGST ${gstRate}%)`;
+  } else if (params.overrideGstType === 'none' || gstRate === 0) {
     gstType = 'none';
     supplyType = 'EXEMPT';
     taxLabel = 'Tax Exempt (0%)';
@@ -288,8 +307,10 @@ export function calculateGstInvoiceTotals(params: GstCalculationParams): GstCalc
     isUnionTerritory,
     supplyType,
     gstType,
-    gstRate,
+    gstRate: invoiceType === 'SEZ Supply without Tax' ? 0 : gstRate,
     taxLabel,
+    invoiceType,
+    lutArn,
     cgstRate,
     cgstAmount,
     sgstRate,

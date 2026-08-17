@@ -4,13 +4,22 @@ import {
   Quotation, 
   Invoice, 
   Payment, 
+  CreditDebitNote,
   ProjectEnquiry, 
   PortfolioProject,
+  ManagedProject,
+  CompletedWorkRecord,
   ChatbotQAItem,
   ChatbotSettings,
   SocialChannelItem,
   ServicePricePreset,
-  PaymentTermItem
+  PaymentTermItem,
+  Purchase,
+  Expense,
+  StaffMember,
+  SalaryRecord,
+  AppNotification,
+  EmailLog
 } from './types';
 import { DEFAULT_INVOICE_NUMBERING, DEFAULT_QUOTATION_NUMBERING } from './utils/documentNumbering';
 
@@ -188,6 +197,24 @@ export const AGENCY_CONFIG = {
   default_quotation_validity_days: 30,
   quotation_terms: DEFAULT_QUOTATION_TERMS,
   invoice_terms: DEFAULT_INVOICE_TERMS,
+  delay_interest_clause: 'Interest @ 18% per annum will be charged on all delayed payments exceeding the due date.',
+  payment_delay_interest_rate: 18,
+  reverse_charge_default: 'No',
+  
+  // Phase 11: LUT & SEZ Compliance Defaults
+  lut_arn: 'AD260426001234F',
+  lutArn: 'AD260426001234F',
+  lutNumber: 'AD260426001234F',
+  lut_number: 'AD260426001234F',
+  lutFinancialYear: '2026-27',
+  lut_financial_year: '2026-27',
+  lutDate: '2026-04-01',
+  lut_date: '2026-04-01',
+  lutExpiryDate: '2027-03-31',
+  lut_expiry_date: '2027-03-31',
+  default_invoice_type: 'Regular',
+  defaultInvoiceType: 'Regular',
+
   payment_terms: INITIAL_PAYMENT_TERMS,
   numbering_configs: {
     invoice: DEFAULT_INVOICE_NUMBERING,
@@ -224,6 +251,8 @@ export const AGENCY_CONFIG = {
   account_number: '50200012345678',
   ifsc_code: 'HDFC0001234',
   branch_name: 'Silvassa Branch',
+  upi_id: 'fusionforge@hdfcbank',
+  upiId: 'fusionforge@hdfcbank',
   terms_conditions: 'Payment due within 15 days of issue date.',
   terms: [
     '50% advance upon project initiation.',
@@ -793,6 +822,156 @@ export const INITIAL_PAYMENTS: Payment[] = [
   }
 ];
 
+export const INITIAL_CREDIT_DEBIT_NOTES: CreditDebitNote[] = [
+  {
+    id: 'cn_1',
+    noteNumber: 'CN-2026-0001',
+    noteType: 'credit',
+    invoiceId: 'inv_1',
+    invoiceNumber: 'FFC-2026-0001',
+    invoiceDate: '2026-08-14',
+    clientId: 'client_1',
+    clientName: 'Arvind Kapoor',
+    clientCompany: 'Apex Fintech Solutions Pvt. Ltd.',
+    clientGstin: '27AABCA1234F1ZM',
+    clientAddress: 'Tower B, 14th Floor, BKC, Mumbai, Maharashtra 400051',
+    sellerName: 'Fusion Forge Creation',
+    sellerGstin: '26AALFF1234F1Z5',
+    sellerState: 'Dadra & Nagar Haveli',
+    sellerStateCode: '26',
+    buyerState: 'Maharashtra',
+    buyerStateCode: '27',
+    placeOfSupply: '27-Maharashtra',
+    issueDate: '2026-08-16',
+    reason: '02-Post Sale Discount',
+    reasonNotes: 'Special volume rebate credit issued for corporate annual partnership agreement.',
+    reverseCharge: 'No',
+    items: [
+      {
+        id: 'cn_item_1',
+        description: 'Post-Sale Commercial Rebate on Website Architecture & Cloud Hosting',
+        sacCode: '998314',
+        quantity: 1,
+        rate: 5000,
+        amount: 5000
+      }
+    ],
+    subtotal: 5000,
+    taxableAmount: 5000,
+    gstType: 'igst',
+    gstRate: 18,
+    cgstAmount: 0,
+    sgstAmount: 0,
+    utgstAmount: 0,
+    igstAmount: 900,
+    totalTax: 900,
+    totalAmount: 5900,
+    amountInWords: 'Indian Rupees Five Thousand Nine Hundred Only',
+    status: 'issued',
+    createdBy: 'Manoj Satapathy',
+    created_at: '2026-08-16T10:00:00Z',
+    updated_at: '2026-08-16T10:00:00Z'
+  },
+  {
+    id: 'cn_2',
+    noteNumber: 'CN-2026-0002',
+    noteType: 'credit',
+    invoiceId: 'inv_3',
+    invoiceNumber: 'FFC-2026-0003',
+    invoiceDate: '2026-07-28',
+    clientId: 'client_3',
+    clientName: 'Debabrata Mohanty',
+    clientCompany: 'Kalinga Logistics & Freight Systems',
+    clientGstin: '21AABCK4321D1ZQ',
+    clientAddress: 'Plot 104, Rasulgarh Industrial Estate, Bhubaneswar, Odisha - 751010',
+    sellerName: 'Fusion Forge Creation',
+    sellerGstin: '26AALFF1234F1Z5',
+    sellerState: 'Dadra & Nagar Haveli',
+    sellerStateCode: '26',
+    buyerState: 'Odisha',
+    buyerStateCode: '21',
+    placeOfSupply: '21-Odisha',
+    issueDate: '2026-08-05',
+    reason: '03-Deficiency in Services',
+    reasonNotes: 'Adjusted milestone credit due to scope reduction on legacy GPS hardware sync module.',
+    reverseCharge: 'No',
+    items: [
+      {
+        id: 'cn_item_2',
+        description: 'Scope Adjustment Credit - De-scoped Custom Hardware Telemetry Driver',
+        sacCode: '998314',
+        quantity: 1,
+        rate: 15000,
+        amount: 15000
+      }
+    ],
+    subtotal: 15000,
+    taxableAmount: 15000,
+    gstType: 'igst',
+    gstRate: 18,
+    cgstAmount: 0,
+    sgstAmount: 0,
+    utgstAmount: 0,
+    igstAmount: 2700,
+    totalTax: 2700,
+    totalAmount: 17700,
+    amountInWords: 'Indian Rupees Seventeen Thousand Seven Hundred Only',
+    status: 'issued',
+    createdBy: 'Manoj Satapathy',
+    created_at: '2026-08-05T14:30:00Z',
+    updated_at: '2026-08-05T14:30:00Z'
+  },
+  {
+    id: 'dn_1',
+    noteNumber: 'DN-2026-0001',
+    noteType: 'debit',
+    invoiceId: 'inv_4',
+    invoiceNumber: 'FFC-2026-0004',
+    invoiceDate: '2026-08-02',
+    clientId: 'client_4',
+    clientName: 'Priyanka Patel',
+    clientCompany: 'Silvassa Smart Solutions Pvt. Ltd.',
+    clientGstin: '26AABCS5566G1ZW',
+    clientAddress: 'Office 402, Royal Complex, Naroli Road, Silvassa, Dadra & Nagar Haveli - 396230',
+    sellerName: 'Fusion Forge Creation',
+    sellerGstin: '26AALFF1234F1Z5',
+    sellerState: 'Dadra & Nagar Haveli',
+    sellerStateCode: '26',
+    buyerState: 'Dadra & Nagar Haveli',
+    buyerStateCode: '26',
+    placeOfSupply: '26-Dadra and Nagar Haveli and Daman and Diu',
+    issueDate: '2026-08-10',
+    reason: '06-Final Price Hike / Adjustment',
+    reasonNotes: 'Debit note issued for additional emergency weekend server migration compute hours.',
+    reverseCharge: 'No',
+    items: [
+      {
+        id: 'dn_item_1',
+        description: 'Supplementary High-Availability Cloud Server Re-provisioning & DB Tuning',
+        sacCode: '998314',
+        quantity: 1,
+        rate: 8000,
+        amount: 8000
+      }
+    ],
+    subtotal: 8000,
+    taxableAmount: 8000,
+    gstType: 'cgst_utgst',
+    gstRate: 18,
+    cgstAmount: 720,
+    sgstAmount: 0,
+    utgstAmount: 720,
+    igstAmount: 0,
+    totalTax: 1440,
+    totalAmount: 9440,
+    amountInWords: 'Indian Rupees Nine Thousand Four Hundred Forty Only',
+    status: 'issued',
+    createdBy: 'Manoj Satapathy',
+    created_at: '2026-08-10T16:00:00Z',
+    updated_at: '2026-08-10T16:00:00Z'
+  }
+];
+
 export const INITIAL_ENQUIRIES: ProjectEnquiry[] = [
   {
     id: 'enq_1',
@@ -922,30 +1101,80 @@ export const INITIAL_SERVICES = [
   }
 ];
 
-export const INITIAL_MANAGED_PROJECTS = [
+export const INITIAL_MANAGED_PROJECTS: ManagedProject[] = [
   {
     id: 'proj_1',
     title: 'Apex Financial Intelligence Platform',
     clientId: 'client_1',
     clientName: 'Apex Fintech Solutions Pvt. Ltd.',
+    clientEmail: 'billing@apexfintech.io',
     category: 'Web Application',
-    status: 'completed' as const,
+    status: 'completed',
     startDate: '2026-01-15',
     deadline: '2026-04-30',
+    completionDate: '2026-04-28',
     budget: 649000,
     progressPercentage: 100,
     techStack: ['React 19', 'TypeScript', 'Node.js', 'PostgreSQL', 'Tailwind CSS'],
     deliverables: ['Design System', 'Analytics Engine', 'WebSocket Live Feed', 'Admin Dashboard'],
     isPublic: true,
-    notes: 'Delivered ahead of schedule. 100% IP code handed over.'
+    publicUrl: 'https://apexfintech.io',
+    webAppUrl: 'https://app.apexfintech.io',
+    softwareUrl: 'https://github.com/fusion-forge/apex-engine',
+    mobileAppInfo: 'Web PWA + Responsive Portal',
+    notes: 'Delivered ahead of schedule. 100% IP code handed over.',
+    invoicedAmount: 649000,
+    invoicedIds: ['inv_1'],
+    statusHistory: [
+      {
+        id: 'hist_1_1',
+        projectId: 'proj_1',
+        previousStatus: 'planning',
+        newStatus: 'in_progress',
+        changedBy: 'Super Admin',
+        changedByEmail: 'admin@fusionforgecreation.com',
+        notes: 'Project kicked off following advance payment confirmation.',
+        emailSentToClient: true,
+        clientEmail: 'billing@apexfintech.io',
+        timestamp: '2026-01-16T10:00:00Z',
+        messageId: 'proj_msg_101'
+      },
+      {
+        id: 'hist_1_2',
+        projectId: 'proj_1',
+        previousStatus: 'in_progress',
+        newStatus: 'review',
+        changedBy: 'Lead Architect',
+        changedByEmail: 'admin@fusionforgecreation.com',
+        notes: 'UAT testing completed with zero major defects.',
+        emailSentToClient: true,
+        clientEmail: 'billing@apexfintech.io',
+        timestamp: '2026-04-20T14:30:00Z',
+        messageId: 'proj_msg_102'
+      },
+      {
+        id: 'hist_1_3',
+        projectId: 'proj_1',
+        previousStatus: 'review',
+        newStatus: 'completed',
+        changedBy: 'Super Admin',
+        changedByEmail: 'admin@fusionforgecreation.com',
+        notes: 'Final deployment signoff received. Full source code and documentation handed over.',
+        emailSentToClient: true,
+        clientEmail: 'billing@apexfintech.io',
+        timestamp: '2026-04-28T16:00:00Z',
+        messageId: 'proj_msg_103'
+      }
+    ]
   },
   {
     id: 'proj_2',
     title: 'Nexus Telehealth Consultation Suite',
     clientId: 'client_2',
     clientName: 'Nexus HealthTech India',
+    clientEmail: 'sameer@nexushealth.co',
     category: 'Mobile App',
-    status: 'in_progress' as const,
+    status: 'in_progress',
     startDate: '2026-03-20',
     deadline: '2026-09-15',
     budget: 413000,
@@ -953,31 +1182,86 @@ export const INITIAL_MANAGED_PROJECTS = [
     techStack: ['React Native', 'Node.js', 'WebRTC', 'Supabase', 'PostgreSQL'],
     deliverables: ['Doctor Portal', 'Patient Mobile App', 'WebRTC Telehealth Room', 'Prescription PDF Generator'],
     isPublic: true,
-    notes: 'Beta milestone 1 released and approved.'
+    publicUrl: 'https://nexushealth.co',
+    webAppUrl: 'https://portal.nexushealth.co',
+    mobileAppInfo: 'iOS TestFlight v1.2 & Android Beta APK',
+    notes: 'Beta milestone 1 released and approved.',
+    invoicedAmount: 413000,
+    invoicedIds: ['inv_2'],
+    statusHistory: [
+      {
+        id: 'hist_2_1',
+        projectId: 'proj_2',
+        previousStatus: 'planning',
+        newStatus: 'in_progress',
+        changedBy: 'Super Admin',
+        changedByEmail: 'admin@fusionforgecreation.com',
+        notes: 'Sprint 1 commenced for WebRTC real-time consultation module.',
+        emailSentToClient: true,
+        clientEmail: 'sameer@nexushealth.co',
+        timestamp: '2026-03-22T09:00:00Z',
+        messageId: 'proj_msg_201'
+      }
+    ]
   },
   {
     id: 'proj_3',
     title: 'Quantum Fleet Telematics & IoT Engine',
-    clientId: 'client_3',
+    clientId: 'client_odisha',
     clientName: 'Quantum Logistics & Freight',
+    clientEmail: 'sunita@quantumfreight.in',
     category: 'Enterprise Cloud',
-    status: 'completed' as const,
+    status: 'completed',
     startDate: '2026-05-10',
     deadline: '2026-07-25',
+    completionDate: '2026-07-24',
     budget: 295000,
     progressPercentage: 100,
     techStack: ['React', 'TypeScript', 'Node.js', 'PostgreSQL', 'WebSockets'],
     deliverables: ['Live GPS Tracking', 'Driver Telematics App', 'Automated GST Dispatch Invoices'],
     isPublic: true,
-    notes: 'Deployed with auto-scaling container infrastructure.'
+    publicUrl: 'https://quantumfreight.in',
+    webAppUrl: 'https://telematics.quantumfreight.in',
+    softwareUrl: 'https://cloud.quantumfreight.in',
+    mobileAppInfo: 'Driver Android GPS Telematics App (Play Store Private Distribution)',
+    notes: 'Deployed with auto-scaling container infrastructure.',
+    statusHistory: [
+      {
+        id: 'hist_3_1',
+        projectId: 'proj_3',
+        previousStatus: 'planning',
+        newStatus: 'in_progress',
+        changedBy: 'Super Admin',
+        changedByEmail: 'admin@fusionforgecreation.com',
+        notes: 'Architecture blueprint finalized with MQTT IoT telematics pipelines.',
+        emailSentToClient: true,
+        clientEmail: 'sunita@quantumfreight.in',
+        timestamp: '2026-05-12T11:00:00Z',
+        messageId: 'proj_msg_301'
+      },
+      {
+        id: 'hist_3_2',
+        projectId: 'proj_3',
+        previousStatus: 'in_progress',
+        newStatus: 'completed',
+        changedBy: 'Super Admin',
+        changedByEmail: 'admin@fusionforgecreation.com',
+        notes: 'Live fleet deployed across 500+ GPS vehicle units in Odisha & Eastern India.',
+        emailSentToClient: true,
+        clientEmail: 'sunita@quantumfreight.in',
+        timestamp: '2026-07-24T17:00:00Z',
+        messageId: 'proj_msg_302'
+      }
+    ]
   },
   {
     id: 'proj_4',
     title: 'Aura EcoLiving D2C Headless Commerce',
-    clientId: 'client_1',
+    clientId: 'client_surat',
     clientName: 'Aura EcoLiving Ltd.',
+    clientEmail: 'ananya@auraecoliving.com',
     category: 'Web Application',
-    status: 'planning' as const,
+    status: 'planning',
     startDate: '2026-08-20',
     deadline: '2026-10-30',
     budget: 250000,
@@ -986,6 +1270,98 @@ export const INITIAL_MANAGED_PROJECTS = [
     deliverables: ['Headless Storefront', 'Admin Order Desk', 'Razorpay Payment Flow'],
     isPublic: true,
     notes: 'Initial UX wireframes currently in review with client.'
+  }
+];
+
+export const INITIAL_COMPLETED_WORKS: CompletedWorkRecord[] = [
+  {
+    id: 'cw_01',
+    clientName: 'Apex Fintech Solutions Pvt. Ltd.',
+    projectTitle: 'Apex Financial Intelligence & Trading Analytics Platform',
+    workCategory: 'Web Application & Real-time Trading',
+    completionDate: '2026-04-28',
+    technologyType: ['React 19', 'TypeScript', 'Node.js', 'PostgreSQL', 'Tailwind CSS', 'WebSockets'],
+    publicUrl: 'https://apexfintech.io',
+    webAppUrl: 'https://app.apexfintech.io',
+    softwareUrl: 'https://github.com/fusion-forge/apex-engine',
+    mobileAppInfo: 'Progressive Web Application (PWA) with push alerts',
+    shortDescription: 'Enterprise high-frequency market analytics dashboard featuring sub-second WebSocket updates, interactive Candlestick charts, and automated P&L reporting.',
+    deliverablesSummary: [
+      'Interactive reactive financial dashboard',
+      'Real-time WebSocket streaming feed',
+      'Admin telemetry and client user desk',
+      'Automated SAC 998314 billing integration'
+    ],
+    sourceProjectId: 'proj_1',
+    isVerified: true,
+    createdAt: '2026-04-28T16:30:00Z',
+    updatedAt: '2026-08-15T10:00:00Z'
+  },
+  {
+    id: 'cw_02',
+    clientName: 'Quantum Logistics & Freight',
+    projectTitle: 'Quantum Fleet Telematics & Live GPS IoT Engine',
+    workCategory: 'Enterprise Cloud & IoT Telematics',
+    completionDate: '2026-07-24',
+    technologyType: ['React', 'TypeScript', 'Node.js', 'PostgreSQL', 'MQTT', 'Docker'],
+    publicUrl: 'https://quantumfreight.in',
+    webAppUrl: 'https://telematics.quantumfreight.in',
+    softwareUrl: 'https://cloud.quantumfreight.in',
+    mobileAppInfo: 'Driver Android GPS Telematics App (Private Distribution)',
+    shortDescription: 'Multi-tenant freight dispatch platform integrating real-time GPS telemetry from 500+ commercial fleet vehicles, automated route optimization, and e-way bill generation.',
+    deliverablesSummary: [
+      'High-throughput MQTT GPS telemetry ingestion',
+      'Live map clustering & route playback',
+      'Automated dispatch documentation & proof of delivery',
+      'Driver mobile application APK'
+    ],
+    sourceProjectId: 'proj_3',
+    isVerified: true,
+    createdAt: '2026-07-24T17:30:00Z',
+    updatedAt: '2026-08-15T10:00:00Z'
+  },
+  {
+    id: 'cw_03',
+    clientName: 'JP MODATEX LLP',
+    projectTitle: 'Modatex Textile ERP & Production Workflow Engine',
+    workCategory: 'Enterprise ERP & Inventory Automation',
+    completionDate: '2026-06-18',
+    technologyType: ['React', 'TypeScript', 'PostgreSQL', 'Tailwind CSS', 'Node.js'],
+    publicUrl: 'https://jpmodatex.com',
+    webAppUrl: 'https://erp.jpmodatex.com',
+    softwareUrl: 'https://internal.jpmodatex.com/portal',
+    mobileAppInfo: 'Inventory Barcode Scanner Web App for floor supervisors',
+    shortDescription: 'End-to-end textile manufacturing ERP supporting loom scheduling, yarn batch tracking, inventory dispatch, and statutory GST e-invoicing.',
+    deliverablesSummary: [
+      'Yarn and fabric inventory tracking system',
+      'Production batch scheduling calendar',
+      'Automated inter-state IGST billing engine',
+      'Warehouse barcode scanning module'
+    ],
+    isVerified: true,
+    createdAt: '2026-06-18T14:00:00Z',
+    updatedAt: '2026-08-15T10:00:00Z'
+  },
+  {
+    id: 'cw_04',
+    clientName: 'Ludhiana Hosiery & Knitwear Hub',
+    projectTitle: 'Ludhiana Hosiery B2B Wholesale Portal & Order Desk',
+    workCategory: 'B2B E-Commerce & Wholesale Distribution',
+    completionDate: '2026-07-10',
+    technologyType: ['React 19', 'Next.js', 'PostgreSQL', 'Tailwind CSS', 'Razorpay'],
+    publicUrl: 'https://ludhianahosiery.in',
+    webAppUrl: 'https://b2b.ludhianahosiery.in',
+    mobileAppInfo: 'Retailer Mobile Catalogue & Quick Order App',
+    shortDescription: 'Digital wholesale ordering platform serving 1,200+ apparel retailers across India with real-time stock levels, tiered bulk discounts, and transport dispatch manifests.',
+    deliverablesSummary: [
+      'B2B wholesale pricing & volume discount engine',
+      'Distributor ordering desk & ledger sync',
+      'Transport LR & dispatch manifest generator',
+      'Cross-browser responsive UI'
+    ],
+    isVerified: true,
+    createdAt: '2026-07-10T12:00:00Z',
+    updatedAt: '2026-08-15T10:00:00Z'
   }
 ];
 
@@ -1313,6 +1689,689 @@ export const INITIAL_CHATBOT_QA: ChatbotQAItem[] = [
   }
 ];
 
+// =============================================================================
+// PHASE 10: INITIAL PURCHASES (B2B VENDORS & SUPPLIER INVOICES)
+// =============================================================================
+export const INITIAL_PURCHASES: Purchase[] = [
+  {
+    id: 'pur_1',
+    supplierName: 'Amazon Web Services India Pvt Ltd',
+    supplierGstin: '27AABCA9008R1ZM',
+    supplierEmail: 'billing@aws-india.in',
+    supplierPhone: '+91 22 6789 5000',
+    supplierAddress: 'BKC Bandra Kurla Complex, Mumbai, Maharashtra 400051',
+    supplierStateCode: '27',
+    billNumber: 'AWS-IN-2026-8941',
+    purchaseDate: '2026-08-02',
+    dueDate: '2026-08-17',
+    description: 'Cloud compute EC2, RDS PostgreSQL multi-AZ instance, S3 object storage & CloudFront CDN bandwidth',
+    hsnSacCode: '998313',
+    category: 'Cloud Infrastructure & Servers',
+    taxableAmount: 35000,
+    gstRate: 18,
+    cgstAmount: 0,
+    sgstAmount: 0,
+    utgstAmount: 0,
+    igstAmount: 6300,
+    totalAmount: 41300,
+    paymentStatus: 'paid',
+    paymentMode: 'Credit Card',
+    paymentDate: '2026-08-02',
+    paymentRef: 'TXN-AWS-992014',
+    attachmentUrl: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=400&auto=format&fit=crop&q=80',
+    attachmentName: 'AWS_Tax_Invoice_Aug2026.pdf',
+    isItcClaimable: true,
+    created_at: '2026-08-02T10:00:00Z',
+    updated_at: '2026-08-02T10:00:00Z'
+  },
+  {
+    id: 'pur_2',
+    supplierName: 'DigitalOcean Cloud India Pvt Ltd',
+    supplierGstin: '29AABCD1234F1Z2',
+    supplierEmail: 'invoices@digitalocean.com',
+    supplierPhone: '+91 80 4455 6677',
+    supplierAddress: 'Indiranagar 100ft Road, Bengaluru, Karnataka 560038',
+    supplierStateCode: '29',
+    billNumber: 'DO-INV-2026-0771',
+    purchaseDate: '2026-08-01',
+    dueDate: '2026-08-15',
+    description: 'Managed Kubernetes cluster & Redis cache cluster for staging environments',
+    hsnSacCode: '998313',
+    category: 'Cloud Infrastructure & Servers',
+    taxableAmount: 18000,
+    gstRate: 18,
+    cgstAmount: 0,
+    sgstAmount: 0,
+    utgstAmount: 0,
+    igstAmount: 3240,
+    totalAmount: 21240,
+    paymentStatus: 'paid',
+    paymentMode: 'Bank Transfer (NEFT/RTGS)',
+    paymentDate: '2026-08-01',
+    paymentRef: 'HDFC-NEFT-DO-9921',
+    attachmentUrl: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=400&auto=format&fit=crop&q=80',
+    attachmentName: 'DO_Cloud_Invoice_Aug2026.pdf',
+    isItcClaimable: true,
+    created_at: '2026-08-01T11:00:00Z',
+    updated_at: '2026-08-01T11:00:00Z'
+  },
+  {
+    id: 'pur_3',
+    supplierName: 'Dell Technologies India Pvt Ltd',
+    supplierGstin: '29AABCD5544E1Z8',
+    supplierEmail: 'b2b-sales@dell.com',
+    supplierPhone: '+91 80 2500 0000',
+    supplierAddress: 'Divyasree Greens, Koramangala, Bengaluru 560071',
+    supplierStateCode: '29',
+    billNumber: 'DELL-CORP-44910',
+    purchaseDate: '2026-07-15',
+    dueDate: '2026-07-30',
+    description: '2x Dell UltraSharp 32-inch 4K USB-C Hub Monitors for Design & Development Workstations',
+    hsnSacCode: '847130',
+    category: 'Hardware & Workstations',
+    taxableAmount: 85000,
+    gstRate: 18,
+    cgstAmount: 0,
+    sgstAmount: 0,
+    utgstAmount: 0,
+    igstAmount: 15300,
+    totalAmount: 100300,
+    paymentStatus: 'paid',
+    paymentMode: 'Bank Transfer (NEFT/RTGS)',
+    paymentDate: '2026-07-16',
+    paymentRef: 'HDFC-RTGS-DELL-5521',
+    attachmentUrl: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=400&auto=format&fit=crop&q=80',
+    attachmentName: 'Dell_Hardware_TaxInvoice.pdf',
+    isItcClaimable: true,
+    created_at: '2026-07-15T09:30:00Z',
+    updated_at: '2026-07-16T14:20:00Z'
+  },
+  {
+    id: 'pur_4',
+    supplierName: 'JetBrains s.r.o. / Commercial Tools',
+    supplierGstin: '07AABCB9900F1Z4',
+    supplierEmail: 'sales@jetbrains.com',
+    supplierPhone: '+91 11 4050 6070',
+    supplierAddress: 'Barakhamba Road, Connaught Place, New Delhi 110001',
+    supplierStateCode: '07',
+    billNumber: 'JB-CORP-2026-118',
+    purchaseDate: '2026-08-10',
+    dueDate: '2026-08-25',
+    description: 'All Products Pack Commercial Annual Team Subscriptions (WebStorm, GoLand, DataGrip, CLion)',
+    hsnSacCode: '998314',
+    category: 'Software Tools & IDEs',
+    taxableAmount: 48000,
+    gstRate: 18,
+    cgstAmount: 0,
+    sgstAmount: 0,
+    utgstAmount: 0,
+    igstAmount: 8640,
+    totalAmount: 56640,
+    paymentStatus: 'pending',
+    paymentMode: 'Credit Card',
+    attachmentUrl: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=400&auto=format&fit=crop&q=80',
+    attachmentName: 'JetBrains_Commercial_Invoice.pdf',
+    isItcClaimable: true,
+    created_at: '2026-08-10T15:00:00Z',
+    updated_at: '2026-08-10T15:00:00Z'
+  }
+];
+
+// =============================================================================
+// PHASE 10: INITIAL OPERATING EXPENSES (OPEX & OFFICE EXPENDITURES)
+// =============================================================================
+export const INITIAL_EXPENSES: Expense[] = [
+  {
+    id: 'exp_1',
+    expenseDate: '2026-08-01',
+    category: 'Office Rent & Workspace',
+    description: 'Monthly Office Workspace Rent & Maintenance for Silvassa Tech Studio Suite 203',
+    vendorName: 'Yogi Milan Commercial Towers Property Trust',
+    vendorGstin: '26AAATY1234A1Z9',
+    amount: 45000,
+    gstApplicable: true,
+    taxableAmount: 38135.59,
+    gstRate: 18,
+    gstAmount: 6864.41,
+    cgstAmount: 3432.20,
+    sgstAmount: 3432.20,
+    igstAmount: 0,
+    isItcEligible: true,
+    paymentMode: 'Net Banking',
+    referenceNumber: 'HDFC-NEFT-RENT-AUG26',
+    attachmentUrl: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=400&auto=format&fit=crop&q=80',
+    attachmentName: 'Rent_Receipt_Aug2026.pdf',
+    status: 'paid',
+    created_at: '2026-08-01T09:00:00Z',
+    updated_at: '2026-08-01T09:00:00Z'
+  },
+  {
+    id: 'exp_2',
+    expenseDate: '2026-08-05',
+    category: 'Software Licenses & Subscriptions',
+    description: 'Figma Organization & Design Systems 5-seat Team Subscription',
+    vendorName: 'Figma Inc. / Software Services',
+    amount: 12500,
+    gstApplicable: true,
+    taxableAmount: 10593.22,
+    gstRate: 18,
+    gstAmount: 1906.78,
+    cgstAmount: 0,
+    sgstAmount: 0,
+    igstAmount: 1906.78,
+    isItcEligible: true,
+    paymentMode: 'Credit Card',
+    referenceNumber: 'TXN-FIGMA-88412',
+    attachmentUrl: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=400&auto=format&fit=crop&q=80',
+    attachmentName: 'Figma_Monthly_Receipt.pdf',
+    status: 'paid',
+    created_at: '2026-08-05T12:00:00Z',
+    updated_at: '2026-08-05T12:00:00Z'
+  },
+  {
+    id: 'exp_3',
+    expenseDate: '2026-08-03',
+    category: 'Utilities & High-Speed Internet',
+    description: '1 Gbps Dedicated Symmetrical Leased Line Fiber Broadband',
+    vendorName: 'Tata Tele Business Services Ltd',
+    vendorGstin: '26AAACT2727Q1ZG',
+    amount: 8850,
+    gstApplicable: true,
+    taxableAmount: 7500,
+    gstRate: 18,
+    gstAmount: 1350,
+    cgstAmount: 675,
+    sgstAmount: 675,
+    igstAmount: 0,
+    isItcEligible: true,
+    paymentMode: 'UPI',
+    referenceNumber: 'UPI-TATA-774029',
+    attachmentUrl: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=400&auto=format&fit=crop&q=80',
+    attachmentName: 'Tata_Broadband_TaxBill.pdf',
+    status: 'paid',
+    created_at: '2026-08-03T14:30:00Z',
+    updated_at: '2026-08-03T14:30:00Z'
+  },
+  {
+    id: 'exp_4',
+    expenseDate: '2026-08-08',
+    category: 'Legal, Accounting & Audit Fees',
+    description: 'Chartered Accountant GST Retainer & Monthly GSTR-1/3B Compliance Filing Fee',
+    vendorName: 'K. S. Joshi & Associates Chartered Accountants',
+    vendorGstin: '26AABFK8821F1ZX',
+    amount: 15000,
+    gstApplicable: true,
+    taxableAmount: 12711.86,
+    gstRate: 18,
+    gstAmount: 2288.14,
+    cgstAmount: 1144.07,
+    sgstAmount: 1144.07,
+    igstAmount: 0,
+    isItcEligible: true,
+    paymentMode: 'Bank Transfer (NEFT/RTGS)',
+    referenceNumber: 'HDFC-NEFT-CA-99214',
+    attachmentUrl: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=400&auto=format&fit=crop&q=80',
+    attachmentName: 'CA_Retainer_Bill.pdf',
+    status: 'paid',
+    created_at: '2026-08-08T16:00:00Z',
+    updated_at: '2026-08-08T16:00:00Z'
+  },
+  {
+    id: 'exp_5',
+    expenseDate: '2026-08-12',
+    category: 'Marketing & Digital Advertising',
+    description: 'Google Ads & LinkedIn B2B Developer Lead Generation Campaigns',
+    vendorName: 'Google India Digital Services Pvt Ltd',
+    vendorGstin: '07AAACG9616D1ZY',
+    amount: 25000,
+    gstApplicable: true,
+    taxableAmount: 21186.44,
+    gstRate: 18,
+    gstAmount: 3813.56,
+    cgstAmount: 0,
+    sgstAmount: 0,
+    igstAmount: 3813.56,
+    isItcEligible: true,
+    paymentMode: 'Credit Card',
+    referenceNumber: 'TXN-GOOG-ADS-6629',
+    attachmentUrl: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=400&auto=format&fit=crop&q=80',
+    attachmentName: 'Google_Ads_GST_Invoice.pdf',
+    status: 'paid',
+    created_at: '2026-08-12T11:20:00Z',
+    updated_at: '2026-08-12T11:20:00Z'
+  },
+  {
+    id: 'exp_6',
+    expenseDate: '2026-08-14',
+    category: 'Staff Welfare, Meals & Refreshments',
+    description: 'Bi-weekly sprint retrospective team lunch and pantry coffee/refreshments',
+    vendorName: 'Cafe Coffee Day & Silver Springs Pantry',
+    amount: 4850,
+    gstApplicable: true,
+    taxableAmount: 4619.05,
+    gstRate: 5,
+    gstAmount: 230.95,
+    cgstAmount: 115.48,
+    sgstAmount: 115.48,
+    igstAmount: 0,
+    isItcEligible: false,
+    paymentMode: 'UPI',
+    referenceNumber: 'UPI-CCD-990145',
+    attachmentUrl: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=400&auto=format&fit=crop&q=80',
+    attachmentName: 'Pantry_Refreshments_Receipt.pdf',
+    status: 'paid',
+    created_at: '2026-08-14T17:00:00Z',
+    updated_at: '2026-08-14T17:00:00Z'
+  },
+  {
+    id: 'exp_7',
+    expenseDate: '2026-07-28',
+    category: 'Bank Charges & Payment Gateway Fees',
+    description: 'Razorpay PG Settlement Fees & GST for July 2026 Inbound Client Invoices',
+    vendorName: 'Razorpay Software Pvt Ltd',
+    vendorGstin: '29AAACR3716A1ZV',
+    amount: 4130,
+    gstApplicable: true,
+    taxableAmount: 3500,
+    gstRate: 18,
+    gstAmount: 630,
+    cgstAmount: 0,
+    sgstAmount: 0,
+    igstAmount: 630,
+    isItcEligible: true,
+    paymentMode: 'Net Banking',
+    referenceNumber: 'RZP-SETTLE-JUL26-01',
+    attachmentUrl: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=400&auto=format&fit=crop&q=80',
+    attachmentName: 'Razorpay_GST_Invoice_Jul.pdf',
+    status: 'paid',
+    created_at: '2026-07-28T18:00:00Z',
+    updated_at: '2026-07-28T18:00:00Z'
+  }
+];
+
+// =============================================================================
+// PHASE 10: INITIAL STAFF MASTER (EMPLOYEE PROFILES)
+// =============================================================================
+export const INITIAL_STAFF_MEMBERS: StaffMember[] = [
+  {
+    id: 'emp_1',
+    employeeId: 'FFC-EMP-001',
+    fullName: 'Manoj Satapathy',
+    email: 'manoj@fusionforge.io',
+    phone: '+91 90040 77126',
+    designation: 'Engineering Director & Principal Architect',
+    department: 'Engineering',
+    joiningDate: '2024-01-01',
+    panNumber: 'AALFF1234F',
+    bankAccountName: 'Manoj Satapathy',
+    bankName: 'HDFC Bank Ltd',
+    bankAccountNumber: '50100455881234',
+    bankIfsc: 'HDFC0001234',
+    baseSalary: 120000,
+    hraAllowance: 40000,
+    specialAllowance: 20000,
+    pfApplicable: true,
+    esiApplicable: false,
+    tdsApplicable: true,
+    isActive: true,
+    created_at: '2024-01-01T00:00:00Z',
+    updated_at: '2026-08-01T00:00:00Z'
+  },
+  {
+    id: 'emp_2',
+    employeeId: 'FFC-EMP-002',
+    fullName: 'Amit Sharma',
+    email: 'amit.sharma@fusionforge.io',
+    phone: '+91 98230 44551',
+    designation: 'Senior Full-Stack Engineer',
+    department: 'Engineering',
+    joiningDate: '2024-06-15',
+    panNumber: 'BKPPS9901A',
+    bankAccountName: 'Amit Sharma',
+    bankName: 'ICICI Bank',
+    bankAccountNumber: '002101556677',
+    bankIfsc: 'ICIC0000021',
+    baseSalary: 75000,
+    hraAllowance: 25000,
+    specialAllowance: 10000,
+    pfApplicable: true,
+    esiApplicable: false,
+    tdsApplicable: true,
+    isActive: true,
+    created_at: '2024-06-15T00:00:00Z',
+    updated_at: '2026-08-01T00:00:00Z'
+  },
+  {
+    id: 'emp_3',
+    employeeId: 'FFC-EMP-003',
+    fullName: 'Priya Patel',
+    email: 'priya.patel@fusionforge.io',
+    phone: '+91 97245 66778',
+    designation: 'Lead UI/UX & Product Designer',
+    department: 'Design & UI/UX',
+    joiningDate: '2025-01-10',
+    panNumber: 'CDEPP4455B',
+    bankAccountName: 'Priya Patel',
+    bankName: 'State Bank of India',
+    bankAccountNumber: '33889911223',
+    bankIfsc: 'SBIN0001234',
+    baseSalary: 60000,
+    hraAllowance: 20000,
+    specialAllowance: 8000,
+    pfApplicable: true,
+    esiApplicable: false,
+    tdsApplicable: true,
+    isActive: true,
+    created_at: '2025-01-10T00:00:00Z',
+    updated_at: '2026-08-01T00:00:00Z'
+  },
+  {
+    id: 'emp_4',
+    employeeId: 'FFC-EMP-004',
+    fullName: 'Rakesh Verma',
+    email: 'rakesh.verma@fusionforge.io',
+    phone: '+91 91556 77889',
+    designation: 'DevOps & Cloud Systems Engineer',
+    department: 'DevOps & Cloud',
+    joiningDate: '2025-04-01',
+    panNumber: 'DFGVR1122C',
+    bankAccountName: 'Rakesh Verma',
+    bankName: 'Axis Bank',
+    bankAccountNumber: '9180200445566',
+    bankIfsc: 'UTIB0000123',
+    baseSalary: 55000,
+    hraAllowance: 18000,
+    specialAllowance: 7000,
+    pfApplicable: true,
+    esiApplicable: false,
+    tdsApplicable: true,
+    isActive: true,
+    created_at: '2025-04-01T00:00:00Z',
+    updated_at: '2026-08-01T00:00:00Z'
+  },
+  {
+    id: 'emp_5',
+    employeeId: 'FFC-EMP-005',
+    fullName: 'Sneha Mohanty',
+    email: 'sneha.mohanty@fusionforge.io',
+    phone: '+91 94370 12345',
+    designation: 'QA Automation & Release Engineer',
+    department: 'Engineering',
+    joiningDate: '2025-07-01',
+    panNumber: 'EGHMH3344D',
+    bankAccountName: 'Sneha Mohanty',
+    bankName: 'HDFC Bank Ltd',
+    bankAccountNumber: '5010099887766',
+    bankIfsc: 'HDFC0001234',
+    baseSalary: 45000,
+    hraAllowance: 15000,
+    specialAllowance: 5000,
+    pfApplicable: true,
+    esiApplicable: false,
+    tdsApplicable: false,
+    isActive: true,
+    created_at: '2025-07-01T00:00:00Z',
+    updated_at: '2026-08-01T00:00:00Z'
+  }
+];
+
+// =============================================================================
+// PHASE 10: INITIAL SALARY & PAYROLL RECORDS (MONTHLY PAYSLIPS)
+// =============================================================================
+export const INITIAL_SALARY_RECORDS: SalaryRecord[] = [
+  // August 2026 Payroll (Current Month)
+  {
+    id: 'sal_2026_08_01',
+    employeeId: 'emp_1',
+    employeeName: 'Manoj Satapathy',
+    employeeCode: 'FFC-EMP-001',
+    designation: 'Engineering Director & Principal Architect',
+    department: 'Engineering',
+    period: 'August 2026',
+    periodMonth: '08',
+    periodYear: 2026,
+    basicSalary: 120000,
+    hra: 40000,
+    specialAllowance: 20000,
+    bonusOrIncentive: 10000,
+    grossSalary: 190000,
+    providentFund: 14400,
+    esi: 0,
+    professionalTax: 200,
+    tdsDeduction: 15000,
+    advanceDeduction: 0,
+    totalDeductions: 29600,
+    netSalary: 160400,
+    paymentDate: '2026-08-31',
+    paymentStatus: 'processing',
+    paymentMode: 'Bank Transfer (NEFT/RTGS)',
+    transactionReference: 'NEFT-SAL-AUG26-001',
+    payslipGenerated: true,
+    payslipNumber: 'PAYSLIP-2026-08-001',
+    notes: 'August 2026 monthly payroll with Q2 sprint leadership incentive.',
+    created_at: '2026-08-15T10:00:00Z',
+    updated_at: '2026-08-15T10:00:00Z'
+  },
+  {
+    id: 'sal_2026_08_02',
+    employeeId: 'emp_2',
+    employeeName: 'Amit Sharma',
+    employeeCode: 'FFC-EMP-002',
+    designation: 'Senior Full-Stack Engineer',
+    department: 'Engineering',
+    period: 'August 2026',
+    periodMonth: '08',
+    periodYear: 2026,
+    basicSalary: 75000,
+    hra: 25000,
+    specialAllowance: 10000,
+    bonusOrIncentive: 5000,
+    grossSalary: 115000,
+    providentFund: 9000,
+    esi: 0,
+    professionalTax: 200,
+    tdsDeduction: 6500,
+    advanceDeduction: 0,
+    totalDeductions: 15700,
+    netSalary: 99300,
+    paymentDate: '2026-08-31',
+    paymentStatus: 'processing',
+    paymentMode: 'Bank Transfer (NEFT/RTGS)',
+    transactionReference: 'NEFT-SAL-AUG26-002',
+    payslipGenerated: true,
+    payslipNumber: 'PAYSLIP-2026-08-002',
+    created_at: '2026-08-15T10:00:00Z',
+    updated_at: '2026-08-15T10:00:00Z'
+  },
+  {
+    id: 'sal_2026_08_03',
+    employeeId: 'emp_3',
+    employeeName: 'Priya Patel',
+    employeeCode: 'FFC-EMP-003',
+    designation: 'Lead UI/UX & Product Designer',
+    department: 'Design & UI/UX',
+    period: 'August 2026',
+    periodMonth: '08',
+    periodYear: 2026,
+    basicSalary: 60000,
+    hra: 20000,
+    specialAllowance: 8000,
+    bonusOrIncentive: 4000,
+    grossSalary: 92000,
+    providentFund: 7200,
+    esi: 0,
+    professionalTax: 200,
+    tdsDeduction: 4500,
+    advanceDeduction: 0,
+    totalDeductions: 11900,
+    netSalary: 80100,
+    paymentDate: '2026-08-31',
+    paymentStatus: 'processing',
+    paymentMode: 'Bank Transfer (NEFT/RTGS)',
+    transactionReference: 'NEFT-SAL-AUG26-003',
+    payslipGenerated: true,
+    payslipNumber: 'PAYSLIP-2026-08-003',
+    created_at: '2026-08-15T10:00:00Z',
+    updated_at: '2026-08-15T10:00:00Z'
+  },
+  {
+    id: 'sal_2026_08_04',
+    employeeId: 'emp_4',
+    employeeName: 'Rakesh Verma',
+    employeeCode: 'FFC-EMP-004',
+    designation: 'DevOps & Cloud Systems Engineer',
+    department: 'DevOps & Cloud',
+    period: 'August 2026',
+    periodMonth: '08',
+    periodYear: 2026,
+    basicSalary: 55000,
+    hra: 18000,
+    specialAllowance: 7000,
+    bonusOrIncentive: 3000,
+    grossSalary: 83000,
+    providentFund: 6600,
+    esi: 0,
+    professionalTax: 200,
+    tdsDeduction: 3500,
+    advanceDeduction: 0,
+    totalDeductions: 10300,
+    netSalary: 72700,
+    paymentDate: '2026-08-31',
+    paymentStatus: 'processing',
+    paymentMode: 'Bank Transfer (NEFT/RTGS)',
+    transactionReference: 'NEFT-SAL-AUG26-004',
+    payslipGenerated: true,
+    payslipNumber: 'PAYSLIP-2026-08-004',
+    created_at: '2026-08-15T10:00:00Z',
+    updated_at: '2026-08-15T10:00:00Z'
+  },
+  {
+    id: 'sal_2026_08_05',
+    employeeId: 'emp_5',
+    employeeName: 'Sneha Mohanty',
+    employeeCode: 'FFC-EMP-005',
+    designation: 'QA Automation & Release Engineer',
+    department: 'Engineering',
+    period: 'August 2026',
+    periodMonth: '08',
+    periodYear: 2026,
+    basicSalary: 45000,
+    hra: 15000,
+    specialAllowance: 5000,
+    bonusOrIncentive: 0,
+    grossSalary: 65000,
+    providentFund: 5400,
+    esi: 0,
+    professionalTax: 200,
+    tdsDeduction: 1500,
+    advanceDeduction: 0,
+    totalDeductions: 7100,
+    netSalary: 57900,
+    paymentDate: '2026-08-31',
+    paymentStatus: 'processing',
+    paymentMode: 'Bank Transfer (NEFT/RTGS)',
+    transactionReference: 'NEFT-SAL-AUG26-005',
+    payslipGenerated: true,
+    payslipNumber: 'PAYSLIP-2026-08-005',
+    created_at: '2026-08-15T10:00:00Z',
+    updated_at: '2026-08-15T10:00:00Z'
+  },
+
+  // July 2026 Payroll (Settled & Paid Month)
+  {
+    id: 'sal_2026_07_01',
+    employeeId: 'emp_1',
+    employeeName: 'Manoj Satapathy',
+    employeeCode: 'FFC-EMP-001',
+    designation: 'Engineering Director & Principal Architect',
+    department: 'Engineering',
+    period: 'July 2026',
+    periodMonth: '07',
+    periodYear: 2026,
+    basicSalary: 120000,
+    hra: 40000,
+    specialAllowance: 20000,
+    bonusOrIncentive: 0,
+    grossSalary: 180000,
+    providentFund: 14400,
+    esi: 0,
+    professionalTax: 200,
+    tdsDeduction: 14000,
+    advanceDeduction: 0,
+    totalDeductions: 28600,
+    netSalary: 151400,
+    paymentDate: '2026-07-31',
+    paymentStatus: 'paid',
+    paymentMode: 'Bank Transfer (NEFT/RTGS)',
+    transactionReference: 'HDFC-SAL-JUL26-001',
+    payslipGenerated: true,
+    payslipNumber: 'PAYSLIP-2026-07-001',
+    created_at: '2026-07-31T17:00:00Z',
+    updated_at: '2026-07-31T17:00:00Z'
+  },
+  {
+    id: 'sal_2026_07_02',
+    employeeId: 'emp_2',
+    employeeName: 'Amit Sharma',
+    employeeCode: 'FFC-EMP-002',
+    designation: 'Senior Full-Stack Engineer',
+    department: 'Engineering',
+    period: 'July 2026',
+    periodMonth: '07',
+    periodYear: 2026,
+    basicSalary: 75000,
+    hra: 25000,
+    specialAllowance: 10000,
+    bonusOrIncentive: 0,
+    grossSalary: 110000,
+    providentFund: 9000,
+    esi: 0,
+    professionalTax: 200,
+    tdsDeduction: 6000,
+    advanceDeduction: 0,
+    totalDeductions: 15200,
+    netSalary: 94800,
+    paymentDate: '2026-07-31',
+    paymentStatus: 'paid',
+    paymentMode: 'Bank Transfer (NEFT/RTGS)',
+    transactionReference: 'HDFC-SAL-JUL26-002',
+    payslipGenerated: true,
+    payslipNumber: 'PAYSLIP-2026-07-002',
+    created_at: '2026-07-31T17:00:00Z',
+    updated_at: '2026-07-31T17:00:00Z'
+  },
+  {
+    id: 'sal_2026_07_03',
+    employeeId: 'emp_3',
+    employeeName: 'Priya Patel',
+    employeeCode: 'FFC-EMP-003',
+    designation: 'Lead UI/UX & Product Designer',
+    department: 'Design & UI/UX',
+    period: 'July 2026',
+    periodMonth: '07',
+    periodYear: 2026,
+    basicSalary: 60000,
+    hra: 20000,
+    specialAllowance: 8000,
+    bonusOrIncentive: 0,
+    grossSalary: 88000,
+    providentFund: 7200,
+    esi: 0,
+    professionalTax: 200,
+    tdsDeduction: 4000,
+    advanceDeduction: 0,
+    totalDeductions: 11400,
+    netSalary: 76600,
+    paymentDate: '2026-07-31',
+    paymentStatus: 'paid',
+    paymentMode: 'Bank Transfer (NEFT/RTGS)',
+    transactionReference: 'HDFC-SAL-JUL26-003',
+    payslipGenerated: true,
+    payslipNumber: 'PAYSLIP-2026-07-003',
+    created_at: '2026-07-31T17:00:00Z',
+    updated_at: '2026-07-31T17:00:00Z'
+  }
+];
 
 export const INITIAL_STATE_UT_MASTER = [
   { code: '01', name: 'Jammu and Kashmir', is_ut_without_legislature: false, is_union_territory: true, selectable: true, is_legacy: false },
@@ -1389,6 +2448,352 @@ export const INITIAL_AUDIT_LOGS = [
     record_id: 'quote_01',
     details: 'Dispatched commercial quotation QTN-2026-0001 to JP MODATEX LLP for ₹64,900.',
     created_at: '2026-08-01T11:00:00Z'
+  }
+];
+
+// =============================================================================
+// PHASE 12: INITIAL CENTRAL NOTIFICATIONS & EMAIL DISPATCH LOGS
+// =============================================================================
+
+export const INITIAL_NOTIFICATIONS: AppNotification[] = [
+  {
+    id: 'notif_01',
+    type: 'lead_received',
+    category: 'leads',
+    title: '🚨 New Lead Enquiry Received',
+    message: 'Dr. Sameer Sen from Nexus HealthTech India submitted an enterprise enquiry for "Nexus Telehealth Consultation Suite" (Budget: ₹3L - ₹5L).',
+    link: 'enquiries',
+    entity_type: 'enquiry',
+    entity_id: 'enq_02',
+    priority: 'urgent',
+    is_read: false,
+    created_at: '2026-08-16T18:45:00Z',
+    target_role: 'all',
+    metadata: {
+      clientName: 'Dr. Sameer Sen',
+      company: 'Nexus HealthTech India',
+      email: 'sameer.sen@nexushealth.in',
+      serviceCategory: 'mobile_app',
+      budgetRange: '₹3,00,000 - ₹5,00,000'
+    },
+    event_key: 'lead_enq_02'
+  },
+  {
+    id: 'notif_02',
+    type: 'payment_received',
+    category: 'financials',
+    title: '💰 Payment Settlement Received',
+    message: 'Recorded NEFT settlement of ₹1,80,000 for Tax Invoice FFC-2026-0001 (Apex Fintech Solutions Pvt. Ltd.).',
+    link: 'payments',
+    entity_type: 'payment',
+    entity_id: 'pay_01',
+    priority: 'high',
+    is_read: false,
+    created_at: '2026-08-16T14:15:00Z',
+    target_role: 'all',
+    metadata: {
+      receiptNumber: 'REC-2026-0001',
+      invoiceNumber: 'FFC-2026-0001',
+      amount: 180000,
+      clientCompany: 'Apex Fintech Solutions Pvt. Ltd.'
+    },
+    event_key: 'payment_pay_01'
+  },
+  {
+    id: 'notif_03',
+    type: 'payment_receipt_sent',
+    category: 'financials',
+    title: '✉️ Official Payment Receipt Dispatched',
+    message: 'Official Payment Receipt REC-2026-0001 dispatched from admin@fusionforgecreation.com to arvind@apexfintech.io.',
+    link: 'payments',
+    entity_type: 'payment',
+    entity_id: 'pay_01',
+    priority: 'normal',
+    is_read: false,
+    created_at: '2026-08-16T14:16:00Z',
+    target_role: 'all',
+    metadata: {
+      recipient: 'arvind@apexfintech.io',
+      sender: 'admin@fusionforgecreation.com',
+      receiptNumber: 'REC-2026-0001'
+    },
+    event_key: 'email_receipt_pay_01'
+  },
+  {
+    id: 'notif_04',
+    type: 'project_status_changed',
+    category: 'projects',
+    title: '🚀 Project Milestone Advanced',
+    message: 'Project "Quantum Fleet Telematics Engine" status transitioned to "Quality Assurance" (85% Progress).',
+    link: 'projects',
+    entity_type: 'project',
+    entity_id: 'proj_03',
+    priority: 'normal',
+    is_read: false,
+    created_at: '2026-08-15T16:30:00Z',
+    target_role: 'all',
+    metadata: {
+      projectTitle: 'Quantum Fleet Telematics Engine',
+      clientCompany: 'Quantum Logistics & Freight',
+      newStatus: 'testing_qa',
+      progressPercentage: 85
+    },
+    event_key: 'proj_status_proj_03_testing_qa'
+  },
+  {
+    id: 'notif_05',
+    type: 'project_completed',
+    category: 'projects',
+    title: '🏆 Project Milestone Completed',
+    message: 'Project "JP Modatex Textile ERP & Supply Chain Engine" reached 100% completion and signed off by client.',
+    link: 'projects',
+    entity_type: 'project',
+    entity_id: 'proj_01',
+    priority: 'high',
+    is_read: true,
+    read_at: '2026-08-14T11:00:00Z',
+    created_at: '2026-08-14T10:00:00Z',
+    target_role: 'all',
+    metadata: {
+      projectTitle: 'JP Modatex Textile ERP & Supply Chain Engine',
+      clientCompany: 'JP MODATEX LLP',
+      completionDate: '2026-08-14'
+    },
+    event_key: 'proj_completed_proj_01'
+  },
+  {
+    id: 'notif_06',
+    type: 'project_invoice_eligible',
+    category: 'financials',
+    title: '📋 Project Ready for Final Invoicing',
+    message: 'Project "JP Modatex Textile ERP" is completed and eligible for final milestone Tax Invoice generation.',
+    link: 'invoices',
+    entity_type: 'project',
+    entity_id: 'proj_01',
+    priority: 'high',
+    is_read: true,
+    read_at: '2026-08-14T11:05:00Z',
+    created_at: '2026-08-14T10:05:00Z',
+    target_role: 'all',
+    metadata: {
+      projectTitle: 'JP Modatex Textile ERP & Supply Chain Engine',
+      clientCompany: 'JP MODATEX LLP'
+    },
+    event_key: 'proj_invoice_eligible_proj_01'
+  },
+  {
+    id: 'notif_07',
+    type: 'invoice_created',
+    category: 'financials',
+    title: '🧾 Tax Invoice FFC-2026-0003 Generated',
+    message: 'B2B GST Tax Invoice FFC-2026-0003 issued for JP MODATEX LLP (Total: ₹2,12,400 with 18% IGST under SAC 998314).',
+    link: 'invoices',
+    entity_type: 'invoice',
+    entity_id: 'inv_03',
+    priority: 'normal',
+    is_read: true,
+    read_at: '2026-08-10T12:00:00Z',
+    created_at: '2026-08-10T10:30:00Z',
+    target_role: 'all',
+    metadata: {
+      invoiceNumber: 'FFC-2026-0003',
+      clientCompany: 'JP MODATEX LLP',
+      totalAmount: 212400
+    },
+    event_key: 'invoice_inv_03'
+  },
+  {
+    id: 'notif_08',
+    type: 'quotation_sent',
+    category: 'financials',
+    title: '📄 Commercial Quotation Dispatched',
+    message: 'Commercial Quotation QTN-2026-0001 dispatched from admin@fusionforgecreation.com to contact@jpmodatex.com (Total: ₹64,900).',
+    link: 'quotations',
+    entity_type: 'quotation',
+    entity_id: 'quote_01',
+    priority: 'normal',
+    is_read: true,
+    read_at: '2026-08-02T09:00:00Z',
+    created_at: '2026-08-01T11:00:00Z',
+    target_role: 'all',
+    metadata: {
+      quotationNumber: 'QTN-2026-0001',
+      clientCompany: 'JP MODATEX LLP',
+      recipient: 'contact@jpmodatex.com'
+    },
+    event_key: 'email_quote_quote_01'
+  },
+  {
+    id: 'notif_09',
+    type: 'gst_report_generated',
+    category: 'accounting',
+    title: '📊 Statutory GSTR-1 Excel Return Generated',
+    message: 'Statutory 5-Sheet GSTR-1 Excel Return workbook compiled for Q2 FY 2026-27 (B2B, B2C, CDNR, HSN SAC 998314, DOCS).',
+    link: 'accounting',
+    entity_type: 'gst_report',
+    priority: 'normal',
+    is_read: false,
+    created_at: '2026-08-16T12:00:00Z',
+    target_role: 'all',
+    metadata: {
+      financialYear: '2026-27',
+      period: 'Q2 (Jul - Sep 2026)',
+      totalTaxLiability: 57600
+    },
+    event_key: 'gst_report_gstr1_q2_2026'
+  },
+  {
+    id: 'notif_10',
+    type: 'accounting_event',
+    category: 'accounting',
+    title: '📝 Credit Note CN-2026-0001 Issued',
+    message: 'Credit Note CN-2026-0001 issued for JP MODATEX LLP against Invoice FFC-2026-0003 for scope adjustment (₹11,800 incl. IGST).',
+    link: 'accounting',
+    entity_type: 'credit_debit_note',
+    entity_id: 'cdn_01',
+    priority: 'normal',
+    is_read: true,
+    read_at: '2026-08-15T15:00:00Z',
+    created_at: '2026-08-15T14:30:00Z',
+    target_role: 'all',
+    metadata: {
+      noteNumber: 'CN-2026-0001',
+      invoiceNumber: 'FFC-2026-0003',
+      noteType: 'credit',
+      totalAmount: 11800
+    },
+    event_key: 'cdn_cdn_01'
+  },
+  {
+    id: 'notif_11',
+    type: 'new_user',
+    category: 'users',
+    title: '👤 New Staff User Onboarded',
+    message: 'Ananya Mishra onboarded as Staff with operational duties and restricted dashboard permissions.',
+    link: 'users',
+    entity_type: 'user',
+    entity_id: 'user_staff',
+    priority: 'low',
+    is_read: true,
+    read_at: '2026-08-02T10:00:00Z',
+    created_at: '2026-08-01T09:00:00Z',
+    target_role: 'super_admin',
+    metadata: {
+      userName: 'Ananya Mishra',
+      userEmail: 'staff@fusionforgecreation.com',
+      role: 'staff'
+    },
+    event_key: 'new_user_user_staff'
+  },
+  {
+    id: 'notif_12',
+    type: 'role_changed',
+    category: 'users',
+    title: '🛡️ Role Privilege Updated',
+    message: 'Debashis Panda elevated to Administrator role with full operations & financials access.',
+    link: 'users',
+    entity_type: 'user',
+    entity_id: 'user_admin',
+    priority: 'normal',
+    is_read: true,
+    read_at: '2026-08-10T14:00:00Z',
+    created_at: '2026-08-10T12:00:00Z',
+    target_role: 'super_admin',
+    metadata: {
+      userName: 'Debashis Panda',
+      newRole: 'admin',
+      previousRole: 'editor'
+    },
+    event_key: 'role_changed_user_admin'
+  }
+];
+
+export const INITIAL_EMAIL_LOGS: EmailLog[] = [
+  {
+    id: 'eml_01',
+    recipient: 'contact@jpmodatex.com',
+    sender: 'admin@fusionforgecreation.com',
+    subject: 'Commercial Quotation: QTN-2026-0001 - JP Modatex Cloud Modernization',
+    category: 'quotation',
+    status: 'sent',
+    message_id: 'msg_qtn_0001_88a91c',
+    entity_type: 'quotation',
+    entity_id: 'quote_01',
+    metadata: {
+      quotationNumber: 'QTN-2026-0001',
+      totalAmount: 64900,
+      clientName: 'Manoj Satapathy'
+    },
+    created_at: '2026-08-01T11:00:00Z'
+  },
+  {
+    id: 'eml_02',
+    recipient: 'contact@jpmodatex.com',
+    sender: 'admin@fusionforgecreation.com',
+    subject: 'Tax Invoice: FFC-2026-0003 - Fusion Forge Creation',
+    category: 'invoice',
+    status: 'sent',
+    message_id: 'msg_inv_0003_44bf82',
+    entity_type: 'invoice',
+    entity_id: 'inv_03',
+    metadata: {
+      invoiceNumber: 'FFC-2026-0003',
+      totalAmount: 212400,
+      clientName: 'Manoj Satapathy'
+    },
+    created_at: '2026-08-10T10:35:00Z'
+  },
+  {
+    id: 'eml_03',
+    recipient: 'arvind@apexfintech.io',
+    sender: 'admin@fusionforgecreation.com',
+    subject: 'Payment Receipt: REC-2026-0001 for Invoice FFC-2026-0001 - Fusion Forge Creation',
+    category: 'payment_receipt',
+    status: 'sent',
+    message_id: 'rec_msg_pay_0001_99c3a1',
+    entity_type: 'payment',
+    entity_id: 'pay_01',
+    metadata: {
+      receiptNumber: 'REC-2026-0001',
+      invoiceNumber: 'FFC-2026-0001',
+      amount: 180000,
+      paymentMethod: 'bank_transfer'
+    },
+    created_at: '2026-08-16T14:16:00Z'
+  },
+  {
+    id: 'eml_04',
+    recipient: 'arvind@apexfintech.io',
+    sender: 'admin@fusionforgecreation.com',
+    subject: 'Project Update: Apex Financial Intelligence Platform is now TESTING QA - Fusion Forge Creation',
+    category: 'project_status',
+    status: 'sent',
+    message_id: 'proj_msg_apex_qa_12d45e',
+    entity_type: 'project',
+    entity_id: 'proj_02',
+    metadata: {
+      projectTitle: 'Apex Financial Intelligence Platform',
+      status: 'testing_qa',
+      progressPercentage: 85
+    },
+    created_at: '2026-08-15T16:30:00Z'
+  },
+  {
+    id: 'eml_05',
+    recipient: 'contact@jpmodatex.com',
+    sender: 'admin@fusionforgecreation.com',
+    subject: 'Project Milestone Handover: JP Modatex Textile ERP & Supply Chain Engine is COMPLETED - Fusion Forge Creation',
+    category: 'project_status',
+    status: 'sent',
+    message_id: 'proj_msg_jp_comp_77f89a',
+    entity_type: 'project',
+    entity_id: 'proj_01',
+    metadata: {
+      projectTitle: 'JP Modatex Textile ERP & Supply Chain Engine',
+      status: 'completed',
+      progressPercentage: 100
+    },
+    created_at: '2026-08-14T10:05:00Z'
   }
 ];
 
@@ -1717,6 +3122,133 @@ CREATE TABLE IF NOT EXISTS public.payments (
   client_id UUID REFERENCES public.clients(id) ON DELETE RESTRICT,
   client_name TEXT,
   currency TEXT NOT NULL DEFAULT 'INR'
+);
+
+-- ==============================================================================
+-- PHASE 10: PURCHASES, EXPENSES, STAFF MEMBERS & PAYROLL SALARY RECORDS
+-- ==============================================================================
+
+-- 4.6 Purchases Table (Supplier & Vendor Invoices with Input Tax Credit Breakdown)
+CREATE TABLE IF NOT EXISTS public.purchases (
+  id TEXT PRIMARY KEY,
+  supplier_name TEXT NOT NULL,
+  supplier_gstin VARCHAR(15),
+  supplier_email TEXT,
+  supplier_phone TEXT,
+  supplier_address TEXT,
+  supplier_state_code VARCHAR(2) REFERENCES public.state_ut_master(code),
+  bill_number TEXT NOT NULL,
+  purchase_date DATE NOT NULL DEFAULT CURRENT_DATE,
+  due_date DATE,
+  description TEXT NOT NULL,
+  hsn_sac_code VARCHAR(10),
+  category TEXT,
+  taxable_amount NUMERIC(12,2) NOT NULL DEFAULT 0.00,
+  gst_rate NUMERIC(5,2) NOT NULL DEFAULT 18.00,
+  cgst_amount NUMERIC(12,2) NOT NULL DEFAULT 0.00,
+  sgst_amount NUMERIC(12,2) NOT NULL DEFAULT 0.00,
+  utgst_amount NUMERIC(12,2) NOT NULL DEFAULT 0.00,
+  igst_amount NUMERIC(12,2) NOT NULL DEFAULT 0.00,
+  total_amount NUMERIC(12,2) NOT NULL DEFAULT 0.00,
+  payment_status TEXT NOT NULL DEFAULT 'pending' CHECK (payment_status IN ('pending', 'paid', 'partially_paid', 'cancelled')),
+  payment_mode TEXT,
+  payment_date DATE,
+  payment_ref TEXT,
+  attachment_url TEXT,
+  attachment_name TEXT,
+  notes TEXT,
+  is_itc_claimable BOOLEAN NOT NULL DEFAULT true,
+  is_reverse_charge BOOLEAN NOT NULL DEFAULT false,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 4.7 Expenses Table (Operational, Travel, Software & Administrative Overheads)
+CREATE TABLE IF NOT EXISTS public.expenses (
+  id TEXT PRIMARY KEY,
+  expense_date DATE NOT NULL DEFAULT CURRENT_DATE,
+  category TEXT NOT NULL,
+  description TEXT NOT NULL,
+  vendor_name TEXT NOT NULL,
+  vendor_gstin VARCHAR(15),
+  amount NUMERIC(12,2) NOT NULL DEFAULT 0.00,
+  gst_applicable BOOLEAN NOT NULL DEFAULT false,
+  taxable_amount NUMERIC(12,2),
+  gst_rate NUMERIC(5,2),
+  gst_amount NUMERIC(12,2),
+  cgst_amount NUMERIC(12,2),
+  sgst_amount NUMERIC(12,2),
+  igst_amount NUMERIC(12,2),
+  is_itc_eligible BOOLEAN NOT NULL DEFAULT true,
+  payment_mode TEXT NOT NULL DEFAULT 'UPI',
+  reference_number TEXT,
+  attachment_url TEXT,
+  attachment_name TEXT,
+  paid_by TEXT,
+  status TEXT NOT NULL DEFAULT 'paid' CHECK (status IN ('paid', 'pending', 'approved', 'rejected')),
+  notes TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 4.8 Staff Members Table (Employees, Engineers & Administrative Personnel)
+CREATE TABLE IF NOT EXISTS public.staff_members (
+  id TEXT PRIMARY KEY,
+  employee_id TEXT UNIQUE NOT NULL,
+  full_name TEXT NOT NULL,
+  email TEXT UNIQUE NOT NULL,
+  phone TEXT,
+  designation TEXT NOT NULL,
+  department TEXT NOT NULL,
+  joining_date DATE NOT NULL,
+  pan_number VARCHAR(10),
+  bank_account_name TEXT,
+  bank_name TEXT,
+  bank_account_number TEXT,
+  bank_ifsc VARCHAR(11),
+  base_salary NUMERIC(12,2) NOT NULL DEFAULT 0.00,
+  hra_allowance NUMERIC(12,2) NOT NULL DEFAULT 0.00,
+  special_allowance NUMERIC(12,2) NOT NULL DEFAULT 0.00,
+  pf_applicable BOOLEAN NOT NULL DEFAULT true,
+  esi_applicable BOOLEAN NOT NULL DEFAULT false,
+  tds_applicable BOOLEAN NOT NULL DEFAULT true,
+  is_active BOOLEAN NOT NULL DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 4.9 Salary Records Table (Payroll Cycles, Statutory Deductions & Payslips)
+CREATE TABLE IF NOT EXISTS public.salary_records (
+  id TEXT PRIMARY KEY,
+  employee_id TEXT NOT NULL REFERENCES public.staff_members(id) ON DELETE CASCADE,
+  employee_name TEXT NOT NULL,
+  employee_code TEXT,
+  designation TEXT,
+  department TEXT,
+  period TEXT NOT NULL,
+  period_month TEXT NOT NULL,
+  period_year INTEGER NOT NULL,
+  basic_salary NUMERIC(12,2) NOT NULL DEFAULT 0.00,
+  hra NUMERIC(12,2) NOT NULL DEFAULT 0.00,
+  special_allowance NUMERIC(12,2) NOT NULL DEFAULT 0.00,
+  bonus_or_incentive NUMERIC(12,2) NOT NULL DEFAULT 0.00,
+  gross_salary NUMERIC(12,2) NOT NULL DEFAULT 0.00,
+  provident_fund NUMERIC(12,2) NOT NULL DEFAULT 0.00,
+  esi NUMERIC(12,2) NOT NULL DEFAULT 0.00,
+  professional_tax NUMERIC(12,2) NOT NULL DEFAULT 0.00,
+  tds_deduction NUMERIC(12,2) NOT NULL DEFAULT 0.00,
+  advance_deduction NUMERIC(12,2) NOT NULL DEFAULT 0.00,
+  total_deductions NUMERIC(12,2) NOT NULL DEFAULT 0.00,
+  net_salary NUMERIC(12,2) NOT NULL DEFAULT 0.00,
+  payment_date DATE,
+  payment_status TEXT NOT NULL DEFAULT 'processing' CHECK (payment_status IN ('processing', 'paid', 'hold', 'failed')),
+  payment_mode TEXT,
+  transaction_reference TEXT,
+  payslip_generated BOOLEAN NOT NULL DEFAULT true,
+  payslip_number TEXT,
+  notes TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- ==============================================================================
@@ -2129,6 +3661,80 @@ USING (
 
 CREATE POLICY "ONLY super_admin can modify invoice items" 
 ON public.invoice_items FOR ALL 
+USING (public.is_super_admin());
+
+-- ------------------------------------------------------------------------------
+-- 7.4 PHASE 10: ACCOUNTING, PURCHASES, EXPENSES & PAYROLL RLS POLICIES
+-- Strict Role-Based Access: super_admin full control, accountant & admin operational access,
+-- unauthorized roles strictly blocked.
+-- ------------------------------------------------------------------------------
+
+-- Purchases: Super Admin, Admin, Accountant can SELECT, INSERT, UPDATE; Super Admin ONLY can DELETE
+ALTER TABLE public.purchases ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Financial roles view purchases" 
+ON public.purchases FOR SELECT 
+USING (public.is_accountant_or_admin());
+
+CREATE POLICY "Financial roles create purchases" 
+ON public.purchases FOR INSERT 
+WITH CHECK (public.is_accountant_or_admin());
+
+CREATE POLICY "Financial roles update purchases" 
+ON public.purchases FOR UPDATE 
+USING (public.is_accountant_or_admin());
+
+CREATE POLICY "ONLY super_admin can delete purchases" 
+ON public.purchases FOR DELETE 
+USING (public.is_super_admin());
+
+-- Expenses: Super Admin, Admin, Accountant can SELECT, INSERT, UPDATE; Super Admin ONLY can DELETE
+ALTER TABLE public.expenses ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Financial roles view expenses" 
+ON public.expenses FOR SELECT 
+USING (public.is_accountant_or_admin());
+
+CREATE POLICY "Financial roles create expenses" 
+ON public.expenses FOR INSERT 
+WITH CHECK (public.is_accountant_or_admin());
+
+CREATE POLICY "Financial roles update expenses" 
+ON public.expenses FOR UPDATE 
+USING (public.is_accountant_or_admin());
+
+CREATE POLICY "ONLY super_admin can delete expenses" 
+ON public.expenses FOR DELETE 
+USING (public.is_super_admin());
+
+-- Staff Members: Super Admin, Admin, Accountant can view staff directory; Admins manage staff
+ALTER TABLE public.staff_members ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Financial and Admin roles view staff" 
+ON public.staff_members FOR SELECT 
+USING (public.is_accountant_or_admin());
+
+CREATE POLICY "Admins manage staff members" 
+ON public.staff_members FOR ALL 
+USING (public.is_admin_or_super());
+
+-- Salary Records: Super Admin, Admin, Accountant can view & process payroll; Super Admin deletes
+ALTER TABLE public.salary_records ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Financial roles view salary records" 
+ON public.salary_records FOR SELECT 
+USING (public.is_accountant_or_admin());
+
+CREATE POLICY "Financial roles process salary records" 
+ON public.salary_records FOR INSERT 
+WITH CHECK (public.is_accountant_or_admin());
+
+CREATE POLICY "Financial roles update salary records" 
+ON public.salary_records FOR UPDATE 
+USING (public.is_accountant_or_admin());
+
+CREATE POLICY "ONLY super_admin can delete salary records" 
+ON public.salary_records FOR DELETE 
 USING (public.is_super_admin());
 */
 

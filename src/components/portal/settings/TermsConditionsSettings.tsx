@@ -26,6 +26,14 @@ export const TermsConditionsSettings: React.FC = () => {
     return agencyConfig.invoice_terms || DEFAULT_INVOICE_TERMS;
   });
 
+  const [delayInterestClause, setDelayInterestClause] = useState<string>(() => {
+    return agencyConfig.delay_interest_clause || 'Interest @ 18% per annum will be charged on all delayed payments exceeding the due date.';
+  });
+
+  const [reverseChargeDefault, setReverseChargeDefault] = useState<'Yes' | 'No'>(() => {
+    return (agencyConfig.reverse_charge_default as any) || (agencyConfig.gstin ? 'No' : 'Yes');
+  });
+
   const [newQuoteClause, setNewQuoteClause] = useState('');
   const [newInvClause, setNewInvClause] = useState('');
   const [saved, setSaved] = useState(false);
@@ -53,6 +61,8 @@ export const TermsConditionsSettings: React.FC = () => {
   const handleResetToDefaults = () => {
     setQuoteTerms([...DEFAULT_QUOTATION_TERMS]);
     setInvTerms([...DEFAULT_INVOICE_TERMS]);
+    setDelayInterestClause('Interest @ 18% per annum will be charged on all delayed payments exceeding the due date.');
+    setReverseChargeDefault(agencyConfig.gstin ? 'No' : 'Yes');
   };
 
   const handleSaveAll = (e: React.FormEvent) => {
@@ -60,6 +70,8 @@ export const TermsConditionsSettings: React.FC = () => {
     updateAgencyConfig({
       quotation_terms: quoteTerms,
       invoice_terms: invTerms,
+      delay_interest_clause: delayInterestClause,
+      reverse_charge_default: reverseChargeDefault,
       terms_conditions: invTerms.join('\n')
     });
     setSaved(true);
@@ -220,6 +232,51 @@ export const TermsConditionsSettings: React.FC = () => {
                 </button>
               </div>
             ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Delay Interest & Statutory Defaults Section */}
+      <div className="p-5 rounded-xl bg-slate-900/60 border border-slate-800 space-y-4 shadow-lg">
+        <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+          <div className="flex items-center gap-2">
+            <ShieldCheck className="w-4 h-4 text-cyan-400" />
+            <h4 className="text-xs font-bold uppercase tracking-wider text-white">Delay Interest Clause & Reverse Charge Defaults</h4>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="md:col-span-2">
+            <label className="text-[11px] font-bold text-slate-300 block mb-1">
+              Late Payment / Delay-Interest Clause (Printed on Invoices)
+            </label>
+            <input
+              type="text"
+              value={delayInterestClause}
+              onChange={e => setDelayInterestClause(e.target.value)}
+              placeholder="Interest @ 18% per annum will be charged on all delayed payments exceeding the due date."
+              className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-xs text-white outline-none focus:border-cyan-400"
+            />
+            <p className="text-[10px] text-slate-500 mt-1">
+              Legal clause printed on all issued and overdue invoices as specified in Phase 7.
+            </p>
+          </div>
+
+          <div>
+            <label className="text-[11px] font-bold text-slate-300 block mb-1">
+              Default Reverse Charge (RCM)
+            </label>
+            <select
+              value={reverseChargeDefault}
+              onChange={e => setReverseChargeDefault(e.target.value as 'Yes' | 'No')}
+              className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-xs text-white outline-none focus:border-cyan-400 cursor-pointer"
+            >
+              <option value="No">No (Standard GST forward charge)</option>
+              <option value="Yes">Yes (Reverse Charge applicable)</option>
+            </select>
+            <p className="text-[10px] text-slate-500 mt-1">
+              {agencyConfig.gstin ? 'Agency is GST registered (Defaults to No).' : 'Agency has no GSTIN (Configurable RCM default).'}
+            </p>
           </div>
         </div>
       </div>

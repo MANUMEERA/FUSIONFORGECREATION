@@ -63,6 +63,12 @@ export const SYSTEM_PERMISSIONS: PermissionDefinition[] = [
     description: 'Record operating expenses, categorize tax deductions, and track input tax credit (ITC).'
   },
   {
+    code: 'module.salary',
+    name: 'Salary & Payroll',
+    category: 'Financials',
+    description: 'Process employee payroll, calculate gross/deductions (PF, PT, TDS), manage payslips and salary disbursements.'
+  },
+  {
     code: 'module.accounting',
     name: 'Accounting & Ledgers',
     category: 'Financials',
@@ -197,6 +203,7 @@ export const INITIAL_SYSTEM_ROLES: RoleDefinition[] = [
       'module.payments',
       'module.purchases',
       'module.expenses',
+      'module.salary',
       'module.accounting',
       'module.gst_reports',
       'module.services',

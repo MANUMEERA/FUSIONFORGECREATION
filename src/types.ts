@@ -149,7 +149,28 @@ export interface SellerProfile {
   terms_conditions: string;
   quotation_terms?: string | string[];
   invoice_terms?: string | string[];
+  delay_interest_clause?: string;
+  delayInterestClause?: string;
+  payment_delay_interest_rate?: number;
+  reverse_charge_default?: 'Yes' | 'No' | string;
   default_quotation_validity_days?: number;
+  upi_id?: string;
+  upiId?: string;
+  
+  // Phase 11: LUT & SEZ Compliance Config
+  lut_arn?: string;
+  lutArn?: string;
+  lutNumber?: string;
+  lut_number?: string;
+  lutFinancialYear?: string;
+  lut_financial_year?: string;
+  lutDate?: string;
+  lut_date?: string;
+  lutExpiryDate?: string;
+  lut_expiry_date?: string;
+  default_invoice_type?: string;
+  defaultInvoiceType?: string;
+
   payment_terms?: PaymentTermItem[];
   numbering_configs?: {
     invoice: DocumentNumberConfig;
@@ -227,7 +248,7 @@ export interface AuditLog {
   user_id: string;
   user_email: string;
   user_role: string;
-  action: 'CREATE' | 'UPDATE' | 'DELETE' | 'SOFT_DELETE' | 'RESTORE' | 'PAYMENT_RECORD' | 'AUTH_LOGIN' | 'CALCULATE_GST' | 'ROLE_CHANGE';
+  action: 'CREATE' | 'UPDATE' | 'DELETE' | 'SOFT_DELETE' | 'RESTORE' | 'PAYMENT_RECORD' | 'AUTH_LOGIN' | 'CALCULATE_GST' | 'ROLE_CHANGE' | 'EMAIL_DISPATCH';
   table_name: string;
   record_id: string;
   details: string;
@@ -240,6 +261,7 @@ export interface Client {
   name: string; // Contact person name
   contactPerson?: string;
   companyName: string;
+  company?: string;
   email: string;
   phone: string;
   address?: string;
@@ -417,6 +439,9 @@ export interface Invoice {
   invoiceNumber: string;
   quoteId?: string;
   quoteNumber?: string;
+  projectId?: string;
+  projectTitle?: string;
+  projectStatusAtBilling?: string;
   clientId: string;
   clientName: string;
   clientCompany: string;
@@ -443,12 +468,39 @@ export interface Invoice {
   sameAsBilling?: boolean;
   shippingName?: string;
   shippingCompany?: string;
+  shippingPhone?: string;
   shippingAddress?: string;
   shippingCity?: string;
   shippingState?: string;
   shippingStateCode?: string;
   shippingPincode?: string;
   shippingGstin?: string;
+
+  // Reverse Charge (RCM)
+  reverseCharge?: 'Yes' | 'No' | boolean;
+  reverse_charge?: 'Yes' | 'No' | boolean;
+
+  // Phase 11: Statutory Invoice Type & LUT Details
+  invoiceType?: 'Regular' | 'SEZ Supply with Tax' | 'SEZ Supply without Tax' | 'Deemed Exports';
+  invoice_type?: string;
+  lutArn?: string;
+  lut_arn?: string;
+  lutFinancialYear?: string;
+  lut_financial_year?: string;
+
+  // Linked Credit / Debit Notes
+  creditNoteIds?: string[];
+  debitNoteIds?: string[];
+
+  // E-Invoice Statutory Fields
+  arn?: string;
+  ackNo?: string;
+  acknowledgement_number?: string;
+  ackDate?: string;
+  acknowledgement_date?: string;
+  irn?: string;
+  signedQrData?: string;
+  qrCodeUrl?: string;
 
   supplyType?: 'INTRA_STATE' | 'INTER_STATE' | 'EXEMPT';
   taxLabel?: string;
@@ -462,12 +514,14 @@ export interface Invoice {
   discountValue: number;
   discountAmount: number;
   taxableAmount: number;
+  totalTaxableValue?: number;
   gstType: GSTType;
   gstRate: number;
   cgstAmount: number;
   sgstAmount: number;
   utgstAmount?: number;
   igstAmount: number;
+  totalTax?: number;
   totalAmount: number;
   amountInWords?: string;
   paidAmount: number;
@@ -520,6 +574,16 @@ export interface Invoice {
 
 export type PaymentMethod = 'cash' | 'bank_transfer' | 'upi' | 'cheque' | 'credit_card' | 'other';
 
+export interface PaymentEmailStatus {
+  sent_at?: string;
+  sentAt?: string;
+  recipient: string;
+  status: 'sent' | 'failed' | 'pending' | 'not_sent';
+  error?: string;
+  messageId?: string;
+  sentBy?: string;
+}
+
 export interface Payment {
   id: string;
   receiptNumber: string;
@@ -528,6 +592,7 @@ export interface Payment {
   clientId: string;
   clientCompany?: string;
   clientName: string;
+  clientEmail?: string;
   amount: number;
   currency: string;
   paymentDate: string;
@@ -539,6 +604,14 @@ export interface Payment {
   createdBy?: string;
   createdAt: string;
   updatedAt?: string;
+
+  // Phase 8: Email Receipt tracking & Supabase fields
+  emailStatus?: PaymentEmailStatus;
+  email_status?: string;
+  email_sent_at?: string;
+  email_recipient?: string;
+  email_error?: string;
+  email_message_id?: string;
 
   // DB snake_case parity
   invoice_id?: string;
@@ -617,6 +690,59 @@ export interface AgencyService {
   updated_at?: string;
 }
 
+export type ProjectStatus = 'planning' | 'in_progress' | 'review' | 'completed' | 'on_hold';
+
+export interface ProjectStatusHistoryItem {
+  id: string;
+  projectId: string;
+  previousStatus?: string;
+  newStatus: ProjectStatus | string;
+  changedBy: string;
+  changedByEmail?: string;
+  notes?: string;
+  emailSentToClient?: boolean;
+  clientEmail?: string;
+  timestamp: string;
+  messageId?: string;
+}
+
+export interface CompletedWorkRecord {
+  id: string;
+  clientName: string; // Party / client name
+  projectTitle: string; // Project / work title
+  workCategory: string; // Work category
+  completionDate: string; // Completion date (YYYY-MM-DD)
+  technologyType: string[]; // Technology / type
+  publicUrl?: string; // Public URL where applicable
+  webAppUrl?: string; // Web application URL
+  softwareUrl?: string; // Software URL
+  mobileAppInfo?: string; // Mobile app information (Play Store / App Store)
+  shortDescription: string; // Short description
+  deliverablesSummary?: string[]; // Deliverables summary
+  sourceProjectId?: string; // Optional link to managed project
+  isVerified?: boolean; // Internal verification flag
+  createdBy?: string;
+  createdAt: string;
+  updatedAt: string;
+
+  // Supabase snake_case Parity
+  client_name?: string;
+  project_title?: string;
+  work_category?: string;
+  completion_date?: string;
+  technology_type?: string[];
+  public_url?: string;
+  web_app_url?: string;
+  software_url?: string;
+  mobile_app_info?: string;
+  short_description?: string;
+  deliverables_summary?: string[];
+  source_project_id?: string;
+  is_verified?: boolean;
+  created_at?: string;
+  updated_at?: string;
+}
+
 export interface ManagedProject {
   id: string;
   title: string;
@@ -631,16 +757,28 @@ export interface ManagedProject {
   sort_order?: number;
   clientId?: string;
   clientName?: string;
+  clientEmail?: string;
   category?: string;
-  status?: 'planning' | 'in_progress' | 'review' | 'completed' | 'on_hold';
+  status: ProjectStatus;
   startDate?: string;
   deadline?: string;
+  completionDate?: string;
   budget?: number;
   progressPercentage?: number;
-  techStack?: string[];
-  deliverables?: string[];
+  techStack: string[];
+  deliverables: string[];
   isPublic?: boolean;
   notes?: string;
+  publicUrl?: string;
+  webAppUrl?: string;
+  softwareUrl?: string;
+  mobileAppInfo?: string;
+  statusHistory?: ProjectStatusHistoryItem[];
+  lastEmailSentAt?: string;
+  lastEmailStatus?: string;
+  invoicedAmount?: number;
+  invoicedIds?: string[];
+  isCompletedWorkArchived?: boolean;
   created_at?: string;
   updated_at?: string;
 }
@@ -730,4 +868,388 @@ export interface ChatbotSettings {
   contactPhone?: string;
   updatedAt?: string;
 }
+
+// =============================================================================
+// PHASE 10: PURCHASES, EXPENSES, SALARY AND ACCOUNTING TYPES
+// =============================================================================
+
+export type PurchasePaymentStatus = 'paid' | 'pending' | 'partially_paid' | 'overdue';
+
+export interface Purchase {
+  id: string;
+  supplierName: string;
+  supplierGstin?: string;
+  supplierEmail?: string;
+  supplierPhone?: string;
+  supplierAddress?: string;
+  supplierStateCode?: string;
+  billNumber: string; // Invoice / Bill Number
+  purchaseDate: string; // Date (YYYY-MM-DD)
+  dueDate?: string;
+  description: string;
+  hsnSacCode?: string; // HSN / SAC where applicable (e.g. 998313, 998314, 8471)
+  category?: string;
+  taxableAmount: number;
+  gstRate: number; // 0, 5, 12, 18, 28
+  cgstAmount: number;
+  sgstAmount: number;
+  utgstAmount?: number;
+  igstAmount: number;
+  totalAmount: number;
+  paymentStatus: PurchasePaymentStatus;
+  paymentMode?: 'Bank Transfer (NEFT/RTGS)' | 'IMPS' | 'UPI' | 'Credit Card' | 'Debit Card' | 'Cheque' | 'Cash' | string;
+  paymentDate?: string;
+  paymentRef?: string;
+  attachmentUrl?: string; // Bill / Invoice receipt attachment
+  attachmentName?: string;
+  notes?: string;
+  isItcClaimable?: boolean; // Input Tax Credit claimable in GSTR-2B / GSTR-3B
+  isReverseCharge?: boolean;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export type ExpenseCategory = 
+  | 'Office Rent & Workspace'
+  | 'Cloud Infrastructure & Hosting'
+  | 'Software Licenses & Subscriptions'
+  | 'Utilities & High-Speed Internet'
+  | 'Marketing & Digital Advertising'
+  | 'Legal, Accounting & Audit Fees'
+  | 'Hardware & Office Equipment'
+  | 'Travel, Conveyance & Lodging'
+  | 'Staff Welfare, Meals & Refreshments'
+  | 'Bank Charges & Payment Gateway Fees'
+  | 'Miscellaneous Operations'
+  | string;
+
+export type ExpenseStatus = 'paid' | 'pending' | 'reimbursed' | 'approved';
+
+export interface Expense {
+  id: string;
+  expenseDate: string; // Date (YYYY-MM-DD)
+  category: ExpenseCategory; // Category
+  description: string; // Description
+  vendorName: string; // Vendor / Payee
+  vendorGstin?: string;
+  amount: number; // Total Amount Paid
+  gstApplicable: boolean; // GST where applicable
+  taxableAmount?: number;
+  gstRate?: number; // 0, 5, 12, 18, 28
+  gstAmount?: number;
+  cgstAmount?: number;
+  sgstAmount?: number;
+  igstAmount?: number;
+  isItcEligible?: boolean;
+  paymentMode: 'UPI' | 'Net Banking' | 'Credit Card' | 'Debit Card' | 'Cash' | 'Cheque' | 'IMPS/NEFT/RTGS' | string;
+  referenceNumber?: string; // Reference (Transaction ID, UTR, Cheque No)
+  attachmentUrl?: string; // Attachment
+  attachmentName?: string;
+  paidBy?: string;
+  status?: ExpenseStatus;
+  notes?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface StaffMember {
+  id: string;
+  employeeId: string; // e.g. "FFC-EMP-001"
+  fullName: string;
+  email: string;
+  phone?: string;
+  designation: string; // e.g. "Senior Full-Stack Engineer"
+  department: 'Engineering' | 'Design & UI/UX' | 'DevOps & Cloud' | 'Management' | 'Sales & Marketing' | 'Finance & Admin' | string;
+  joiningDate: string;
+  panNumber?: string;
+  bankAccountName?: string;
+  bankName?: string;
+  bankAccountNumber?: string;
+  bankIfsc?: string;
+  baseSalary: number; // Monthly Base Gross
+  hraAllowance?: number;
+  specialAllowance?: number;
+  pfApplicable?: boolean;
+  esiApplicable?: boolean;
+  tdsApplicable?: boolean;
+  isActive: boolean;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export type SalaryStatus = 'paid' | 'pending' | 'processing' | 'on_hold';
+export type SalaryPaymentStatus = SalaryStatus;
+
+export interface SalaryRecord {
+  id: string;
+  employeeId: string; // Ref to staff ID
+  employeeName: string;
+  employeeCode?: string; // e.g. "FFC-EMP-001"
+  designation?: string;
+  department?: string;
+  period: string; // e.g. "August 2026", "2026-08"
+  periodMonth: string; // "08"
+  periodYear: number; // 2026
+  
+  // Earnings (Gross)
+  basicSalary: number;
+  hra: number;
+  specialAllowance: number;
+  bonusOrIncentive: number;
+  grossSalary: number; // Total Gross (Basic + HRA + Special + Bonus)
+  
+  // Deductions where applicable
+  providentFund: number; // PF (12% of basic or fixed)
+  esi: number; // ESI (0.75% where applicable)
+  professionalTax: number; // PT (standard ₹200)
+  tdsDeduction: number; // Income Tax / TDS
+  advanceDeduction: number; // Loan / Advance repayment
+  totalDeductions: number; // Provident Fund + ESI + PT + TDS + Advance
+  
+  // Net Salary
+  netSalary: number; // grossSalary - totalDeductions
+  
+  paymentDate?: string;
+  paymentStatus: SalaryStatus;
+  paymentMode?: 'Bank Transfer (NEFT/RTGS)' | 'IMPS' | 'UPI' | 'Cheque' | 'Cash' | string;
+  transactionReference?: string; // UTR / Txn Ref
+  payslipGenerated?: boolean;
+  payslipNumber?: string; // e.g. "PAYSLIP-2026-08-001"
+  notes?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export type AccountingDateRangeType = 'weekly' | 'monthly' | 'quarterly' | 'yearly' | 'custom';
+
+export interface AccountingReportFilter {
+  rangeType: AccountingDateRangeType;
+  preset: string; // 'this_week' | 'last_week' | 'current_month' | 'last_month' | 'q1' | 'q2' | 'q3' | 'q4' | 'fy_current' | 'fy_prev' | 'all' | 'custom';
+  startDate: string; // YYYY-MM-DD
+  endDate: string; // YYYY-MM-DD
+}
+
+// =============================================================================
+// PHASE 11: CREDIT / DEBIT NOTES & GST REPORTING TYPES
+// =============================================================================
+
+export type NoteType = 'credit' | 'debit';
+export type NoteStatus = 'issued' | 'applied' | 'cancelled' | 'draft';
+
+export type NoteReason = 
+  | '01-Sales Return'
+  | '02-Post Sale Discount'
+  | '03-Deficiency in Services'
+  | '04-Correction in Invoice'
+  | '05-Change in POS'
+  | '06-Final Price Hike / Adjustment'
+  | string;
+
+export interface CreditDebitNote {
+  id: string;
+  noteNumber: string; // e.g. "CN-2026-0001" or "DN-2026-0001"
+  noteType: NoteType; // 'credit' | 'debit'
+  invoiceId?: string; // Reference to parent invoice
+  invoiceNumber?: string; // e.g. "FFC-2026-0001"
+  invoiceDate?: string; // Original invoice date (YYYY-MM-DD)
+  clientId: string;
+  clientName: string;
+  clientCompany: string;
+  clientGstin?: string;
+  clientAddress?: string;
+  sellerName?: string;
+  sellerGstin?: string;
+  sellerState?: string;
+  sellerStateCode?: string;
+  buyerState?: string;
+  buyerStateCode?: string;
+  placeOfSupply?: string; // e.g. "24-Gujarat", "27-Maharashtra", "26-Dadra and Nagar Haveli and Daman and Diu"
+  issueDate: string; // YYYY-MM-DD
+  reason: NoteReason;
+  reasonNotes?: string;
+  reverseCharge?: 'Yes' | 'No' | boolean;
+  reverse_charge?: 'Yes' | 'No' | boolean;
+  items: LineItem[];
+  subtotal: number;
+  taxableAmount: number;
+  gstType: GSTType;
+  gstRate: number;
+  cgstAmount: number;
+  sgstAmount: number;
+  utgstAmount?: number;
+  igstAmount: number;
+  totalTax: number;
+  totalAmount: number;
+  amountInWords?: string;
+  status: NoteStatus;
+  isDeleted?: boolean;
+  deletedAt?: string;
+  deletedBy?: string;
+  notes?: string;
+  createdBy?: string;
+  created_at?: string;
+  updated_at?: string;
+
+  // DB snake_case parity
+  note_number?: string;
+  note_type?: string;
+  invoice_id?: string;
+  invoice_number?: string;
+  invoice_date?: string;
+  client_id?: string;
+  place_of_supply?: string;
+  issue_date?: string;
+  taxable_amount?: number;
+  cgst_amount?: number;
+  sgst_amount?: number;
+  utgst_amount?: number;
+  igst_amount?: number;
+  total_tax?: number;
+  total_amount?: number;
+}
+
+export interface Gstr1B2BRow {
+  'GSTIN/UIN of Recipient': string;
+  'Receiver Name': string;
+  'Invoice Number': string;
+  'Invoice Date': string; // DD-MONTH NAME-YYYY
+  'Invoice Value': number;
+  'Place Of Supply': string; // e.g. 03-Punjab, 24-Gujarat
+  'Reverse Charge': 'Y' | 'N';
+  'Invoice Type': string; // Regular / SEZ Supply with Tax / SEZ Supply without Tax
+  'Rate': number | string;
+  'Taxable Value': number;
+  'IGST': number;
+  'CGST': number;
+  'SGST/UTGST': number;
+}
+
+export interface Gstr1B2CRow {
+  'Type': string; // OE / Other Than E-Commerce / B2C Small
+  'Receiver Name': string;
+  'Invoice Number': string;
+  'Invoice Date': string;
+  'Invoice Value': number;
+  'Place Of Supply': string;
+  'Rate': number | string;
+  'Taxable Value': number;
+  'IGST': number;
+  'CGST': number;
+  'SGST/UTGST': number;
+  'Cess Amount': number;
+}
+
+export interface Gstr1CdnrRow {
+  'GSTIN/UIN of Recipient': string;
+  'Receiver Name': string;
+  'Note/Voucher Number': string;
+  'Note Date': string;
+  'Note Type': 'Credit Note' | 'Debit Note' | 'C' | 'D';
+  'Original Invoice Number': string;
+  'Original Invoice Date': string;
+  'Place Of Supply': string;
+  'Reverse Charge': 'Y' | 'N';
+  'Note Value': number;
+  'Rate': number | string;
+  'Taxable Value': number;
+  'IGST': number;
+  'CGST': number;
+  'SGST/UTGST': number;
+  'Reason for Issuance': string;
+}
+
+export interface Gstr1HsnRow {
+  'HSN': string; // Or SAC Code
+  'Description': string;
+  'UQC': string; // e.g. OTH-OTHERS, NA, NOS
+  'Total Quantity': number;
+  'Total Value': number;
+  'Rate': number | string;
+  'Taxable Value': number;
+  'IGST': number;
+  'CGST': number;
+  'SGST/UTGST': number;
+}
+
+export interface Gstr1DocRow {
+  'Nature of Document': string;
+  'Sr. No. From': string;
+  'Sr. No. To': string;
+  'Total Number': number;
+  'Cancelled': number;
+  'Net Issued': number;
+}
+
+// =============================================================================
+// PHASE 12: CENTRAL NOTIFICATION AND EMAIL SYSTEM TYPES
+// =============================================================================
+
+export type AppNotificationType =
+  | 'lead_received'
+  | 'lead_status_changed'
+  | 'quotation_created'
+  | 'quotation_sent'
+  | 'order_received'
+  | 'quotation_converted'
+  | 'invoice_created'
+  | 'invoice_sent'
+  | 'payment_received'
+  | 'payment_pending'
+  | 'payment_receipt_sent'
+  | 'project_status_changed'
+  | 'project_completed'
+  | 'project_invoice_eligible'
+  | 'new_user'
+  | 'role_changed'
+  | 'permission_changed'
+  | 'gst_report_generated'
+  | 'accounting_event'
+  | 'system_alert';
+
+export type NotificationCategory =
+  | 'all'
+  | 'leads'
+  | 'financials'
+  | 'projects'
+  | 'users'
+  | 'accounting'
+  | 'system';
+
+export type NotificationPriority = 'low' | 'normal' | 'high' | 'urgent';
+
+export interface AppNotification {
+  id: string;
+  type: AppNotificationType;
+  category: NotificationCategory;
+  title: string;
+  message: string;
+  link?: string;
+  entity_type?: 'enquiry' | 'quotation' | 'invoice' | 'payment' | 'project' | 'user' | 'credit_debit_note' | 'gst_report' | 'purchase' | 'expense' | 'salary' | string;
+  entity_id?: string;
+  priority: NotificationPriority;
+  is_read: boolean;
+  read_at?: string;
+  created_at: string;
+  target_role?: string;
+  target_user_id?: string;
+  target_client_id?: string;
+  metadata?: Record<string, any>;
+  event_key?: string;
+}
+
+export interface EmailLog {
+  id: string;
+  recipient: string;
+  sender: string;
+  subject: string;
+  category: 'quotation' | 'invoice' | 'payment_receipt' | 'project_status' | 'notification' | 'general' | string;
+  status: 'sent' | 'failed' | 'pending';
+  message_id?: string;
+  error_message?: string;
+  entity_type?: string;
+  entity_id?: string;
+  metadata?: Record<string, any>;
+  created_at: string;
+}
+
 
