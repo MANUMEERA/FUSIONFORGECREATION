@@ -11,7 +11,9 @@ import {
   DollarSign, 
   ShieldCheck, 
   Sparkles,
-  Radio
+  Radio,
+  MapPin,
+  FileCheck2
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 
@@ -168,6 +170,24 @@ export const LeadBuzzerAlertModal: React.FC = () => {
               <span className="truncate">{latestLeadAlert.phone || 'Phone not provided'}</span>
             </div>
           </div>
+
+          {/* GSTIN and Address if available */}
+          {(latestLeadAlert.gstin || latestLeadAlert.address) && (
+            <div className="space-y-1.5 text-xs bg-[#060c1d]/90 p-2.5 rounded-xl border border-cyan-500/20">
+              {latestLeadAlert.gstin && (
+                <div className="flex items-center space-x-1.5 text-emerald-300 font-mono">
+                  <FileCheck2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                  <span className="font-semibold">GSTIN: {latestLeadAlert.gstin}</span>
+                </div>
+              )}
+              {latestLeadAlert.address && (
+                <div className="flex items-start space-x-1.5 text-slate-300">
+                  <MapPin className="w-3.5 h-3.5 text-cyan-400 shrink-0 mt-0.5" />
+                  <span className="line-clamp-2 leading-relaxed">{latestLeadAlert.address}</span>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Message Preview */}
           {(latestLeadAlert.projectDescription || latestLeadAlert.message) && (

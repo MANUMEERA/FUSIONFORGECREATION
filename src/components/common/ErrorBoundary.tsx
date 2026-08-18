@@ -37,21 +37,21 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
     if (this.state.hasError) {
       return (
         <div className="min-h-[300px] flex items-center justify-center p-6">
-          <div className="bg-[#0b1324] border border-red-500/30 rounded-2xl p-6 max-w-md w-full text-center space-y-4 shadow-xl">
-            <div className="w-12 h-12 rounded-xl bg-red-500/10 text-red-400 flex items-center justify-center mx-auto">
+          <div className="bg-white border border-[#E8E0F0] rounded-2xl p-6 max-w-md w-full text-center space-y-4 shadow-xl text-[#1E1B2E]">
+            <div className="w-12 h-12 rounded-xl bg-rose-50 text-[#DC2626] border border-rose-200 flex items-center justify-center mx-auto">
               <AlertTriangle className="w-6 h-6" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-white">
+              <h3 className="text-base font-bold text-[#1E1B2E]">
                 {this.props.fallbackTitle || 'Component Rendering Error'}
               </h3>
-              <p className="text-xs text-slate-400 mt-1">
+              <p className="text-xs text-[#5F5A72] mt-1">
                 {this.state.error?.message || 'An unexpected error occurred while displaying this section.'}
               </p>
             </div>
             <button
               onClick={this.handleReload}
-              className="inline-flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition-all shadow-md cursor-pointer"
+              className="inline-flex items-center space-x-2 px-4 py-2 bg-[#8E2D9D] hover:bg-[#782485] text-white rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer"
             >
               <RefreshCw className="w-3.5 h-3.5" />
               <span>Retry / Reload</span>

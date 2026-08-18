@@ -27,25 +27,25 @@ export const AdminClockWidget: React.FC = () => {
 
   return (
     <div 
-      className="flex items-center bg-[#050b18] border border-cyan-500/35 rounded-xl px-2.5 sm:px-3 py-1 shadow-inner select-none transition-all hover:border-cyan-400/60"
+      className="flex items-center bg-[#FAF5FF] border border-[#E8E0F0] rounded-xl px-2.5 sm:px-3 py-1 select-none transition-all hover:border-[#C084FC]"
       title={`Current Admin Time: ${timeState.fullDateString} ${timeState.timeFormatted}`}
     >
       {/* Date & Day Column */}
       <div className="flex flex-col items-center justify-center text-center">
-        <span className="text-cyan-400 font-mono font-bold text-[11px] leading-tight tracking-wider">
+        <span className="text-[#8E2D9D] font-mono font-bold text-[11px] leading-tight tracking-wider">
           {timeState.dateFormatted}
         </span>
-        <span className="text-cyan-400/90 font-mono font-bold text-[10px] leading-tight tracking-widest uppercase">
+        <span className="text-[#6F42C1] font-mono font-bold text-[10px] leading-tight tracking-widest uppercase">
           {timeState.dayOfWeek}
         </span>
       </div>
 
-      {/* Vertical Cyan Divider */}
-      <div className="w-[1px] h-5 sm:h-6 bg-cyan-500/40 mx-2 sm:mx-2.5" />
+      {/* Vertical Purple Divider */}
+      <div className="w-[1px] h-5 sm:h-6 bg-[#E8E0F0] mx-2 sm:mx-2.5" />
 
       {/* Digital Monospace Time (HH:MM:SS) */}
       <div className="flex items-center">
-        <span className="text-cyan-400 font-mono font-black text-xs sm:text-sm tracking-widest tabular-nums leading-none">
+        <span className="text-[#1E1B2E] font-mono font-black text-xs sm:text-sm tracking-widest tabular-nums leading-none">
           {timeState.timeFormatted}
         </span>
       </div>

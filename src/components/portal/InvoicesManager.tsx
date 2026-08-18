@@ -1477,21 +1477,43 @@ export const InvoicesManager: React.FC = () => {
 
               {/* Footer: Stamp & Signatures */}
               <div className="pt-4 border-t border-slate-800 flex flex-col sm:flex-row justify-between items-end gap-6 text-xs">
+                {/* Stamp left of Signatory area */}
                 <div>
-                  <div className="w-24 h-24 border-2 border-dashed border-slate-700 rounded-2xl flex flex-col items-center justify-center text-slate-500 text-[10px] text-center p-1">
-                    <div className="font-bold text-slate-400">OFFICIAL STAMP</div>
-                    <div className="text-[8px] text-slate-500 mt-1">Fusion Forge Creation</div>
-                  </div>
+                  {(agencyConfig.stamp_url || agencyConfig.stampUrl) ? (
+                    <div className="flex flex-col items-center">
+                      <div className="w-24 h-24 rounded-2xl bg-white/95 border border-slate-300 p-1 flex items-center justify-center overflow-hidden shadow-inner">
+                        <img 
+                          src={agencyConfig.stamp_url || agencyConfig.stampUrl} 
+                          alt="Company Stamp" 
+                          className="max-h-full max-w-full object-contain mix-blend-multiply" 
+                        />
+                      </div>
+                      <span className="text-[9px] font-bold text-slate-400 mt-1 uppercase tracking-wider">Official Company Stamp</span>
+                    </div>
+                  ) : (
+                    <div className="w-24 h-24 border-2 border-dashed border-slate-700 rounded-2xl flex flex-col items-center justify-center text-slate-500 text-[10px] text-center p-1 bg-slate-900/40">
+                      <div className="font-bold text-slate-400">OFFICIAL STAMP</div>
+                      <div className="text-[8px] text-slate-500 mt-1">{agencyConfig.company_name || agencyConfig.name || 'Fusion Forge Creation'}</div>
+                    </div>
+                  )}
                 </div>
 
-                <div className="text-center sm:text-right space-y-2">
-                  <div className="text-[11px] text-slate-400">For <strong>{agencyConfig.name || 'Fusion Forge Creation'}</strong></div>
-                  <div className="h-10 flex items-center justify-center sm:justify-end">
-                    <div className="font-serif italic text-cyan-400 font-bold text-base tracking-wider opacity-85">
-                      Authorized Signature
-                    </div>
+                <div className="text-center sm:text-right space-y-1.5">
+                  <div className="text-[11px] text-slate-400">For <strong>{agencyConfig.company_name || agencyConfig.name || 'Fusion Forge Creation'}</strong></div>
+                  <div className="h-12 flex items-center justify-center sm:justify-end">
+                    {agencyConfig.signature_url ? (
+                      <img 
+                        src={agencyConfig.signature_url} 
+                        alt="Authorized Signature" 
+                        className="max-h-12 max-w-[160px] object-contain"
+                      />
+                    ) : (
+                      <div className="font-serif italic text-cyan-400 font-bold text-base tracking-wider opacity-90">
+                        Authorized Signature
+                      </div>
+                    )}
                   </div>
-                  <div className="text-[11px] font-bold text-white border-t border-slate-700 pt-1">
+                  <div className="text-[11px] font-bold text-white border-t border-slate-700 pt-1 uppercase tracking-wider">
                     Authorised Signatory
                   </div>
                 </div>

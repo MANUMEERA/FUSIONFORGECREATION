@@ -1302,6 +1302,67 @@ export const QuotationsManager: React.FC = () => {
                 </div>
               </div>
 
+              {/* Terms & Conditions */}
+              <div className="p-4 rounded-xl bg-[#0e1938] border border-blue-500/20 text-xs space-y-1.5">
+                <div className="text-slate-400 font-bold uppercase tracking-wider text-[10px]">Terms & Conditions:</div>
+                <div className="text-[11px] text-slate-300 space-y-1 leading-relaxed">
+                  {(previewQuote.termsAndConditions && previewQuote.termsAndConditions.length > 0) ? (
+                    previewQuote.termsAndConditions.map((t, idx) => (
+                      <div key={idx} className="flex items-start gap-1.5">
+                        <span className="text-slate-500 font-bold">{idx + 1}.</span>
+                        <span>{t}</span>
+                      </div>
+                    ))
+                  ) : (
+                    <div>1. 50% advance on project kickoff, balance on milestone deliverables.<br/>2. Quotation is valid for 30 days from issue date.</div>
+                  )}
+                </div>
+              </div>
+
+              {/* Footer: Stamp & Signatures */}
+              <div className="p-4 rounded-xl bg-[#0e1938] border border-blue-500/20 flex flex-col sm:flex-row justify-between items-end gap-6 text-xs">
+                {/* Stamp on the left of Authorized Signatory area */}
+                <div>
+                  {(agencyConfig.stamp_url || agencyConfig.stampUrl) ? (
+                    <div className="flex flex-col items-center">
+                      <div className="w-20 h-20 rounded-2xl bg-white/95 border border-slate-300 p-1 flex items-center justify-center overflow-hidden shadow-inner">
+                        <img 
+                          src={agencyConfig.stamp_url || agencyConfig.stampUrl} 
+                          alt="Company Stamp" 
+                          className="max-h-full max-w-full object-contain mix-blend-multiply" 
+                        />
+                      </div>
+                      <span className="text-[9px] font-bold text-slate-400 mt-1 uppercase tracking-wider">Official Stamp</span>
+                    </div>
+                  ) : (
+                    <div className="w-20 h-20 border-2 border-dashed border-slate-700 rounded-2xl flex flex-col items-center justify-center text-slate-500 text-[10px] text-center p-1 bg-slate-900/40">
+                      <div className="font-bold text-slate-400">OFFICIAL STAMP</div>
+                      <div className="text-[8px] text-slate-500 mt-0.5">{agencyConfig.company_name || agencyConfig.name || 'Fusion Forge Creation'}</div>
+                    </div>
+                  )}
+                </div>
+
+                <div className="text-center sm:text-right space-y-1.5">
+                  <div className="text-[11px] text-slate-400">For <strong>{agencyConfig.company_name || agencyConfig.name || 'Fusion Forge Creation'}</strong></div>
+                  <div className="h-12 flex items-center justify-center sm:justify-end">
+                    {agencyConfig.signature_url ? (
+                      <img 
+                        src={agencyConfig.signature_url} 
+                        alt="Authorized Signature" 
+                        className="max-h-12 max-w-[160px] object-contain"
+                      />
+                    ) : (
+                      <div className="font-serif italic text-cyan-400 font-bold text-base tracking-wider opacity-90">
+                        Authorized Signature
+                      </div>
+                    )}
+                  </div>
+                  <div className="text-[11px] font-bold text-white border-t border-slate-700 pt-1 uppercase tracking-wider">
+                    Authorised Signatory
+                  </div>
+                </div>
+              </div>
+
               {/* Actions in Preview */}
               <div className="flex justify-between items-center pt-4 border-t border-slate-800">
                 <button

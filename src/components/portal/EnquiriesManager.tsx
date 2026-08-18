@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   MessageSquare, 
   UserCheck, 
@@ -12,7 +12,11 @@ import {
   Volume2,
   VolumeX,
   Radio,
-  Plus
+  Plus,
+  MapPin,
+  FileCheck2,
+  Copy,
+  Check
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { useToast } from '../../context/ToastContext';
@@ -32,15 +36,24 @@ export const EnquiriesManager: React.FC = () => {
   } = useApp();
 
   const { success, info } = useToast();
+  const [copiedGstin, setCopiedGstin] = useState<string | null>(null);
 
   const handleConvert = (enqId: string) => {
     convertEnquiryToClient(enqId);
     setActiveTab('clients');
   };
 
+  const handleCopyGstin = (gstin: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    navigator.clipboard.writeText(gstin);
+    setCopiedGstin(gstin);
+    info('GSTIN Copied', `Copied ${gstin} to clipboard`);
+    setTimeout(() => setCopiedGstin(null), 2000);
+  };
+
   const handleSimulateLead = () => {
     const lead = triggerSimulatedLeadAlert();
-    success(`🚨 Incoming lead from ${lead.name} received! Alert dispatched to ${currentUser.name}.`);
+    success(`🚨 Incoming project scope from ${lead.name} received! Alert dispatched to ${currentUser.name}.`);
   };
 
   return (
@@ -48,13 +61,13 @@ export const EnquiriesManager: React.FC = () => {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-gradient-to-r from-[#0d1a3c]/90 via-[#0a1430]/90 to-[#060c1e]/90 p-4 rounded-2xl border border-blue-500/25 shadow-lg backdrop-blur-md">
         <div>
           <div className="flex items-center space-x-2">
-            <h2 className="text-xl font-bold text-white">Project Enquiries & Leads</h2>
+            <h2 className="text-xl font-bold text-white">Project Scope Submissions & Lead Inquiries</h2>
             <span className="px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 text-xs font-bold font-mono">
               {enquiries.length} Total
             </span>
           </div>
           <p className="text-xs text-slate-400 mt-0.5">
-            Realtime leads from public estimator, AI chatbot & contact forms with active audio buzzer for logged-in user (<span className="text-cyan-300 font-semibold">{currentUser.name}</span>).
+            Realtime scope submissions with verified GSTIN, corporate address, estimator selections & active audio buzzer for logged-in user (<span className="text-cyan-300 font-semibold">{currentUser.name}</span>).
           </p>
         </div>
 
@@ -92,7 +105,7 @@ export const EnquiriesManager: React.FC = () => {
             className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-cyan-500 via-blue-600 to-indigo-600 hover:from-cyan-400 hover:via-blue-500 hover:to-indigo-500 text-white text-xs font-bold flex items-center space-x-1.5 transition-all shadow-md shadow-cyan-500/20 active:scale-95 cursor-pointer border border-cyan-400/40"
           >
             <Radio className="w-3.5 h-3.5 animate-pulse text-cyan-200" />
-            <span>Simulate Incoming Lead (Trigger Buzzer)</span>
+            <span>Simulate Incoming Scope (Trigger Buzzer)</span>
           </button>
         </div>
       </div>
@@ -130,23 +143,52 @@ export const EnquiriesManager: React.FC = () => {
                 )}
               </div>
 
-              <div className="flex flex-wrap gap-4 text-xs text-slate-300">
+              <div className="flex flex-wrap items-center gap-4 text-xs text-slate-300">
                 <div className="flex items-center space-x-1.5">
                   <Mail className="w-3.5 h-3.5 text-blue-400" />
-                  <span>{enq.email}</span>
+                  <a href={`mailto:${enq.email}`} className="hover:text-cyan-300 transition-colors">{enq.email}</a>
                 </div>
                 <div className="flex items-center space-x-1.5">
                   <Phone className="w-3.5 h-3.5 text-blue-400" />
-                  <span>{enq.phone}</span>
+                  <a href={`tel:${enq.phone.replace(/[^0-9+]/g, '')}`} className="hover:text-cyan-300 font-mono transition-colors">{enq.phone}</a>
                 </div>
                 {enq.budgetRange && (
-                  <div className="flex items-center space-x-1.5 text-cyan-300 font-medium">
+                  <div className="flex items-center space-x-1.5 text-cyan-300 font-medium font-mono">
                     <span>Budget: {enq.budgetRange}</span>
                   </div>
                 )}
               </div>
 
-              <p className="text-xs text-slate-200 bg-[#091129] p-3.5 rounded-xl border border-slate-700/80">
+              {/* GSTIN and Corporate Address Row */}
+              <div className="flex flex-wrap items-center gap-3 pt-1">
+                {enq.gstin ? (
+                  <div className="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs font-mono">
+                    <FileCheck2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                    <span className="font-semibold">GSTIN: {enq.gstin}</span>
+                    <button
+                      type="button"
+                      onClick={(e) => handleCopyGstin(enq.gstin!, e)}
+                      className="p-1 hover:bg-emerald-500/20 rounded transition-colors text-emerald-400 cursor-pointer ml-1"
+                      title="Copy GSTIN"
+                    >
+                      {copiedGstin === enq.gstin ? <Check className="w-3 h-3 text-emerald-300" /> : <Copy className="w-3 h-3" />}
+                    </button>
+                  </div>
+                ) : (
+                  <span className="text-[11px] text-slate-400 italic font-mono px-2 py-0.5 rounded bg-slate-800/40 border border-slate-700/50">
+                    GSTIN: Not Registered / URP
+                  </span>
+                )}
+
+                {enq.address && (
+                  <div className="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-lg bg-blue-500/10 border border-blue-500/20 text-slate-300 text-xs">
+                    <MapPin className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+                    <span className="line-clamp-1">{enq.address}</span>
+                  </div>
+                )}
+              </div>
+
+              <p className="text-xs text-slate-200 bg-[#091129] p-3.5 rounded-xl border border-slate-700/80 leading-relaxed">
                 {enq.message || enq.projectDescription}
               </p>
 

@@ -365,7 +365,9 @@ export function generateQuotationPDF(quote: Quotation, customAgencyConfig?: any)
                   <img src="${cfg.signature_url}" alt="Authorized Signature" style="max-height: 46px; max-width: 140px; object-fit: contain;" />
                 </div>
               ` : `
-                <div style="height: 40px;"></div>
+                <div style="margin: 6px 0; height: 48px; display: flex; align-items: center; justify-content: flex-end;">
+                  <span style="font-family: 'Brush Script MT', cursive, serif; font-style: italic; font-size: 20px; color: #0284c7; font-weight: 700; opacity: 0.9;">Authorized Signature</span>
+                </div>
               `}
               <div style="font-weight: 700; color: #0f172a; border-top: 1.5px solid #0f172a; display: inline-block; padding-top: 4px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;">
                 Authorised Signatory
@@ -972,7 +974,9 @@ export async function generateInvoicePDF(invoice: Invoice, customAgencyConfig?: 
                     <img src="${cfg.signature_url}" alt="Authorized Signature" style="max-height: 42px; max-width: 140px; object-fit: contain;" />
                   </div>
                 ` : `
-                  <div style="height: 38px;"></div>
+                  <div style="margin: 4px 0; height: 44px; display: flex; align-items: center; justify-content: flex-end;">
+                    <span style="font-family: 'Brush Script MT', cursive, serif; font-style: italic; font-size: 19px; color: #0284c7; font-weight: 700; opacity: 0.9;">Authorized Signature</span>
+                  </div>
                 `}
                 <div style="font-weight: 800; color: #0f172a; border-top: 1.5px solid #0f172a; display: inline-block; padding-top: 3px; font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.5px;">
                   Authorised Signatory
@@ -1377,7 +1381,9 @@ export function generatePaymentReceiptPDF(
                     <img src="${cfg.signature_url}" alt="Authorized Signature" style="max-height: 42px; max-width: 140px; object-fit: contain;" />
                   </div>
                 ` : `
-                  <div style="height: 36px;"></div>
+                  <div style="margin: 4px 0; height: 44px; display: flex; align-items: center; justify-content: flex-end;">
+                    <span style="font-family: 'Brush Script MT', cursive, serif; font-style: italic; font-size: 19px; color: #0284c7; font-weight: 700; opacity: 0.9;">Authorized Signature</span>
+                  </div>
                 `}
                 <div style="font-weight: 800; color: #0f172a; border-top: 1.5px solid #0f172a; display: inline-block; padding-top: 3px; font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.5px;">
                   Authorised Signatory

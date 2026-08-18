@@ -13,11 +13,13 @@ export interface EmailDispatchResult {
 
 export async function sendQuotationEmailBackend(
   quote: Quotation, 
+  customRecipient?: string,
   customSubject?: string, 
-  customNotes?: string
+  customNotes?: string,
+  agencyConfig?: any
 ): Promise<EmailDispatchResult> {
-  const senderEmail = 'admin@fusionforgecreation.com';
-  const recipientEmail = quote.clientEmail;
+  const senderEmail = agencyConfig?.email || 'admin@fusionforgecreation.com';
+  const recipientEmail = customRecipient || quote.clientEmail || '';
   const subject = customSubject || `Commercial Quotation: ${quote.quoteNumber} - ${quote.title}`;
   const timestamp = new Date().toISOString();
 

@@ -49,15 +49,20 @@ import { ChatbotManager } from './ChatbotManager';
 import { UsersManager } from './UsersManager';
 import { SupabaseArchitecture } from './SupabaseArchitecture';
 import { SettingsManager } from './SettingsManager';
+import { LegalDocsManager } from './LegalDocsManager';
+import { VisitorMonitor } from './VisitorMonitor';
 import { AdminClockWidget } from './AdminClockWidget';
 import { LeadBuzzerAlertModal } from './LeadBuzzerAlertModal';
+import { NotificationCenter } from './notifications/NotificationCenter';
+import { EmailLogsManager } from './notifications/EmailLogsManager';
 import { UserRole } from '../../types';
 import { BrandLogo } from '../BrandLogo';
 import { SupabaseStatusBanner } from '../common/SupabaseStatusBanner';
 import { ErrorBoundary } from '../common/ErrorBoundary';
 import { AuthGuard } from '../common/AuthGuard';
+import { SupabaseAuthModal } from './SupabaseAuthModal';
 import { useToast } from '../../context/ToastContext';
-import { Volume2, VolumeX } from 'lucide-react';
+import { Volume2, VolumeX, Mail, Scale, Activity } from 'lucide-react';
 
 export const AdminPortal: React.FC = () => {
   const { 
@@ -66,7 +71,11 @@ export const AdminPortal: React.FC = () => {
     activeTab, 
     setActiveTab, 
     setCurrentView,
+    isAuthenticated,
+    logout,
     enquiries,
+    notifications,
+    unreadNotificationsCount,
     lastSyncedAt,
     syncFromDatabase,
     dbConnected,
@@ -79,6 +88,45 @@ export const AdminPortal: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [showNotifications, setShowNotifications] = useState(false);
+  const [showAuthGateModal, setShowAuthGateModal] = useState(false);
+
+  // Strict Auth Protection Gate
+  if (!isAuthenticated || currentUser?.role === 'client') {
+    return (
+      <div className="min-h-screen bg-[#FAF8FF] text-[#1E1B2E] flex flex-col items-center justify-center p-4">
+        <div className="bg-white border border-[#E8E0F0] rounded-3xl w-full max-w-md p-8 text-center shadow-xl space-y-6">
+          <div className="w-16 h-16 rounded-2xl bg-[#F3E8FF] border border-[#C084FC]/50 flex items-center justify-center text-[#8E2D9D] mx-auto shadow-md">
+            <ShieldCheck className="w-8 h-8" />
+          </div>
+          <div>
+            <h2 className="text-xl font-bold text-[#1E1B2E]">Super Admin & Staff Panel</h2>
+            <p className="text-xs text-[#5F5A72] mt-2 leading-relaxed">
+              Authentication Required. You must sign in with an authorized administrative account to access system operations.
+            </p>
+          </div>
+          <div className="space-y-3 pt-2">
+            <button
+              onClick={() => setShowAuthGateModal(true)}
+              className="w-full py-3 rounded-xl bg-[#8E2D9D] hover:bg-[#6F42C1] text-white font-bold text-xs shadow-md flex items-center justify-center space-x-2 transition-all cursor-pointer"
+            >
+              <ShieldCheck className="w-4 h-4" />
+              <span>Authenticate with Supabase</span>
+            </button>
+            <button
+              onClick={() => setCurrentView('public')}
+              className="w-full py-2.5 rounded-xl bg-white hover:bg-[#FAF5FF] border border-[#E8E0F0] text-[#5F5A72] hover:text-[#1E1B2E] text-xs font-semibold transition-all cursor-pointer"
+            >
+              Return to Public Website
+            </button>
+          </div>
+        </div>
+        <SupabaseAuthModal 
+          isOpen={showAuthGateModal} 
+          onClose={() => setShowAuthGateModal(false)} 
+        />
+      </div>
+    );
+  }
 
   const newLeads = enquiries.filter(e => e.status === 'new');
   const newLeadsCount = newLeads.length;
@@ -121,6 +169,9 @@ export const AdminPortal: React.FC = () => {
     {
       title: 'System & Governance',
       items: [
+        { id: 'legal_docs', label: 'Legal & Compliance', icon: Scale, perm: 'module.documents' },
+        { id: 'visitor_monitoring', label: 'Visitor Monitoring', icon: Activity, perm: 'module.visitor_monitoring' },
+        { id: 'email_logs', label: 'Email Dispatch Logs', icon: Mail, perm: 'module.settings' },
         { id: 'users', label: 'Users & Roles', icon: ShieldCheck, perm: 'module.users' },
         { id: 'settings', label: 'Agency Settings', icon: Settings, perm: 'module.settings' },
         { id: 'database', label: 'Supabase & RLS', icon: Database, perm: 'module.database' }
@@ -158,29 +209,29 @@ export const AdminPortal: React.FC = () => {
   })).filter(section => section.items.length > 0);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#040817] via-[#08122c] to-[#0c1a3b] text-slate-100 flex flex-col md:flex-row antialiased relative">
+    <div className="min-h-screen bg-[#FAF8FF] text-[#1E1B2E] flex flex-col md:flex-row antialiased relative">
       {/* Realtime Incoming Lead Enquiry Buzzer & Alert Notification */}
       <LeadBuzzerAlertModal />
 
       {/* Mobile Drawer Overlay */}
       {mobileMenuOpen && (
         <div 
-          className="fixed inset-0 bg-black/80 backdrop-blur-md z-40 md:hidden animate-in fade-in"
+          className="fixed inset-0 bg-black/50 backdrop-blur-xs z-40 md:hidden animate-in fade-in"
           onClick={() => setMobileMenuOpen(false)}
         />
       )}
 
       {/* Sidebar Navigation */}
-      <aside className={`fixed inset-y-0 left-0 z-50 w-72 bg-gradient-to-b from-[#081026] via-[#0b1738] to-[#050b1a] border-r border-blue-500/20 shadow-2xl flex flex-col justify-between transform transition-transform duration-200 ease-in-out md:translate-x-0 md:static shrink-0 ${
+      <aside className={`fixed inset-y-0 left-0 z-50 w-72 bg-white border-r border-[#E8E0F0] shadow-sm flex flex-col justify-between transform transition-transform duration-200 ease-in-out md:translate-x-0 md:static shrink-0 ${
         mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
       }`}>
         <div className="flex flex-col h-full overflow-hidden">
           {/* Top Brand Header */}
-          <div className="p-4 border-b border-blue-500/20 flex items-center justify-between bg-gradient-to-r from-[#081026]/95 via-[#0d1c44]/95 to-[#081026]/95 backdrop-blur-md">
-            <BrandLogo size="sm" variant="full" theme="dark" showTagline={false} />
+          <div className="p-4 border-b border-[#E8E0F0] flex items-center justify-between bg-white">
+            <BrandLogo size="sm" variant="full" theme="light" showTagline={false} />
             <button 
               onClick={() => setMobileMenuOpen(false)}
-              className="md:hidden p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+              className="md:hidden p-1.5 rounded-lg text-[#817B91] hover:text-[#1E1B2E] hover:bg-[#F3E8FF] transition-colors"
             >
               <X className="w-5 h-5" />
             </button>
@@ -189,18 +240,18 @@ export const AdminPortal: React.FC = () => {
           {/* Quick Sidebar Filter Input */}
           <div className="px-3 pt-3">
             <div className="relative">
-              <Search className="w-3.5 h-3.5 text-cyan-400 absolute left-3 top-1/2 -translate-y-1/2" />
+              <Search className="w-3.5 h-3.5 text-[#817B91] absolute left-3 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
                 placeholder="Quick navigate..."
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
-                className="w-full pl-8 pr-3 py-1.5 rounded-xl bg-gradient-to-r from-[#0d193d] to-[#09122c] border border-blue-500/30 text-xs text-white placeholder-slate-400 focus:outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-500/20 shadow-inner transition-all"
+                className="w-full pl-8 pr-3 py-1.5 rounded-xl bg-[#FAF5FF] border border-[#E8E0F0] text-xs text-[#1E1B2E] placeholder-[#817B91] focus:outline-none focus:border-[#8E2D9D] focus:ring-2 focus:ring-[#8E2D9D]/15 transition-all"
               />
               {searchQuery && (
                 <button
                   onClick={() => setSearchQuery('')}
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200 text-[10px]"
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#817B91] hover:text-[#1E1B2E] text-[10px]"
                 >
                   Clear
                 </button>
@@ -212,7 +263,7 @@ export const AdminPortal: React.FC = () => {
           <nav className="flex-1 px-3 py-3 space-y-4 overflow-y-auto custom-scrollbar">
             {filteredSections.map((section, idx) => (
               <div key={idx} className="space-y-1">
-                <div className="px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                <div className="px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-[#817B91]">
                   {section.title}
                 </div>
                 {section.items.map(item => {
@@ -224,17 +275,17 @@ export const AdminPortal: React.FC = () => {
                       onClick={() => handleTabClick(item.id)}
                       className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                         isActive 
-                          ? 'bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-600 text-white shadow-lg shadow-blue-500/25 border border-blue-400/40 font-bold' 
-                          : 'text-slate-300 hover:text-white hover:bg-gradient-to-r hover:from-[#11204d]/80 hover:to-[#0c1738]/80'
+                          ? 'bg-[#8E2D9D] text-white shadow-sm font-bold' 
+                          : 'text-[#5F5A72] hover:text-[#6F42C1] hover:bg-[#F3E8FF]'
                       }`}
                     >
                       <div className="flex items-center space-x-2.5 truncate">
-                        <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-white' : 'text-slate-400'}`} />
+                        <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-white' : 'text-[#817B91]'}`} />
                         <span className="truncate">{item.label}</span>
                       </div>
                       {item.badge !== undefined && item.badge > 0 && (
-                        <span className={`px-1.5 py-0.5 text-[10px] font-bold rounded-full shadow-sm ${
-                          isActive ? 'bg-white text-blue-900' : 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white'
+                        <span className={`px-1.5 py-0.5 text-[10px] font-bold rounded-full ${
+                          isActive ? 'bg-white text-[#8E2D9D]' : 'bg-[#F3E8FF] text-[#6F42C1] border border-[#E8E0F0]'
                         }`}>
                           {item.badge}
                         </span>
@@ -247,15 +298,15 @@ export const AdminPortal: React.FC = () => {
           </nav>
 
           {/* User Profile & Role Switcher */}
-          <div className="p-3 border-t border-blue-500/20 bg-gradient-to-b from-[#08112b] to-[#040817] space-y-2">
+          <div className="p-3 border-t border-[#E8E0F0] bg-[#FAF5FF] space-y-2">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2 truncate">
-                <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 border border-blue-400/40 flex items-center justify-center text-white font-bold text-xs shrink-0 shadow-md">
+                <div className="w-8 h-8 rounded-xl bg-[#8E2D9D] text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-sm">
                   {currentUser.name.slice(0, 2).toUpperCase()}
                 </div>
                 <div className="truncate max-w-[120px]">
-                  <div className="text-xs font-bold text-white truncate">{currentUser.name}</div>
-                  <div className="text-[10px] text-cyan-400 uppercase font-semibold">{currentUser.role.replace('_', ' ')}</div>
+                  <div className="text-xs font-bold text-[#1E1B2E] truncate">{currentUser.name}</div>
+                  <div className="text-[10px] text-[#6F42C1] uppercase font-semibold">{currentUser.role.replace('_', ' ')}</div>
                 </div>
               </div>
 
@@ -263,17 +314,17 @@ export const AdminPortal: React.FC = () => {
                 <button
                   onClick={() => setCurrentView('public')}
                   title="View Public Website"
-                  className="p-1.5 rounded-lg bg-gradient-to-b from-slate-800 to-slate-900 hover:from-slate-700 hover:to-slate-800 text-slate-300 hover:text-white transition-all cursor-pointer border border-slate-700 shadow-sm"
+                  className="p-1.5 rounded-lg bg-white hover:bg-[#F3E8FF] text-[#5F5A72] hover:text-[#6F42C1] transition-all cursor-pointer border border-[#E8E0F0] shadow-xs"
                 >
                   <Globe className="w-3.5 h-3.5" />
                 </button>
                 <button
-                  onClick={() => {
-                    setCurrentView('public');
-                    info('Logged Out', 'Returned to public website preview.');
+                  onClick={async () => {
+                    await logout();
+                    info('Logged Out', 'Signed out from administrative session.');
                   }}
                   title="Logout"
-                  className="p-1.5 rounded-lg bg-gradient-to-b from-slate-800 to-slate-900 hover:from-rose-950 hover:to-rose-900 text-slate-400 hover:text-rose-300 transition-all cursor-pointer border border-slate-700 shadow-sm"
+                  className="p-1.5 rounded-lg bg-white hover:bg-rose-50 text-[#817B91] hover:text-rose-600 transition-all cursor-pointer border border-[#E8E0F0] shadow-xs"
                 >
                   <LogOut className="w-3.5 h-3.5" />
                 </button>
@@ -281,14 +332,14 @@ export const AdminPortal: React.FC = () => {
             </div>
 
             {/* Quick Role Switcher */}
-            <div className="pt-1.5 border-t border-blue-500/20">
-              <label className="text-[9px] uppercase tracking-wider text-slate-400 font-bold block mb-1">
+            <div className="pt-1.5 border-t border-[#E8E0F0]">
+              <label className="text-[9px] uppercase tracking-wider text-[#817B91] font-bold block mb-1">
                 Active Permission Role
               </label>
               <select
                 value={currentUser.role}
                 onChange={e => switchRole(e.target.value as UserRole)}
-                className="w-full px-2.5 py-1.5 rounded-xl bg-gradient-to-r from-[#0e1b40] to-[#0a1430] border border-blue-500/30 text-[11px] text-slate-200 outline-none cursor-pointer font-medium hover:border-cyan-400 transition-colors shadow-inner capitalize"
+                className="w-full px-2.5 py-1.5 rounded-xl bg-white border border-[#E8E0F0] text-[11px] text-[#1E1B2E] outline-none cursor-pointer font-medium hover:border-[#8E2D9D] focus:border-[#8E2D9D] transition-colors capitalize"
               >
                 {roles && roles.length > 0 ? (
                   roles.map(r => (
@@ -316,11 +367,11 @@ export const AdminPortal: React.FC = () => {
       {/* Main Administrative Container */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Top Navigation Bar */}
-        <header className="h-16 bg-gradient-to-r from-[#081026]/95 via-[#0d1c44]/95 to-[#081026]/95 border-b border-blue-500/20 backdrop-blur-xl px-4 md:px-8 flex items-center justify-between shrink-0 sticky top-0 z-30 shadow-lg">
+        <header className="h-16 bg-white border-b border-[#E8E0F0] px-4 md:px-8 flex items-center justify-between shrink-0 sticky top-0 z-30 shadow-xs">
           <div className="flex items-center space-x-3">
             <button
               onClick={() => setMobileMenuOpen(true)}
-              className="md:hidden p-2 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
+              className="md:hidden p-2 rounded-xl text-[#5F5A72] hover:text-[#1E1B2E] hover:bg-[#F3E8FF] transition-colors cursor-pointer"
               aria-label="Open navigation menu"
             >
               <Menu className="w-5 h-5" />
@@ -328,9 +379,9 @@ export const AdminPortal: React.FC = () => {
 
             {/* Breadcrumb Navigation */}
             <div className="flex items-center space-x-2 text-xs">
-              <span className="text-slate-400 font-medium hidden sm:inline">Workspace</span>
-              <ChevronRight className="w-3.5 h-3.5 text-slate-500 hidden sm:inline" />
-              <span className="text-white font-bold tracking-tight bg-gradient-to-r from-blue-600/20 to-indigo-600/20 border border-blue-500/30 px-2.5 py-1 rounded-lg">
+              <span className="text-[#817B91] font-medium hidden sm:inline">Workspace</span>
+              <ChevronRight className="w-3.5 h-3.5 text-[#817B91] hidden sm:inline" />
+              <span className="text-[#8E2D9D] font-bold tracking-tight bg-[#F3E8FF] border border-[#E8E0F0] px-2.5 py-1 rounded-lg">
                 {getTabLabel(effectiveActiveTab)}
               </span>
             </div>
@@ -351,21 +402,21 @@ export const AdminPortal: React.FC = () => {
             {/* Quick Public Switch */}
             <button
               onClick={() => setCurrentView('public')}
-              className="hidden lg:inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-slate-800 to-slate-900 hover:from-slate-700 hover:to-slate-800 text-slate-200 hover:text-white text-xs font-semibold transition-all border border-slate-700 shadow-sm cursor-pointer"
+              className="hidden lg:inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-[#F3E8FF] text-[#5F5A72] hover:text-[#6F42C1] text-xs font-semibold transition-all border border-[#E8E0F0] shadow-xs cursor-pointer"
             >
-              <Globe className="w-3.5 h-3.5 text-cyan-400" />
+              <Globe className="w-3.5 h-3.5 text-[#8E2D9D]" />
               <span>Public Website</span>
-              <ExternalLink className="w-3 h-3 text-slate-400" />
+              <ExternalLink className="w-3 h-3 text-[#817B91]" />
             </button>
 
             {/* Buzzer Sound Quick Toggle & Test */}
-            <div className="relative flex items-center bg-slate-900/90 border border-blue-500/25 rounded-xl p-0.5 shadow-sm">
+            <div className="relative flex items-center bg-white border border-[#E8E0F0] rounded-xl p-0.5 shadow-xs">
               <button
                 onClick={toggleBuzzerMute}
                 className={`p-1.5 rounded-lg text-xs transition-colors cursor-pointer flex items-center space-x-1 ${
                   isBuzzerMuted 
-                    ? 'text-rose-400 hover:text-rose-300 hover:bg-rose-500/20' 
-                    : 'text-cyan-400 hover:text-cyan-300 hover:bg-cyan-500/20'
+                    ? 'text-rose-600 hover:bg-rose-50' 
+                    : 'text-[#8E2D9D] hover:bg-[#F3E8FF]'
                 }`}
                 title={isBuzzerMuted ? 'Lead Alert Buzzer: MUTED (Click to Unmute)' : 'Lead Alert Buzzer: ACTIVE (Click to Mute)'}
               >
@@ -379,7 +430,7 @@ export const AdminPortal: React.FC = () => {
                   testBuzzerSound();
                   info('🔔 Buzzer sound test triggered');
                 }}
-                className="hidden xl:inline-flex px-1.5 py-0.5 text-[9px] font-mono text-slate-400 hover:text-white hover:bg-slate-800 rounded transition-colors cursor-pointer border-l border-slate-800"
+                className="hidden xl:inline-flex px-1.5 py-0.5 text-[9px] font-mono text-[#817B91] hover:text-[#1E1B2E] hover:bg-[#F3E8FF] rounded transition-colors cursor-pointer border-l border-[#E8E0F0]"
                 title="Test Buzzer Chime"
               >
                 Test
@@ -390,57 +441,32 @@ export const AdminPortal: React.FC = () => {
             <div className="relative">
               <button
                 onClick={() => setShowNotifications(!showNotifications)}
-                className="relative p-2 rounded-xl bg-gradient-to-r from-slate-800 to-slate-900 hover:from-slate-700 hover:to-slate-800 text-slate-300 hover:text-white border border-slate-700 shadow-sm transition-colors cursor-pointer"
+                className="relative p-2 rounded-xl bg-white hover:bg-[#F3E8FF] text-[#5F5A72] hover:text-[#6F42C1] border border-[#E8E0F0] shadow-xs transition-colors cursor-pointer"
                 title="Notifications"
               >
                 <Bell className="w-4 h-4" />
-                {newLeadsCount > 0 && (
-                  <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-gradient-to-r from-cyan-400 to-blue-500 text-white font-bold text-[9px] flex items-center justify-center animate-pulse shadow-xs">
-                    {newLeadsCount}
+                {unreadNotificationsCount > 0 && (
+                  <span className="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 rounded-full bg-[#8E2D9D] text-white font-bold text-[9px] flex items-center justify-center shadow-xs">
+                    {unreadNotificationsCount > 99 ? '99+' : unreadNotificationsCount}
                   </span>
                 )}
               </button>
 
               {showNotifications && (
-                <div className="absolute right-0 mt-2 w-80 bg-gradient-to-b from-[#0f1d47] to-[#081028] border border-blue-500/30 rounded-2xl shadow-2xl p-3 z-50 animate-in fade-in zoom-in-95 backdrop-blur-xl">
-                  <div className="flex items-center justify-between pb-2 border-b border-blue-500/20">
-                    <span className="text-xs font-bold text-white">Lead Notifications</span>
-                    <span className="text-[10px] text-cyan-400 font-semibold">{newLeadsCount} new</span>
-                  </div>
-                  <div className="py-2 space-y-2 max-h-60 overflow-y-auto custom-scrollbar">
-                    {newLeads.length === 0 ? (
-                      <p className="text-xs text-slate-400 py-3 text-center">No unread lead enquiries.</p>
-                    ) : (
-                      newLeads.map(lead => (
-                        <div
-                          key={lead.id}
-                          onClick={() => {
-                            setActiveTab('enquiries');
-                            setShowNotifications(false);
-                          }}
-                          className="p-2 rounded-xl bg-gradient-to-r from-[#12214c] to-[#0d1838] hover:from-[#182c66] hover:to-[#12224e] border border-blue-500/20 text-xs cursor-pointer transition-all space-y-0.5 shadow-sm"
-                        >
-                          <div className="flex items-center justify-between">
-                            <span className="font-bold text-white truncate">{lead.name}</span>
-                            <span className="text-[10px] text-cyan-400 font-bold">New</span>
-                          </div>
-                          <p className="text-[11px] text-slate-300 truncate">{lead.company || lead.email}</p>
-                        </div>
-                      ))
-                    )}
-                  </div>
+                <div className="absolute right-0 mt-2 z-50 animate-in fade-in zoom-in-95">
+                  <NotificationCenter onClose={() => setShowNotifications(false)} />
                 </div>
               )}
             </div>
 
             {/* User Avatar Chip */}
-            <div className="flex items-center space-x-2 pl-2 border-l border-blue-500/20">
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-600 text-white font-bold text-xs flex items-center justify-center shadow-md">
+            <div className="flex items-center space-x-2 pl-2 border-l border-[#E8E0F0]">
+              <div className="w-8 h-8 rounded-xl bg-[#8E2D9D] text-white font-bold text-xs flex items-center justify-center shadow-xs">
                 {currentUser.name.slice(0, 2).toUpperCase()}
               </div>
               <div className="hidden lg:block text-left">
-                <div className="text-xs font-bold text-white leading-tight">{currentUser.name}</div>
-                <div className="text-[10px] text-cyan-400 capitalize font-medium">{currentUser.role.replace('_', ' ')}</div>
+                <div className="text-xs font-bold text-[#1E1B2E] leading-tight">{currentUser.name}</div>
+                <div className="text-[10px] text-[#6F42C1] capitalize font-medium">{currentUser.role.replace('_', ' ')}</div>
               </div>
             </div>
           </div>
@@ -471,6 +497,21 @@ export const AdminPortal: React.FC = () => {
             {effectiveActiveTab === 'testimonials' && <TestimonialsManager />}
             {effectiveActiveTab === 'faqs' && <FaqsManager />}
             {effectiveActiveTab === 'chatbot' && <ChatbotManager />}
+            {effectiveActiveTab === 'legal_docs' && (
+              <AuthGuard userRole={currentUser.role} allowedRoles={['super_admin']}>
+                <LegalDocsManager />
+              </AuthGuard>
+            )}
+            {effectiveActiveTab === 'visitor_monitoring' && (
+              <AuthGuard userRole={currentUser.role} allowedRoles={['super_admin']}>
+                <VisitorMonitor />
+              </AuthGuard>
+            )}
+            {effectiveActiveTab === 'email_logs' && (
+              <AuthGuard userRole={currentUser.role} allowedRoles={['super_admin', 'admin', 'accountant']}>
+                <EmailLogsManager />
+              </AuthGuard>
+            )}
             {effectiveActiveTab === 'users' && (
               <AuthGuard userRole={currentUser.role} allowedRoles={['super_admin']}>
                 <UsersManager />

@@ -43,8 +43,11 @@ import { PaymentTermsSettings } from './settings/PaymentTermsSettings';
 import { DocumentNumberingSettings } from './settings/DocumentNumberingSettings';
 import { TermsConditionsSettings } from './settings/TermsConditionsSettings';
 import { AssetUploadSettings } from './settings/AssetUploadSettings';
+import { NotificationCenter } from './notifications/NotificationCenter';
+import { EmailLogsManager } from './notifications/EmailLogsManager';
+import { Bell, Mail } from 'lucide-react';
 
-type SettingsTab = 'profile' | 'presets' | 'payment-terms' | 'numbering' | 'terms' | 'assets';
+type SettingsTab = 'profile' | 'presets' | 'payment-terms' | 'numbering' | 'terms' | 'assets' | 'notifications' | 'email-logs';
 
 export const SettingsManager: React.FC = () => {
   const { agencyConfig, updateAgencyConfig, setActiveTab, setCurrentView, currentUser } = useApp();
@@ -367,6 +370,8 @@ export const SettingsManager: React.FC = () => {
     { id: 'numbering' as const, label: 'Document Numbering', icon: ListOrdered, desc: 'Invoice & Quotation prefixes & sequences' },
     { id: 'terms' as const, label: 'Terms & Conditions', icon: FileText, desc: 'Quotation & Invoice legal terms templates' },
     { id: 'assets' as const, label: 'Seals & Signatures', icon: Stamp, desc: 'Official company stamp & signatory assets' },
+    { id: 'notifications' as const, label: 'Notification Center', icon: Bell, desc: 'Central Supabase event feed & role triggers' },
+    { id: 'email-logs' as const, label: 'Email Dispatch Logs', icon: Mail, desc: 'Official agency email transmission audit' },
   ];
 
   return (
@@ -418,6 +423,12 @@ export const SettingsManager: React.FC = () => {
       {activeSettingsTab === 'numbering' && <DocumentNumberingSettings />}
       {activeSettingsTab === 'terms' && <TermsConditionsSettings />}
       {activeSettingsTab === 'assets' && <AssetUploadSettings />}
+      {activeSettingsTab === 'notifications' && (
+        <div className="max-w-2xl">
+          <NotificationCenter isModal={true} />
+        </div>
+      )}
+      {activeSettingsTab === 'email-logs' && <EmailLogsManager />}
 
       {activeSettingsTab === 'profile' && (
         <div className="space-y-6">
@@ -1198,39 +1209,98 @@ export const SettingsManager: React.FC = () => {
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2 text-xs font-bold uppercase text-cyan-400 tracking-wider">
               <FileSignature className="w-4 h-4" />
-              <span>5. Brand Logo & Authorized Signature</span>
+              <span>5. Brand Logo, Company Stamp & Authorized Signature</span>
             </div>
+            <button
+              type="button"
+              onClick={() => setActiveSettingsTab('assets')}
+              className="text-xs text-cyan-400 hover:text-cyan-300 font-semibold flex items-center gap-1 cursor-pointer"
+            >
+              <span>Manage Seals & Signatures Tab</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
           </div>
 
-          <div className="mb-4 p-4 rounded-xl bg-slate-900/80 border border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <BrandLogo size="md" variant="full" theme="dark" />
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {/* Logo Preview Card */}
+            <div className="p-3.5 rounded-xl bg-slate-900/80 border border-slate-800 flex flex-col justify-between gap-3">
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-[11px] font-bold text-white uppercase tracking-wider">Brand Logo</span>
+                  <span className="text-[9px] text-emerald-400 font-mono">SVG / PNG</span>
+                </div>
+                <div className="h-20 rounded-lg bg-slate-950 flex items-center justify-center p-2 border border-slate-800">
+                  <BrandLogo size="sm" variant="full" theme="dark" />
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setActiveSettingsTab('assets')}
+                className="w-full py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-cyan-300 text-[11px] font-bold text-center transition-colors cursor-pointer"
+              >
+                Upload / Change Logo
+              </button>
             </div>
-            <div className="p-3 rounded-lg bg-white/95 border border-slate-200">
-              <BrandLogo size="sm" variant="full" theme="light" />
-            </div>
-          </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="text-[11px] font-semibold text-slate-300 block mb-1">Brand Logo Asset URL</label>
-              <input
-                type="text"
-                value={form.logo_url}
-                onChange={e => setForm({ ...form, logo_url: e.target.value })}
-                className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white outline-none focus:border-cyan-400"
-                placeholder="/logo.svg"
-              />
+            {/* Stamp Preview Card */}
+            <div className="p-3.5 rounded-xl bg-slate-900/80 border border-slate-800 flex flex-col justify-between gap-3">
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-[11px] font-bold text-white uppercase tracking-wider">Company Stamp</span>
+                  <span className="text-[9px] text-cyan-400 font-mono">Seal Asset</span>
+                </div>
+                <div className="h-20 rounded-lg bg-white/95 flex items-center justify-center p-2 border border-slate-300">
+                  {(agencyConfig.stamp_url || agencyConfig.stampUrl) ? (
+                    <img
+                      src={agencyConfig.stamp_url || agencyConfig.stampUrl}
+                      alt="Company Stamp"
+                      className="max-h-full max-w-full object-contain mix-blend-multiply"
+                    />
+                  ) : (
+                    <div className="text-center text-slate-400 text-[10px]">
+                      <Stamp className="w-5 h-5 mx-auto mb-1 opacity-50 text-slate-500" />
+                      <span>No Stamp Uploaded</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setActiveSettingsTab('assets')}
+                className="w-full py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-cyan-300 text-[11px] font-bold text-center transition-colors cursor-pointer"
+              >
+                Upload Company Stamp
+              </button>
             </div>
-            <div>
-              <label className="text-[11px] font-semibold text-slate-300 block mb-1">Authorized Signatory Image URL</label>
-              <input
-                type="text"
-                value={form.signature_url}
-                onChange={e => setForm({ ...form, signature_url: e.target.value })}
-                className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white outline-none focus:border-cyan-400"
-                placeholder="/signatures/authorized_signatory.png"
-              />
+
+            {/* Signature Preview Card */}
+            <div className="p-3.5 rounded-xl bg-slate-900/80 border border-slate-800 flex flex-col justify-between gap-3">
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-[11px] font-bold text-white uppercase tracking-wider">Authorized Signatory</span>
+                  <span className="text-[9px] text-blue-400 font-mono">Signature</span>
+                </div>
+                <div className="h-20 rounded-lg bg-white/95 flex items-center justify-center p-2 border border-slate-300">
+                  {agencyConfig.signature_url ? (
+                    <img
+                      src={agencyConfig.signature_url}
+                      alt="Authorized Signature"
+                      className="max-h-full max-w-full object-contain mix-blend-multiply"
+                    />
+                  ) : (
+                    <div className="font-serif italic text-blue-900 font-bold text-sm">
+                      Authorized Signature
+                    </div>
+                  )}
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setActiveSettingsTab('assets')}
+                className="w-full py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-cyan-300 text-[11px] font-bold text-center transition-colors cursor-pointer"
+              >
+                Upload Signature
+              </button>
             </div>
           </div>
         </div>

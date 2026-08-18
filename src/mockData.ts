@@ -19,7 +19,10 @@ import {
   StaffMember,
   SalaryRecord,
   AppNotification,
-  EmailLog
+  EmailLog,
+  LegalDocument,
+  LegalDocumentHistoryItem,
+  VisitorEvent
 } from './types';
 import { DEFAULT_INVOICE_NUMBERING, DEFAULT_QUOTATION_NUMBERING } from './utils/documentNumbering';
 
@@ -979,6 +982,8 @@ export const INITIAL_ENQUIRIES: ProjectEnquiry[] = [
     email: 'vikram@hypercloud.ai',
     phone: '+91 98450 11223',
     company: 'HyperCloud AI',
+    gstin: '27AAACH9876K1Z1',
+    address: 'Plot 42, Cyber Hub, BKC, Mumbai, Maharashtra - 400051',
     serviceCategory: 'full_stack_enterprise',
     budgetRange: '₹3,00,000 - ₹5,00,000',
     estimatedTimeline: '6-8 Weeks',
@@ -996,6 +1001,8 @@ export const INITIAL_ENQUIRIES: ProjectEnquiry[] = [
     email: 'ananya@auraecoliving.com',
     phone: '+91 97110 55443',
     company: 'Aura EcoLiving',
+    gstin: '24AAACE1234D1Z8',
+    address: '88 Green Park Avenue, SG Highway, Ahmedabad, Gujarat - 380054',
     serviceCategory: 'web_development',
     budgetRange: '₹1,50,000 - ₹2,50,000',
     estimatedTimeline: '3-4 Weeks',
@@ -3737,4 +3744,464 @@ CREATE POLICY "ONLY super_admin can delete salary records"
 ON public.salary_records FOR DELETE 
 USING (public.is_super_admin());
 */
+
+// =============================================================================
+// PHASE 16: LEGAL DOCUMENT MONITORING & VISITOR MONITORING
+// =============================================================================
+
+export const INITIAL_LEGAL_DOCUMENTS: LegalDocument[] = [
+  {
+    id: 'legal_doc_privacy',
+    slug: 'privacy-policy',
+    title: 'Privacy Policy & Data Protection Charter',
+    documentType: 'privacy_policy',
+    version: 'v2.1',
+    effectiveDate: '2026-08-01',
+    lastUpdatedDate: '2026-08-16',
+    status: 'active',
+    summary: 'Comprehensive privacy policy detailing data minimization, zero-third-party tracking sale, client credential encryption, and compliance with the Digital Personal Data Protection (DPDP) Act, 2023.',
+    content: `# Privacy Policy & Data Protection Charter
+**Fusion Forge Creation** ("we", "us", or "our") is dedicated to protecting the privacy, confidentiality, and sovereign data rights of our clients, prospects, and visitors.
+
+---
+
+### 1. Scope & Sovereign Data Collection
+We operate on a **Data Minimization Principle**. We only gather information strictly required to design, develop, deploy, and support bespoke software architectures.
+- **Inbound Inquiries**: Full Name, Authorized Corporate Email, Mobile / WhatsApp Number, Company Trade Name, Registered GSTIN (for B2B invoicing), and Project Technical Scope.
+- **Client Portal Authentication**: Secure encrypted tokens managed via Supabase PostgreSQL Auth.
+- **Telemetry & Visitor Analytics**: Aggregated, privacy-conscious event logs (anonymized session identifiers, section dwell count, device categories). We **never** record passwords, keystrokes, or invasive third-party cross-site trackers.
+
+---
+
+### 2. Legal Basis & Statutory Compliance
+Our data processing protocols comply with:
+- **Digital Personal Data Protection (DPDP) Act, 2023** (India)
+- **Information Technology Act, 2000** & IT (Reasonable Security Practices) Rules, 2011
+- **Goods and Services Tax Act, 2017** (mandatory record retention for registered B2B invoices)
+
+---
+
+### 3. Purpose of Processing
+1. Preparing commercial Quotations, Technical Scopes of Work (SOW), and Project Roadmaps.
+2. Generating statutory GST Tax Invoices and maintaining double-entry accounting ledgers.
+3. Providing real-time milestone tracking, staging access, and client dashboard analytics.
+4. Sending transactional email dispatches (estimates, tax invoices, payment acknowledgments).
+
+---
+
+### 4. Zero-Sale & Strict Confidentiality Guarantee
+- We **NEVER** sell, rent, broker, or monetize your personal or corporate data under any circumstances.
+- All intellectual assets, source code repositories, and client API keys are secured under standard Non-Disclosure Agreements (NDA).
+
+---
+
+### 5. Data Retention & Erasure Rights
+- Inactive enquiry records may be erased upon written request to **manojsatapathy.jp@gmail.com**.
+- B2B GST tax invoices, accounting vouchers, and payment receipts are retained for a statutory period of **72 months** pursuant to GST Rules.
+
+---
+
+### 6. Grievance Officer & Contact
+- **Grievance Officer**: Manoj Satapathy (Founder & Solutions Architect)
+- **Registered Office**: Dadra and Nagar Haveli and Daman and Diu, India - 396230
+- **Email**: manojsatapathy.jp@gmail.com | **Phone**: +91 94084 56499`,
+    jurisdiction: 'Dadra and Nagar Haveli and Daman and Diu, India',
+    applicableLaw: 'Digital Personal Data Protection (DPDP) Act, 2023 & IT Act, 2000',
+    createdBy: 'Manoj Satapathy',
+    createdByEmail: 'manojsatapathy.jp@gmail.com',
+    lastModifiedBy: 'Manoj Satapathy',
+    lastModifiedByEmail: 'manojsatapathy.jp@gmail.com',
+    lastModifiedByRole: 'Super Admin',
+    changeSummary: 'Updated Section 1 with explicit DPDP Act 2023 compliance clauses and B2B GSTIN collection protocols.',
+    versionHistoryCount: 2,
+    created_at: '2026-01-10T00:00:00Z',
+    updated_at: '2026-08-16T14:30:00Z'
+  },
+  {
+    id: 'legal_doc_terms',
+    slug: 'terms-of-engagement',
+    title: 'Master Terms of Engagement & Commercial Services Agreement',
+    documentType: 'terms_of_engagement',
+    version: 'v2.0',
+    effectiveDate: '2026-07-15',
+    lastUpdatedDate: '2026-08-15',
+    status: 'active',
+    summary: 'Standard contractual framework governing project scoping, milestone payments, intellectual property transfer, deliverables acceptance criteria, and limitation of liability.',
+    content: `# Master Terms of Engagement & Commercial Services Agreement
+These Terms of Engagement govern all software engineering, mobile development, cloud architecture, and technical consulting contracts delivered by **Fusion Forge Creation**.
+
+---
+
+### 1. Project Scoping & Formal Quotations
+- Every engagement commences with an approved **Commercial Quotation** detailing the scope of deliverables, technology stack, timeline, and SAC Code **998314**.
+- Any scope changes or additional feature requests outside the agreed milestone breakdown will be processed via an official written Addendum / Change Order.
+
+---
+
+### 2. Commercial Terms & Payment Schedule
+1. **Advance Commitment**: Standard 40% initial deposit prior to architecture provisioning and sprint initiation.
+2. **Milestone Disbursements**: 40% upon staging environment deployment and functional feature review.
+3. **Final Settlement**: 20% balance prior to production handover, DNS domain binding, and source code transfer.
+4. **Payment Windows**: All tax invoices carry Net-15 or Net-30 payment terms as specified on the invoice document.
+
+---
+
+### 3. Intellectual Property (IP) Transfer
+- Upon receipt of 100% full and final payment of all outstanding tax invoices, **Fusion Forge Creation** transfers all proprietary custom source code, design system assets, and database schemas created exclusively for the Client.
+- Reusable underlying libraries, open-source modules, and proprietary framework boilerplates remain subject to standard permissive licenses.
+
+---
+
+### 4. Client Staging & User Acceptance Testing (UAT)
+- The Client receives a 10-business-day UAT window upon staging delivery to report functional discrepancies against the written Scope of Work.
+- Acceptance is deemed ratified upon written sign-off, live deployment, or lapse of the 10-day review period without blocking issue notices.
+
+---
+
+### 5. Warranty & Post-Launch Support
+- All custom deliverables include a **30-day complimentary bug-fix warranty** post-production rollout.
+- Extended SLA maintenance, server DevOps management, and ongoing feature iterations are governed under dedicated Retainer Agreements.
+
+---
+
+### 6. Governing Law & Dispute Resolution
+- This agreement is constructed under the laws of the Republic of India.
+- Any unresolved legal dispute shall be subject to the exclusive jurisdiction of the competent courts of **Silvassa, Dadra and Nagar Haveli and Daman and Diu**.`,
+    jurisdiction: 'Courts of Silvassa, Dadra and Nagar Haveli and Daman and Diu',
+    applicableLaw: 'Indian Contract Act, 1872 & Information Technology Act, 2000',
+    createdBy: 'Manoj Satapathy',
+    createdByEmail: 'manojsatapathy.jp@gmail.com',
+    lastModifiedBy: 'Manoj Satapathy',
+    lastModifiedByEmail: 'manojsatapathy.jp@gmail.com',
+    lastModifiedByRole: 'Super Admin',
+    changeSummary: 'Standardized 3-tier milestone structure (40-40-20) and clarified 30-day post-launch warranty.',
+    versionHistoryCount: 2,
+    created_at: '2026-01-15T00:00:00Z',
+    updated_at: '2026-08-15T11:00:00Z'
+  },
+  {
+    id: 'legal_doc_gst',
+    slug: 'gst-compliance',
+    title: 'GST Compliance, Tax Invoicing & SAC Classification Policy',
+    documentType: 'gst_compliance',
+    version: 'v1.4',
+    effectiveDate: '2026-06-01',
+    lastUpdatedDate: '2026-08-14',
+    status: 'active',
+    summary: 'Tax compliance charter outlining 18% GST calculation rules, intra-state (CGST+UTGST) vs inter-state (IGST) determination, SAC 998314 classification, and GSTR-1 e-filing parity.',
+    content: `# GST Compliance, Tax Invoicing & SAC Classification Policy
+**Fusion Forge Creation** operates as a fully registered Goods and Services Tax (GST) compliant technology enterprise in India.
+
+---
+
+### 1. Enterprise Tax Identification
+- **Legal Trade Name**: Fusion Forge Creation
+- **Registered GSTIN**: 26AALFF1234F1Z5
+- **Permanent Account Number (PAN)**: AALFF1234F
+- **Principal Place of Business**: Dadra and Nagar Haveli and Daman and Diu (State Code: 26)
+- **Primary SAC Code**: **998314** (Information Technology Design and Development Services)
+
+---
+
+### 2. GST Tax Computation Matrix (18% Statutory Rate)
+- **Intra-State Supply (Recipient in State Code 26 - DNH & DD)**:
+  - Central GST (CGST): **9.0%**
+  - UT GST (UTGST): **9.0%**
+  - Total Applicable GST: **18.0%**
+- **Inter-State Supply (Recipient in any other Indian State / UT, e.g., 27-Maharashtra, 24-Gujarat, 29-Karnataka, 07-Delhi)**:
+  - Integrated GST (IGST): **18.0%**
+- **Export of IT Services**: Zero-rated supply subject to Letter of Undertaking (LUT) under Section 16 of the IGST Act, 2017.
+
+---
+
+### 3. Tax Invoice Validity & Input Tax Credit (ITC)
+To enable our corporate clients to seamlessly claim 100% Input Tax Credit (ITC) under GSTR-2B:
+1. Valid 15-digit Client GSTIN must be provided prior to tax invoice finalization.
+2. Every tax invoice contains mandatory fields: Invoice Number, Serial Date, Place of Supply (POS), SAC Code, Taxable Value, Segregated Tax Amounts, and Digital Signature / Seal.
+3. Tax invoices are filed authoritatively in **GSTR-1** on or before the 11th of each calendar month.
+
+---
+
+### 4. Credit Notes, Debit Notes & Adjustments
+- Issued strictly in compliance with Section 34 of the CGST Act, 2017 with clear reference to the original Tax Invoice Number and issuance date.
+- Formatted for automatic monthly filing reconciliation in GSTR-1 Table 9B.`,
+    jurisdiction: 'Dadra and Nagar Haveli and Daman and Diu (State Code 26)',
+    applicableLaw: 'Central Goods and Services Tax (CGST) Act, 2017 & UTGST / IGST Acts',
+    createdBy: 'Manoj Satapathy',
+    createdByEmail: 'manojsatapathy.jp@gmail.com',
+    lastModifiedBy: 'Manoj Satapathy',
+    lastModifiedByEmail: 'manojsatapathy.jp@gmail.com',
+    lastModifiedByRole: 'Super Admin',
+    changeSummary: 'Verified SAC 998314 IT software classification and documented GSTR-1 Table 9B credit note filing protocols.',
+    versionHistoryCount: 2,
+    created_at: '2026-02-01T00:00:00Z',
+    updated_at: '2026-08-14T09:45:00Z'
+  }
+];
+
+export const INITIAL_LEGAL_HISTORY: LegalDocumentHistoryItem[] = [
+  {
+    id: 'hist_privacy_v2_1',
+    documentId: 'legal_doc_privacy',
+    documentSlug: 'privacy-policy',
+    version: 'v2.1',
+    title: 'Privacy Policy & Data Protection Charter',
+    summary: 'Comprehensive privacy policy detailing data minimization, zero-third-party tracking sale, client credential encryption, and compliance with the Digital Personal Data Protection (DPDP) Act, 2023.',
+    content: INITIAL_LEGAL_DOCUMENTS[0].content,
+    effectiveDate: '2026-08-01',
+    status: 'active',
+    changedBy: 'Manoj Satapathy',
+    changedByEmail: 'manojsatapathy.jp@gmail.com',
+    changedByRole: 'Super Admin',
+    changeSummary: 'Updated Section 1 with explicit DPDP Act 2023 compliance clauses and B2B GSTIN collection protocols.',
+    created_at: '2026-08-16T14:30:00Z'
+  },
+  {
+    id: 'hist_privacy_v2_0',
+    documentId: 'legal_doc_privacy',
+    documentSlug: 'privacy-policy',
+    version: 'v2.0',
+    title: 'Privacy Policy & Client Data Charter',
+    summary: 'Initial DPDP Act alignment and client credential security framework.',
+    content: `# Privacy Policy & Client Data Charter\n**Fusion Forge Creation** ensures full data privacy and security for all business accounts.\n1. We collect only necessary contact details.\n2. We do not sell user data.\n3. We comply with Indian IT Act 2000.`,
+    effectiveDate: '2026-03-01',
+    status: 'archived',
+    changedBy: 'Manoj Satapathy',
+    changedByEmail: 'manojsatapathy.jp@gmail.com',
+    changedByRole: 'Super Admin',
+    changeSummary: 'Initial comprehensive revision from v1.0 standard terms.',
+    created_at: '2026-03-01T10:00:00Z'
+  },
+  {
+    id: 'hist_terms_v2_0',
+    documentId: 'legal_doc_terms',
+    documentSlug: 'terms-of-engagement',
+    version: 'v2.0',
+    title: 'Master Terms of Engagement & Commercial Services Agreement',
+    summary: 'Standard contractual framework governing project scoping, milestone payments, intellectual property transfer, deliverables acceptance criteria, and limitation of liability.',
+    content: INITIAL_LEGAL_DOCUMENTS[1].content,
+    effectiveDate: '2026-07-15',
+    status: 'active',
+    changedBy: 'Manoj Satapathy',
+    changedByEmail: 'manojsatapathy.jp@gmail.com',
+    changedByRole: 'Super Admin',
+    changeSummary: 'Standardized 3-tier milestone structure (40-40-20) and clarified 30-day post-launch warranty.',
+    created_at: '2026-08-15T11:00:00Z'
+  },
+  {
+    id: 'hist_terms_v1_0',
+    documentId: 'legal_doc_terms',
+    documentSlug: 'terms-of-engagement',
+    version: 'v1.0',
+    title: 'Terms of Engagement',
+    summary: 'Initial terms of service and project quotation agreements.',
+    content: `# Terms of Engagement (v1.0)\nInitial agency client agreement. Deliverables subject to formal invoice payment.`,
+    effectiveDate: '2026-01-15',
+    status: 'archived',
+    changedBy: 'Manoj Satapathy',
+    changedByEmail: 'manojsatapathy.jp@gmail.com',
+    changedByRole: 'Super Admin',
+    changeSummary: 'Initial baseline creation.',
+    created_at: '2026-01-15T09:00:00Z'
+  },
+  {
+    id: 'hist_gst_v1_4',
+    documentId: 'legal_doc_gst',
+    documentSlug: 'gst-compliance',
+    version: 'v1.4',
+    title: 'GST Compliance, Tax Invoicing & SAC Classification Policy',
+    summary: 'Tax compliance charter outlining 18% GST calculation rules, intra-state (CGST+UTGST) vs inter-state (IGST) determination, SAC 998314 classification, and GSTR-1 e-filing parity.',
+    content: INITIAL_LEGAL_DOCUMENTS[2].content,
+    effectiveDate: '2026-06-01',
+    status: 'active',
+    changedBy: 'Manoj Satapathy',
+    changedByEmail: 'manojsatapathy.jp@gmail.com',
+    changedByRole: 'Super Admin',
+    changeSummary: 'Verified SAC 998314 IT software classification and documented GSTR-1 Table 9B credit note filing protocols.',
+    created_at: '2026-08-14T09:45:00Z'
+  }
+];
+
+export const INITIAL_VISITOR_EVENTS: VisitorEvent[] = [
+  {
+    id: 'vis_ev_01',
+    sessionId: 'sess_9b4e18',
+    eventType: 'page_view',
+    pagePath: '/',
+    sectionId: '#home',
+    referrer: 'direct',
+    deviceType: 'desktop',
+    browser: 'Chrome',
+    os: 'Windows',
+    region: 'India / MH',
+    durationSeconds: 142,
+    metadata: { screenResolution: '1920x1080', theme: 'dark', language: 'en-IN' },
+    created_at: '2026-08-18T07:45:12Z'
+  },
+  {
+    id: 'vis_ev_02',
+    sessionId: 'sess_9b4e18',
+    eventType: 'section_view',
+    pagePath: '/',
+    sectionId: '#services',
+    referrer: 'direct',
+    deviceType: 'desktop',
+    browser: 'Chrome',
+    os: 'Windows',
+    region: 'India / MH',
+    durationSeconds: 85,
+    metadata: { serviceInteracted: 'Full-Stack Enterprise AI App' },
+    created_at: '2026-08-18T07:46:54Z'
+  },
+  {
+    id: 'vis_ev_03',
+    sessionId: 'sess_9b4e18',
+    eventType: 'estimator_use',
+    pagePath: '/',
+    sectionId: '#estimator',
+    referrer: 'direct',
+    deviceType: 'desktop',
+    browser: 'Chrome',
+    os: 'Windows',
+    region: 'India / MH',
+    durationSeconds: 120,
+    metadata: { calculatedBudget: '₹4,50,000 - ₹8,00,000', selectedCount: 4 },
+    created_at: '2026-08-18T07:48:14Z'
+  },
+  {
+    id: 'vis_ev_04',
+    sessionId: 'sess_a18f29',
+    eventType: 'page_view',
+    pagePath: '/',
+    sectionId: '#home',
+    referrer: 'linkedin.com',
+    deviceType: 'mobile',
+    browser: 'Safari',
+    os: 'iOS',
+    region: 'India / KA',
+    durationSeconds: 65,
+    metadata: { screenResolution: '390x844', theme: 'dark', language: 'en-US' },
+    created_at: '2026-08-18T06:30:22Z'
+  },
+  {
+    id: 'vis_ev_05',
+    sessionId: 'sess_a18f29',
+    eventType: 'section_view',
+    pagePath: '/',
+    sectionId: '#projects',
+    referrer: 'linkedin.com',
+    deviceType: 'mobile',
+    browser: 'Safari',
+    os: 'iOS',
+    region: 'India / KA',
+    durationSeconds: 94,
+    metadata: { projectViewed: 'Apex Healthtech AI' },
+    created_at: '2026-08-18T06:31:56Z'
+  },
+  {
+    id: 'vis_ev_06',
+    sessionId: 'sess_c73d91',
+    eventType: 'legal_doc_view',
+    pagePath: '/',
+    sectionId: '#legal-privacy',
+    referrer: 'direct',
+    deviceType: 'desktop',
+    browser: 'Firefox',
+    os: 'macOS',
+    region: 'India / DNH',
+    durationSeconds: 180,
+    metadata: { documentSlug: 'privacy-policy', versionViewed: 'v2.1' },
+    created_at: '2026-08-18T05:15:30Z'
+  },
+  {
+    id: 'vis_ev_07',
+    sessionId: 'sess_c73d91',
+    eventType: 'legal_doc_view',
+    pagePath: '/',
+    sectionId: '#legal-gst',
+    referrer: 'direct',
+    deviceType: 'desktop',
+    browser: 'Firefox',
+    os: 'macOS',
+    region: 'India / DNH',
+    durationSeconds: 110,
+    metadata: { documentSlug: 'gst-compliance', versionViewed: 'v1.4' },
+    created_at: '2026-08-18T05:17:20Z'
+  },
+  {
+    id: 'vis_ev_08',
+    sessionId: 'sess_e54a32',
+    eventType: 'page_view',
+    pagePath: '/',
+    sectionId: '#home',
+    referrer: 'google.com',
+    deviceType: 'desktop',
+    browser: 'Edge',
+    os: 'Windows',
+    region: 'India / GJ',
+    durationSeconds: 210,
+    metadata: { screenResolution: '2560x1440', searchQuery: 'Fusion Forge Creation web development agency' },
+    created_at: '2026-08-17T22:10:05Z'
+  },
+  {
+    id: 'vis_ev_09',
+    sessionId: 'sess_e54a32',
+    eventType: 'quote_request',
+    pagePath: '/',
+    sectionId: '#contact',
+    referrer: 'google.com',
+    deviceType: 'desktop',
+    browser: 'Edge',
+    os: 'Windows',
+    region: 'India / GJ',
+    durationSeconds: 95,
+    metadata: { gstinProvided: true, serviceCategory: 'full_stack_enterprise' },
+    created_at: '2026-08-17T22:14:40Z'
+  },
+  {
+    id: 'vis_ev_10',
+    sessionId: 'sess_f89b14',
+    eventType: 'chat_open',
+    pagePath: '/',
+    sectionId: '#chatbot',
+    referrer: 'direct',
+    deviceType: 'mobile',
+    browser: 'Chrome',
+    os: 'Android',
+    region: 'India / DL',
+    durationSeconds: 78,
+    metadata: { promptCount: 3, topicsDiscussed: ['GST SAC Code', 'Pricing Estimator'] },
+    created_at: '2026-08-17T18:40:19Z'
+  },
+  {
+    id: 'vis_ev_11',
+    sessionId: 'sess_14d7a8',
+    eventType: 'section_view',
+    pagePath: '/',
+    sectionId: '#tech-stack',
+    referrer: 'github.com',
+    deviceType: 'desktop',
+    browser: 'Chrome',
+    os: 'Linux',
+    region: 'United States',
+    durationSeconds: 155,
+    metadata: { techBadgesInteracted: ['React', 'TypeScript', 'Supabase', 'PostgreSQL'] },
+    created_at: '2026-08-17T14:22:10Z'
+  },
+  {
+    id: 'vis_ev_12',
+    sessionId: 'sess_22c9e1',
+    eventType: 'client_portal_open',
+    pagePath: '/',
+    sectionId: '#client-portal',
+    referrer: 'direct',
+    deviceType: 'desktop',
+    browser: 'Chrome',
+    os: 'macOS',
+    region: 'India / MH',
+    durationSeconds: 310,
+    metadata: { portalLookupTriggered: true },
+    created_at: '2026-08-17T11:05:44Z'
+  }
+];
 

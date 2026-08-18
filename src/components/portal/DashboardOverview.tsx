@@ -19,7 +19,12 @@ import {
   CheckCircle2,
   AlertCircle,
   ShoppingBag,
-  Calculator
+  Calculator,
+  Scale,
+  Activity,
+  Eye,
+  Globe,
+  Lock
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 
@@ -34,6 +39,9 @@ export const DashboardOverview: React.FC = () => {
     expenses, 
     salaryRecords, 
     staffMembers,
+    legalDocuments,
+    visitorEvents,
+    isVisitorTrackingEnabled,
     setActiveTab, 
     recordPayment 
   } = useApp();
@@ -77,22 +85,22 @@ export const DashboardOverview: React.FC = () => {
           <div 
             id="card-total-clients"
             onClick={() => setActiveTab('clients')}
-            className="p-6 rounded-2xl bg-gradient-to-br from-[#152554] via-[#0f1b3f] to-[#0a132e] border border-blue-500/30 hover:border-blue-400 hover:shadow-xl hover:shadow-blue-500/15 transition-all cursor-pointer shadow-lg relative group backdrop-blur-md"
+            className="p-6 rounded-2xl bg-white border border-[#E8E0F0] hover:border-[#C084FC] hover:shadow-md transition-all cursor-pointer shadow-xs relative group"
           >
             <div className="flex justify-between items-start">
               <div>
-                <span className="text-xs font-bold uppercase tracking-wider text-blue-200/80">Total Clients</span>
-                <div className="mt-3 text-3xl sm:text-4xl font-black text-white font-mono tracking-tight">
+                <span className="text-xs font-bold uppercase tracking-wider text-[#5F5A72]">Total Clients</span>
+                <div className="mt-3 text-3xl sm:text-4xl font-black text-[#1E1B2E] font-mono tracking-tight">
                   {totalClientsCount}
                 </div>
               </div>
-              <div className="p-3 rounded-2xl bg-gradient-to-br from-blue-500/25 to-indigo-600/25 text-blue-300 border border-blue-400/40 group-hover:from-blue-500 group-hover:to-indigo-600 group-hover:text-white transition-all shadow-inner">
+              <div className="p-3 rounded-2xl bg-[#F3E8FF] text-[#8E2D9D] border border-[#E8E0F0] group-hover:bg-[#8E2D9D] group-hover:text-white transition-all">
                 <Users className="w-5 h-5" />
               </div>
             </div>
-            <div className="mt-3 flex items-center justify-between text-xs text-slate-300 border-t border-blue-500/20 pt-2.5">
+            <div className="mt-3 flex items-center justify-between text-xs text-[#5F5A72] border-t border-[#E8E0F0] pt-2.5">
               <span>Active business accounts</span>
-              <span className="text-blue-300 font-semibold flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
+              <span className="text-[#8E2D9D] font-semibold flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
                 Manage <ArrowUpRight className="w-3.5 h-3.5" />
               </span>
             </div>
@@ -102,22 +110,22 @@ export const DashboardOverview: React.FC = () => {
           <div 
             id="card-open-enquiries"
             onClick={() => setActiveTab('enquiries')}
-            className="p-6 rounded-2xl bg-gradient-to-br from-[#102a4e] via-[#0c1f3b] to-[#08152a] border border-cyan-500/30 hover:border-cyan-400 hover:shadow-xl hover:shadow-cyan-500/15 transition-all cursor-pointer shadow-lg relative group backdrop-blur-md"
+            className="p-6 rounded-2xl bg-white border border-[#E8E0F0] hover:border-[#C084FC] hover:shadow-md transition-all cursor-pointer shadow-xs relative group"
           >
             <div className="flex justify-between items-start">
               <div>
-                <span className="text-xs font-bold uppercase tracking-wider text-cyan-200/80">Open Enquiries</span>
-                <div className="mt-3 text-3xl sm:text-4xl font-black text-white font-mono tracking-tight">
+                <span className="text-xs font-bold uppercase tracking-wider text-[#5F5A72]">Open Enquiries</span>
+                <div className="mt-3 text-3xl sm:text-4xl font-black text-[#1E1B2E] font-mono tracking-tight">
                   {openEnquiriesCount}
                 </div>
               </div>
-              <div className="p-3 rounded-2xl bg-gradient-to-br from-cyan-500/25 to-blue-600/25 text-cyan-300 border border-cyan-400/40 group-hover:from-cyan-500 group-hover:to-blue-600 group-hover:text-white transition-all shadow-inner">
+              <div className="p-3 rounded-2xl bg-blue-50 text-blue-600 border border-blue-100 group-hover:bg-blue-600 group-hover:text-white transition-all">
                 <Inbox className="w-5 h-5" />
               </div>
             </div>
-            <div className="mt-3 flex items-center justify-between text-xs text-slate-300 border-t border-cyan-500/20 pt-2.5">
+            <div className="mt-3 flex items-center justify-between text-xs text-[#5F5A72] border-t border-[#E8E0F0] pt-2.5">
               <span>{enquiries.filter(e => e.status === 'new').length || 4} new inbound leads</span>
-              <span className="text-cyan-300 font-semibold flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
+              <span className="text-blue-600 font-semibold flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
                 Review <ArrowUpRight className="w-3.5 h-3.5" />
               </span>
             </div>
@@ -127,22 +135,22 @@ export const DashboardOverview: React.FC = () => {
           <div 
             id="card-quotations"
             onClick={() => setActiveTab('quotations')}
-            className="p-6 rounded-2xl bg-gradient-to-br from-[#1a1f52] via-[#12163d] to-[#0a0d26] border border-indigo-500/30 hover:border-indigo-400 hover:shadow-xl hover:shadow-indigo-500/15 transition-all cursor-pointer shadow-lg relative group backdrop-blur-md"
+            className="p-6 rounded-2xl bg-white border border-[#E8E0F0] hover:border-[#C084FC] hover:shadow-md transition-all cursor-pointer shadow-xs relative group"
           >
             <div className="flex justify-between items-start">
               <div>
-                <span className="text-xs font-bold uppercase tracking-wider text-indigo-200/80">Quotations</span>
-                <div className="mt-3 text-3xl sm:text-4xl font-black text-white font-mono tracking-tight">
+                <span className="text-xs font-bold uppercase tracking-wider text-[#5F5A72]">Quotations</span>
+                <div className="mt-3 text-3xl sm:text-4xl font-black text-[#1E1B2E] font-mono tracking-tight">
                   {quotationsCount}
                 </div>
               </div>
-              <div className="p-3 rounded-2xl bg-gradient-to-br from-indigo-500/25 to-purple-600/25 text-indigo-300 border border-indigo-400/40 group-hover:from-indigo-500 group-hover:to-purple-600 group-hover:text-white transition-all shadow-inner">
+              <div className="p-3 rounded-2xl bg-[#F3E8FF] text-[#6F42C1] border border-[#E8E0F0] group-hover:bg-[#6F42C1] group-hover:text-white transition-all">
                 <FileText className="w-5 h-5" />
               </div>
             </div>
-            <div className="mt-3 flex items-center justify-between text-xs text-slate-300 border-t border-indigo-500/20 pt-2.5">
+            <div className="mt-3 flex items-center justify-between text-xs text-[#5F5A72] border-t border-[#E8E0F0] pt-2.5">
               <span>Proposals & estimates</span>
-              <span className="text-indigo-300 font-semibold flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
+              <span className="text-[#6F42C1] font-semibold flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
                 View QTN <ArrowUpRight className="w-3.5 h-3.5" />
               </span>
             </div>
@@ -157,22 +165,22 @@ export const DashboardOverview: React.FC = () => {
           <div 
             id="card-total-invoices"
             onClick={() => setActiveTab('invoices')}
-            className="p-6 rounded-2xl bg-gradient-to-br from-[#152554] via-[#0f1b3f] to-[#0a132e] border border-blue-500/30 hover:border-blue-400 hover:shadow-xl hover:shadow-blue-500/15 transition-all cursor-pointer shadow-lg relative group backdrop-blur-md"
+            className="p-6 rounded-2xl bg-white border border-[#E8E0F0] hover:border-[#C084FC] hover:shadow-md transition-all cursor-pointer shadow-xs relative group"
           >
             <div className="flex justify-between items-start">
               <div>
-                <span className="text-xs font-bold uppercase tracking-wider text-blue-200/80">Total Invoices</span>
-                <div className="mt-3 text-3xl sm:text-4xl font-black text-white font-mono tracking-tight">
+                <span className="text-xs font-bold uppercase tracking-wider text-[#5F5A72]">Total Invoices</span>
+                <div className="mt-3 text-3xl sm:text-4xl font-black text-[#1E1B2E] font-mono tracking-tight">
                   {totalInvoicesCount}
                 </div>
               </div>
-              <div className="p-3 rounded-2xl bg-gradient-to-br from-blue-500/25 to-indigo-600/25 text-blue-300 border border-blue-400/40 group-hover:from-blue-500 group-hover:to-indigo-600 group-hover:text-white transition-all shadow-inner">
+              <div className="p-3 rounded-2xl bg-[#F3E8FF] text-[#8E2D9D] border border-[#E8E0F0] group-hover:bg-[#8E2D9D] group-hover:text-white transition-all">
                 <Receipt className="w-5 h-5" />
               </div>
             </div>
-            <div className="mt-3 flex items-center justify-between text-xs text-slate-300 border-t border-blue-500/20 pt-2.5">
+            <div className="mt-3 flex items-center justify-between text-xs text-[#5F5A72] border-t border-[#E8E0F0] pt-2.5">
               <span>Tax invoices with GST</span>
-              <span className="text-blue-300 font-semibold flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
+              <span className="text-[#8E2D9D] font-semibold flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
                 Explore <ArrowUpRight className="w-3.5 h-3.5" />
               </span>
             </div>
@@ -182,22 +190,22 @@ export const DashboardOverview: React.FC = () => {
           <div 
             id="card-outstanding"
             onClick={() => setActiveTab('invoices')}
-            className="p-6 rounded-2xl bg-gradient-to-br from-[#332211] via-[#24170a] to-[#140d05] border border-amber-500/35 hover:border-amber-400 hover:shadow-xl hover:shadow-amber-500/15 transition-all cursor-pointer shadow-lg relative group backdrop-blur-md"
+            className="p-6 rounded-2xl bg-[#FFF7ED] border border-[#FED7AA] hover:border-amber-400 hover:shadow-md transition-all cursor-pointer shadow-xs relative group"
           >
             <div className="flex justify-between items-start">
               <div>
-                <span className="text-xs font-bold uppercase tracking-wider text-amber-200/80">Outstanding</span>
-                <div className="mt-3 text-3xl sm:text-4xl font-black text-amber-400 font-mono tracking-tight">
+                <span className="text-xs font-bold uppercase tracking-wider text-amber-800">Outstanding</span>
+                <div className="mt-3 text-3xl sm:text-4xl font-black text-[#D97706] font-mono tracking-tight">
                   ₹{totalOutstanding.toLocaleString('en-IN')}
                 </div>
               </div>
-              <div className="p-3 rounded-2xl bg-gradient-to-br from-amber-500/25 to-orange-600/25 text-amber-300 border border-amber-400/40 group-hover:from-amber-500 group-hover:to-orange-600 group-hover:text-white transition-all shadow-inner">
+              <div className="p-3 rounded-2xl bg-amber-100 text-[#D97706] border border-amber-200 group-hover:bg-[#D97706] group-hover:text-white transition-all">
                 <Clock className="w-5 h-5" />
               </div>
             </div>
-            <div className="mt-3 flex items-center justify-between text-xs text-slate-300 border-t border-amber-500/20 pt-2.5">
+            <div className="mt-3 flex items-center justify-between text-xs text-amber-800 border-t border-amber-200 pt-2.5">
               <span>{pendingInvoices.length} pending receivables</span>
-              <span className="text-amber-300 font-semibold flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
+              <span className="text-[#D97706] font-semibold flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
                 Collect <ArrowUpRight className="w-3.5 h-3.5" />
               </span>
             </div>
@@ -207,22 +215,22 @@ export const DashboardOverview: React.FC = () => {
           <div 
             id="card-paid"
             onClick={() => setActiveTab('payments')}
-            className="p-6 rounded-2xl bg-gradient-to-br from-[#0e2c21] via-[#091f17] to-[#05110d] border border-emerald-500/35 hover:border-emerald-400 hover:shadow-xl hover:shadow-emerald-500/15 transition-all cursor-pointer shadow-lg relative group backdrop-blur-md"
+            className="p-6 rounded-2xl bg-[#ECFDF5] border border-[#A7F3D0] hover:border-emerald-400 hover:shadow-md transition-all cursor-pointer shadow-xs relative group"
           >
             <div className="flex justify-between items-start">
               <div>
-                <span className="text-xs font-bold uppercase tracking-wider text-emerald-200/80">Paid</span>
-                <div className="mt-3 text-3xl sm:text-4xl font-black text-emerald-400 font-mono tracking-tight">
+                <span className="text-xs font-bold uppercase tracking-wider text-emerald-800">Paid</span>
+                <div className="mt-3 text-3xl sm:text-4xl font-black text-[#059669] font-mono tracking-tight">
                   ₹{totalPaid.toLocaleString('en-IN')}
                 </div>
               </div>
-              <div className="p-3 rounded-2xl bg-gradient-to-br from-emerald-500/25 to-teal-600/25 text-emerald-300 border border-emerald-400/40 group-hover:from-emerald-500 group-hover:to-teal-600 group-hover:text-white transition-all shadow-inner">
+              <div className="p-3 rounded-2xl bg-emerald-100 text-[#059669] border border-emerald-200 group-hover:bg-[#059669] group-hover:text-white transition-all">
                 <TrendingUp className="w-5 h-5" />
               </div>
             </div>
-            <div className="mt-3 flex items-center justify-between text-xs text-slate-300 border-t border-emerald-500/20 pt-2.5">
+            <div className="mt-3 flex items-center justify-between text-xs text-emerald-800 border-t border-emerald-200 pt-2.5">
               <span>Total revenue collected</span>
-              <span className="text-emerald-300 font-semibold flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
+              <span className="text-[#059669] font-semibold flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
                 Ledger <ArrowUpRight className="w-3.5 h-3.5" />
               </span>
             </div>
@@ -234,60 +242,60 @@ export const DashboardOverview: React.FC = () => {
       {/* ========================================================================= */}
       {/* QUICK ACTIONS ROW                                                         */}
       {/* ========================================================================= */}
-      <div className="bg-gradient-to-r from-[#12204c]/95 via-[#0e1a3d]/95 to-[#12204c]/95 border border-blue-500/25 rounded-2xl p-5 shadow-xl backdrop-blur-md">
+      <div className="bg-white border border-[#E8E0F0] rounded-2xl p-5 shadow-xs">
         <div className="flex items-center justify-between mb-3.5">
-          <h3 className="text-xs font-extrabold uppercase tracking-wider text-white flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-cyan-400" />
+          <h3 className="text-xs font-extrabold uppercase tracking-wider text-[#1E1B2E] flex items-center gap-2">
+            <Sparkles className="w-4 h-4 text-[#8E2D9D]" />
             <span>Quick Actions</span>
           </h3>
-          <span className="text-[11px] text-slate-300">One-click administrative workflows</span>
+          <span className="text-[11px] text-[#5F5A72]">One-click administrative workflows</span>
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
           <button
             onClick={() => setActiveTab('invoices')}
-            className="p-3 rounded-xl bg-gradient-to-br from-blue-900/40 to-indigo-950/60 hover:from-blue-600 hover:to-indigo-600 text-blue-200 hover:text-white border border-blue-500/40 hover:border-blue-300 text-xs font-bold transition-all flex flex-col items-center justify-center gap-2 cursor-pointer shadow-md hover:scale-102"
+            className="p-3 rounded-xl bg-[#FAF5FF] hover:bg-[#F3E8FF] text-[#1E1B2E] border border-[#E8E0F0] hover:border-[#C084FC] text-xs font-bold transition-all flex flex-col items-center justify-center gap-2 cursor-pointer shadow-xs hover:scale-102"
           >
-            <Receipt className="w-4 h-4" />
+            <Receipt className="w-4 h-4 text-[#8E2D9D]" />
             <span>Create Invoice</span>
           </button>
 
           <button
             onClick={() => setActiveTab('quotations')}
-            className="p-3 rounded-xl bg-gradient-to-br from-cyan-900/40 to-blue-950/60 hover:from-cyan-600 hover:to-blue-600 text-cyan-200 hover:text-white border border-cyan-500/40 hover:border-cyan-300 text-xs font-bold transition-all flex flex-col items-center justify-center gap-2 cursor-pointer shadow-md hover:scale-102"
+            className="p-3 rounded-xl bg-[#FAF5FF] hover:bg-[#F3E8FF] text-[#1E1B2E] border border-[#E8E0F0] hover:border-[#C084FC] text-xs font-bold transition-all flex flex-col items-center justify-center gap-2 cursor-pointer shadow-xs hover:scale-102"
           >
-            <FileText className="w-4 h-4" />
+            <FileText className="w-4 h-4 text-[#6F42C1]" />
             <span>Create Quotation</span>
           </button>
 
           <button
             onClick={() => setActiveTab('clients')}
-            className="p-3 rounded-xl bg-gradient-to-br from-indigo-900/40 to-violet-950/60 hover:from-indigo-600 hover:to-violet-600 text-indigo-200 hover:text-white border border-indigo-500/40 hover:border-indigo-300 text-xs font-bold transition-all flex flex-col items-center justify-center gap-2 cursor-pointer shadow-md hover:scale-102"
+            className="p-3 rounded-xl bg-[#FAF5FF] hover:bg-[#F3E8FF] text-[#1E1B2E] border border-[#E8E0F0] hover:border-[#C084FC] text-xs font-bold transition-all flex flex-col items-center justify-center gap-2 cursor-pointer shadow-xs hover:scale-102"
           >
-            <Users className="w-4 h-4" />
+            <Users className="w-4 h-4 text-[#8E2D9D]" />
             <span>New Client</span>
           </button>
 
           <button
             onClick={() => setActiveTab('payments')}
-            className="p-3 rounded-xl bg-gradient-to-br from-emerald-900/40 to-teal-950/60 hover:from-emerald-600 hover:to-teal-600 text-emerald-200 hover:text-white border border-emerald-500/40 hover:border-emerald-300 text-xs font-bold transition-all flex flex-col items-center justify-center gap-2 cursor-pointer shadow-md hover:scale-102"
+            className="p-3 rounded-xl bg-[#FAF5FF] hover:bg-[#F3E8FF] text-[#1E1B2E] border border-[#E8E0F0] hover:border-[#C084FC] text-xs font-bold transition-all flex flex-col items-center justify-center gap-2 cursor-pointer shadow-xs hover:scale-102"
           >
-            <CreditCard className="w-4 h-4" />
+            <CreditCard className="w-4 h-4 text-[#059669]" />
             <span>Record Payment</span>
           </button>
 
           <button
             onClick={() => setActiveTab('enquiries')}
-            className="p-3 rounded-xl bg-gradient-to-br from-purple-900/40 to-fuchsia-950/60 hover:from-purple-600 hover:to-fuchsia-600 text-purple-200 hover:text-white border border-purple-500/40 hover:border-purple-300 text-xs font-bold transition-all flex flex-col items-center justify-center gap-2 cursor-pointer shadow-md hover:scale-102"
+            className="p-3 rounded-xl bg-[#FAF5FF] hover:bg-[#F3E8FF] text-[#1E1B2E] border border-[#E8E0F0] hover:border-[#C084FC] text-xs font-bold transition-all flex flex-col items-center justify-center gap-2 cursor-pointer shadow-xs hover:scale-102"
           >
-            <Inbox className="w-4 h-4" />
+            <Inbox className="w-4 h-4 text-[#6F42C1]" />
             <span>View Enquiries</span>
           </button>
 
           <button
             onClick={() => setActiveTab('invoices')}
-            className="p-3 rounded-xl bg-gradient-to-br from-amber-900/40 to-orange-950/60 hover:from-amber-600 hover:to-orange-600 text-amber-200 hover:text-white border border-amber-500/40 hover:border-amber-300 text-xs font-bold transition-all flex flex-col items-center justify-center gap-2 cursor-pointer shadow-md hover:scale-102"
+            className="p-3 rounded-xl bg-[#FAF5FF] hover:bg-[#F3E8FF] text-[#1E1B2E] border border-[#E8E0F0] hover:border-[#C084FC] text-xs font-bold transition-all flex flex-col items-center justify-center gap-2 cursor-pointer shadow-xs hover:scale-102"
           >
-            <ShieldCheck className="w-4 h-4" />
+            <ShieldCheck className="w-4 h-4 text-[#D97706]" />
             <span>GST Simulator</span>
           </button>
         </div>
@@ -296,52 +304,52 @@ export const DashboardOverview: React.FC = () => {
       {/* ========================================================================= */}
       {/* REVENUE SUMMARY SECTION                                                    */}
       {/* ========================================================================= */}
-      <div className="bg-gradient-to-br from-[#13224e]/95 via-[#0e193c]/95 to-[#09112a]/95 border border-blue-500/25 rounded-2xl p-6 shadow-xl backdrop-blur-md space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-blue-500/20">
+      <div className="bg-white border border-[#E8E0F0] rounded-2xl p-6 shadow-xs space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-[#E8E0F0]">
           <div>
-            <h3 className="text-sm font-black text-white flex items-center gap-2">
-              <TrendingUp className="w-4 h-4 text-emerald-400" />
+            <h3 className="text-sm font-black text-[#1E1B2E] flex items-center gap-2">
+              <TrendingUp className="w-4 h-4 text-[#059669]" />
               <span>Revenue & Collection Summary</span>
             </h3>
-            <p className="text-xs text-slate-300 mt-0.5">Authoritative billing performance across active cycles</p>
+            <p className="text-xs text-[#5F5A72] mt-0.5">Authoritative billing performance across active cycles</p>
           </div>
           <div className="flex items-center gap-3">
-            <div className="flex items-center gap-1.5 text-xs text-slate-200">
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 inline-block shadow-sm"></span>
-              <span>Paid: {Math.round((totalPaid / (totalBilled || 1)) * 100)}%</span>
+            <div className="flex items-center gap-1.5 text-xs text-[#5F5A72]">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#059669] inline-block shadow-xs"></span>
+              <span className="font-semibold text-[#059669]">Paid: {Math.round((totalPaid / (totalBilled || 1)) * 100)}%</span>
             </div>
-            <div className="flex items-center gap-1.5 text-xs text-slate-200">
-              <span className="w-2.5 h-2.5 rounded-full bg-amber-400 inline-block shadow-sm"></span>
-              <span>Outstanding: {Math.round((totalOutstanding / (totalBilled || 1)) * 100)}%</span>
+            <div className="flex items-center gap-1.5 text-xs text-[#5F5A72]">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#D97706] inline-block shadow-xs"></span>
+              <span className="font-semibold text-[#D97706]">Outstanding: {Math.round((totalOutstanding / (totalBilled || 1)) * 100)}%</span>
             </div>
           </div>
         </div>
 
         {/* Visual Progress Bar */}
-        <div className="w-full bg-slate-900/90 rounded-full h-3.5 p-0.5 border border-slate-700/80 overflow-hidden flex shadow-inner">
+        <div className="w-full bg-[#FAF5FF] rounded-full h-3.5 p-0.5 border border-[#E8E0F0] overflow-hidden flex shadow-inner">
           <div 
-            className="bg-gradient-to-r from-emerald-500 to-teal-400 h-full rounded-l-full transition-all duration-500 shadow-sm" 
+            className="bg-[#059669] h-full rounded-l-full transition-all duration-500 shadow-xs" 
             style={{ width: `${Math.round((totalPaid / (totalBilled || 1)) * 100)}%` }}
           />
           <div 
-            className="bg-gradient-to-r from-amber-500 to-orange-400 h-full rounded-r-full transition-all duration-500 shadow-sm" 
+            className="bg-[#D97706] h-full rounded-r-full transition-all duration-500 shadow-xs" 
             style={{ width: `${Math.round((totalOutstanding / (totalBilled || 1)) * 100)}%` }}
           />
         </div>
 
         {/* Summary Metric Strip */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
-          <div className="p-3.5 rounded-xl bg-gradient-to-br from-[#101b3d] to-[#0a122c] border border-blue-500/20 text-xs">
-            <div className="text-slate-400">Gross Billed Value</div>
-            <div className="text-lg font-black text-white font-mono mt-1">₹{totalBilled.toLocaleString('en-IN')}</div>
+          <div className="p-3.5 rounded-xl bg-[#FAF5FF] border border-[#E8E0F0] text-xs">
+            <div className="text-[#5F5A72]">Gross Billed Value</div>
+            <div className="text-lg font-black text-[#1E1B2E] font-mono mt-1">₹{totalBilled.toLocaleString('en-IN')}</div>
           </div>
-          <div className="p-3.5 rounded-xl bg-gradient-to-br from-emerald-950/50 to-teal-950/30 border border-emerald-500/30 text-xs">
-            <div className="text-emerald-300 font-semibold">Realized Inflow (Paid)</div>
-            <div className="text-lg font-black text-emerald-400 font-mono mt-1">₹{totalPaid.toLocaleString('en-IN')}</div>
+          <div className="p-3.5 rounded-xl bg-[#ECFDF5] border border-[#A7F3D0] text-xs">
+            <div className="text-emerald-800 font-semibold">Realized Inflow (Paid)</div>
+            <div className="text-lg font-black text-[#059669] font-mono mt-1">₹{totalPaid.toLocaleString('en-IN')}</div>
           </div>
-          <div className="p-3.5 rounded-xl bg-gradient-to-br from-amber-950/50 to-orange-950/30 border border-amber-500/30 text-xs">
-            <div className="text-amber-300 font-semibold">Pending Receivables (Outstanding)</div>
-            <div className="text-lg font-black text-amber-400 font-mono mt-1">₹{totalOutstanding.toLocaleString('en-IN')}</div>
+          <div className="p-3.5 rounded-xl bg-[#FFF7ED] border border-[#FED7AA] text-xs">
+            <div className="text-amber-800 font-semibold">Pending Receivables (Outstanding)</div>
+            <div className="text-lg font-black text-[#D97706] font-mono mt-1">₹{totalOutstanding.toLocaleString('en-IN')}</div>
           </div>
         </div>
       </div>
@@ -349,18 +357,18 @@ export const DashboardOverview: React.FC = () => {
       {/* ========================================================================= */}
       {/* FINANCIAL HEALTH & P&L EXECUTIVE SECTION (PHASE 10)                       */}
       {/* ========================================================================= */}
-      <div className="bg-gradient-to-br from-[#111f48]/95 via-[#0c1736]/95 to-[#070e24]/95 border border-indigo-500/30 rounded-2xl p-6 shadow-xl backdrop-blur-md space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-indigo-500/20">
+      <div className="bg-white border border-[#E8E0F0] rounded-2xl p-6 shadow-xs space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-[#E8E0F0]">
           <div>
-            <h3 className="text-sm font-black text-white flex items-center gap-2">
-              <Calculator className="w-4 h-4 text-cyan-400" />
+            <h3 className="text-sm font-black text-[#1E1B2E] flex items-center gap-2">
+              <Calculator className="w-4 h-4 text-[#8E2D9D]" />
               <span>Profit & Loss (P&L) & Cost Center Outflows</span>
             </h3>
-            <p className="text-xs text-slate-300 mt-0.5">Purchases, OPEX, Employee Payroll, and Net Operating EBITDA</p>
+            <p className="text-xs text-[#5F5A72] mt-0.5">Purchases, OPEX, Employee Payroll, and Net Operating EBITDA</p>
           </div>
           <button
             onClick={() => setActiveTab('accounting')}
-            className="text-xs text-cyan-300 hover:text-cyan-200 font-bold flex items-center gap-1 cursor-pointer bg-blue-500/10 px-3 py-1.5 rounded-xl border border-blue-500/30"
+            className="text-xs text-[#6F42C1] hover:text-[#8E2D9D] font-bold flex items-center gap-1 cursor-pointer bg-[#F3E8FF] px-3 py-1.5 rounded-xl border border-[#C084FC]/40 transition-colors"
           >
             Full P&L Reports <ArrowRight className="w-3.5 h-3.5" />
           </button>
@@ -369,52 +377,52 @@ export const DashboardOverview: React.FC = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div 
             onClick={() => setActiveTab('purchases')}
-            className="p-4 rounded-xl bg-slate-900/80 border border-indigo-500/30 hover:border-indigo-400 transition-all cursor-pointer space-y-1"
+            className="p-4 rounded-xl bg-[#FAF5FF] border border-[#E8E0F0] hover:border-[#C084FC] transition-all cursor-pointer space-y-1"
           >
-            <div className="flex justify-between text-xs text-indigo-300 font-semibold">
+            <div className="flex justify-between text-xs text-[#6F42C1] font-semibold">
               <span>Vendor Purchases</span>
               <ShoppingBag className="w-3.5 h-3.5" />
             </div>
-            <div className="text-xl font-black text-white font-mono">₹{totalPurchasesAmount.toLocaleString('en-IN')}</div>
-            <div className="text-[10px] text-emerald-400 font-mono">ITC Claimable: ₹{totalPurchasesItc.toLocaleString('en-IN')}</div>
+            <div className="text-xl font-black text-[#1E1B2E] font-mono">₹{totalPurchasesAmount.toLocaleString('en-IN')}</div>
+            <div className="text-[10px] text-[#059669] font-mono">ITC Claimable: ₹{totalPurchasesItc.toLocaleString('en-IN')}</div>
           </div>
 
           <div 
             onClick={() => setActiveTab('expenses')}
-            className="p-4 rounded-xl bg-slate-900/80 border border-rose-500/30 hover:border-rose-400 transition-all cursor-pointer space-y-1"
+            className="p-4 rounded-xl bg-rose-50 border border-rose-200 hover:border-rose-300 transition-all cursor-pointer space-y-1"
           >
-            <div className="flex justify-between text-xs text-rose-300 font-semibold">
+            <div className="flex justify-between text-xs text-rose-700 font-semibold">
               <span>Operating Expenses (OPEX)</span>
               <CreditCard className="w-3.5 h-3.5" />
             </div>
-            <div className="text-xl font-black text-rose-400 font-mono">₹{totalExpensesAmount.toLocaleString('en-IN')}</div>
-            <div className="text-[10px] text-slate-400">{expenses.length} operating vouchers</div>
+            <div className="text-xl font-black text-rose-700 font-mono">₹{totalExpensesAmount.toLocaleString('en-IN')}</div>
+            <div className="text-[10px] text-[#5F5A72]">{expenses.length} operating vouchers</div>
           </div>
 
           <div 
             onClick={() => setActiveTab('salary')}
-            className="p-4 rounded-xl bg-slate-900/80 border border-cyan-500/30 hover:border-cyan-400 transition-all cursor-pointer space-y-1"
+            className="p-4 rounded-xl bg-blue-50 border border-blue-200 hover:border-blue-300 transition-all cursor-pointer space-y-1"
           >
-            <div className="flex justify-between text-xs text-cyan-300 font-semibold">
+            <div className="flex justify-between text-xs text-blue-700 font-semibold">
               <span>Salary & Payroll</span>
               <Users className="w-3.5 h-3.5" />
             </div>
-            <div className="text-xl font-black text-cyan-400 font-mono">₹{totalSalariesGross.toLocaleString('en-IN')}</div>
-            <div className="text-[10px] text-slate-400">{staffMembers.length} active team members</div>
+            <div className="text-xl font-black text-blue-700 font-mono">₹{totalSalariesGross.toLocaleString('en-IN')}</div>
+            <div className="text-[10px] text-[#5F5A72]">{staffMembers.length} active team members</div>
           </div>
 
           <div 
             onClick={() => setActiveTab('accounting')}
-            className="p-4 rounded-xl bg-gradient-to-br from-emerald-950/60 to-slate-900 border border-emerald-500/40 hover:border-emerald-400 transition-all cursor-pointer space-y-1"
+            className="p-4 rounded-xl bg-[#ECFDF5] border border-[#A7F3D0] hover:border-emerald-400 transition-all cursor-pointer space-y-1"
           >
-            <div className="flex justify-between text-xs text-emerald-300 font-semibold">
+            <div className="flex justify-between text-xs text-emerald-800 font-semibold">
               <span>Net Operating Profit</span>
               <TrendingUp className="w-3.5 h-3.5" />
             </div>
-            <div className={`text-xl font-black font-mono ${netOperatingProfit >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+            <div className={`text-xl font-black font-mono ${netOperatingProfit >= 0 ? 'text-[#059669]' : 'text-rose-600'}`}>
               ₹{netOperatingProfit.toLocaleString('en-IN')}
             </div>
-            <div className="text-[10px] text-emerald-300 font-bold">
+            <div className="text-[10px] text-emerald-800 font-bold">
               Margin: {totalBilled > 0 ? Math.round((netOperatingProfit / totalBilled) * 100) : 0}%
             </div>
           </div>
@@ -427,15 +435,15 @@ export const DashboardOverview: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         
         {/* Recent Enquiries */}
-        <div className="p-6 rounded-2xl bg-gradient-to-br from-[#12214c]/95 via-[#0e193c]/95 to-[#09112a]/95 border border-blue-500/25 shadow-xl backdrop-blur-md space-y-4">
-          <div className="flex justify-between items-center pb-2 border-b border-blue-500/20">
+        <div className="p-6 rounded-2xl bg-white border border-[#E8E0F0] shadow-xs space-y-4">
+          <div className="flex justify-between items-center pb-2 border-b border-[#E8E0F0]">
             <div className="flex items-center space-x-2">
-              <Inbox className="w-4 h-4 text-cyan-400" />
-              <h3 className="text-sm font-bold text-white">Recent Enquiries</h3>
+              <Inbox className="w-4 h-4 text-[#8E2D9D]" />
+              <h3 className="text-sm font-bold text-[#1E1B2E]">Recent Enquiries</h3>
             </div>
             <button 
               onClick={() => setActiveTab('enquiries')}
-              className="text-xs text-cyan-300 hover:text-cyan-200 font-semibold flex items-center gap-1 cursor-pointer"
+              className="text-xs text-[#6F42C1] hover:text-[#8E2D9D] font-semibold flex items-center gap-1 cursor-pointer"
             >
               View All ({enquiries.length}) <ArrowRight className="w-3.5 h-3.5" />
             </button>
@@ -443,26 +451,26 @@ export const DashboardOverview: React.FC = () => {
 
           <div className="space-y-2.5">
             {enquiries.slice(0, 4).map(enq => (
-              <div key={enq.id} className="p-3.5 rounded-xl bg-gradient-to-r from-[#0d1736]/90 to-[#091026]/90 border border-blue-500/20 flex justify-between items-center text-xs hover:border-cyan-400/50 transition-all shadow-sm">
+              <div key={enq.id} className="p-3.5 rounded-xl bg-[#FAF5FF] border border-[#E8E0F0] flex justify-between items-center text-xs hover:border-[#C084FC] transition-all shadow-xs">
                 <div className="space-y-0.5">
-                  <div className="font-bold text-white flex items-center gap-2">
+                  <div className="font-bold text-[#1E1B2E] flex items-center gap-2">
                     <span>{enq.name}</span>
-                    <span className="text-[10px] text-slate-400 font-normal">({enq.company || 'Direct'})</span>
+                    <span className="text-[10px] text-[#817B91] font-normal">({enq.company || 'Direct'})</span>
                   </div>
-                  <div className="text-[11px] text-slate-300 truncate max-w-xs">{enq.projectDescription}</div>
-                  <div className="text-[10px] text-slate-400">{new Date(enq.createdAt).toLocaleDateString('en-IN')}</div>
+                  <div className="text-[11px] text-[#5F5A72] truncate max-w-xs">{enq.projectDescription}</div>
+                  <div className="text-[10px] text-[#817B91]">{new Date(enq.createdAt).toLocaleDateString('en-IN')}</div>
                 </div>
                 <div className="text-right shrink-0">
                   <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
                     enq.status === 'new' 
-                      ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40'
+                      ? 'bg-blue-50 text-blue-700 border border-blue-200'
                       : enq.status === 'contacted'
-                      ? 'bg-blue-500/20 text-blue-300 border border-blue-500/40'
-                      : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
+                      ? 'bg-[#F3E8FF] text-[#6F42C1] border border-[#E8E0F0]'
+                      : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                   }`}>
                     {enq.status}
                   </span>
-                  <div className="text-[11px] font-mono text-slate-200 font-semibold mt-1">{enq.budgetRange}</div>
+                  <div className="text-[11px] font-mono text-[#1E1B2E] font-semibold mt-1">{enq.budgetRange}</div>
                 </div>
               </div>
             ))}
@@ -470,15 +478,15 @@ export const DashboardOverview: React.FC = () => {
         </div>
 
         {/* Recent Quotations */}
-        <div className="p-6 rounded-2xl bg-gradient-to-br from-[#12214c]/95 via-[#0e193c]/95 to-[#09112a]/95 border border-blue-500/25 shadow-xl backdrop-blur-md space-y-4">
-          <div className="flex justify-between items-center pb-2 border-b border-blue-500/20">
+        <div className="p-6 rounded-2xl bg-white border border-[#E8E0F0] shadow-xs space-y-4">
+          <div className="flex justify-between items-center pb-2 border-b border-[#E8E0F0]">
             <div className="flex items-center space-x-2">
-              <FileText className="w-4 h-4 text-indigo-400" />
-              <h3 className="text-sm font-bold text-white">Recent Quotations</h3>
+              <FileText className="w-4 h-4 text-[#6F42C1]" />
+              <h3 className="text-sm font-bold text-[#1E1B2E]">Recent Quotations</h3>
             </div>
             <button 
               onClick={() => setActiveTab('quotations')}
-              className="text-xs text-indigo-300 hover:text-indigo-200 font-semibold flex items-center gap-1 cursor-pointer"
+              className="text-xs text-[#6F42C1] hover:text-[#8E2D9D] font-semibold flex items-center gap-1 cursor-pointer"
             >
               View All ({activeQuotations.length}) <ArrowRight className="w-3.5 h-3.5" />
             </button>
@@ -486,20 +494,20 @@ export const DashboardOverview: React.FC = () => {
 
           <div className="space-y-2.5">
             {activeQuotations.slice(0, 4).map(quote => (
-              <div key={quote.id} className="p-3.5 rounded-xl bg-gradient-to-r from-[#0d1736]/90 to-[#091026]/90 border border-blue-500/20 flex justify-between items-center text-xs hover:border-indigo-400/50 transition-all shadow-sm">
+              <div key={quote.id} className="p-3.5 rounded-xl bg-[#FAF5FF] border border-[#E8E0F0] flex justify-between items-center text-xs hover:border-[#C084FC] transition-all shadow-xs">
                 <div className="space-y-0.5">
-                  <div className="font-bold text-white">{quote.clientCompany || quote.clientName}</div>
-                  <div className="text-[11px] text-indigo-300 font-mono font-semibold">{quote.quoteNumber}</div>
-                  <div className="text-[10px] text-slate-300 truncate max-w-xs">{quote.title}</div>
+                  <div className="font-bold text-[#1E1B2E]">{quote.clientCompany || quote.clientName}</div>
+                  <div className="text-[11px] text-[#6F42C1] font-mono font-semibold">{quote.quoteNumber}</div>
+                  <div className="text-[10px] text-[#5F5A72] truncate max-w-xs">{quote.title}</div>
                 </div>
                 <div className="text-right shrink-0">
-                  <div className="font-mono font-bold text-white text-sm">₹{quote.totalAmount.toLocaleString('en-IN')}</div>
+                  <div className="font-mono font-bold text-[#1E1B2E] text-sm">₹{quote.totalAmount.toLocaleString('en-IN')}</div>
                   <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase inline-block mt-1 ${
                     quote.status === 'converted'
-                      ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
+                      ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                       : quote.status === 'sent'
-                      ? 'bg-blue-500/20 text-blue-300 border border-blue-500/40'
-                      : 'bg-slate-800 text-slate-300 border border-slate-700'
+                      ? 'bg-blue-50 text-blue-700 border border-blue-200'
+                      : 'bg-slate-100 text-[#5F5A72] border border-slate-200'
                   }`}>
                     {quote.status}
                   </span>
@@ -517,15 +525,15 @@ export const DashboardOverview: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         
         {/* Recent Invoices */}
-        <div className="p-6 rounded-2xl bg-gradient-to-br from-[#12214c]/95 via-[#0e193c]/95 to-[#09112a]/95 border border-blue-500/25 shadow-xl backdrop-blur-md space-y-4">
-          <div className="flex justify-between items-center pb-2 border-b border-blue-500/20">
+        <div className="p-6 rounded-2xl bg-white border border-[#E8E0F0] shadow-xs space-y-4">
+          <div className="flex justify-between items-center pb-2 border-b border-[#E8E0F0]">
             <div className="flex items-center space-x-2">
-              <Receipt className="w-4 h-4 text-blue-400" />
-              <h3 className="text-sm font-bold text-white">Recent Invoices</h3>
+              <Receipt className="w-4 h-4 text-[#8E2D9D]" />
+              <h3 className="text-sm font-bold text-[#1E1B2E]">Recent Invoices</h3>
             </div>
             <button 
               onClick={() => setActiveTab('invoices')}
-              className="text-xs text-blue-300 hover:text-blue-200 font-semibold flex items-center gap-1 cursor-pointer"
+              className="text-xs text-[#6F42C1] hover:text-[#8E2D9D] font-semibold flex items-center gap-1 cursor-pointer"
             >
               View All ({activeInvoices.length}) <ArrowRight className="w-3.5 h-3.5" />
             </button>
@@ -533,24 +541,24 @@ export const DashboardOverview: React.FC = () => {
 
           <div className="space-y-2.5">
             {activeInvoices.slice(0, 4).map(inv => (
-              <div key={inv.id} className="p-3.5 rounded-xl bg-gradient-to-r from-[#0d1736]/90 to-[#091026]/90 border border-blue-500/20 flex justify-between items-center text-xs hover:border-blue-400/50 transition-all shadow-sm">
+              <div key={inv.id} className="p-3.5 rounded-xl bg-[#FAF5FF] border border-[#E8E0F0] flex justify-between items-center text-xs hover:border-[#C084FC] transition-all shadow-xs">
                 <div className="space-y-0.5">
-                  <div className="font-bold text-white flex items-center gap-2">
+                  <div className="font-bold text-[#1E1B2E] flex items-center gap-2">
                     <span>{inv.buyerCompany || inv.clientCompany || inv.clientName}</span>
                     {inv.invoiceNumber === 'FFC-2026-0003' && (
-                      <span className="px-1.5 py-0.2 rounded text-[9px] bg-blue-500/20 text-blue-300 border border-blue-500/40 font-bold">PROMPT SPEC</span>
+                      <span className="px-1.5 py-0.2 rounded text-[9px] bg-[#F3E8FF] text-[#8E2D9D] border border-[#C084FC] font-bold">PROMPT SPEC</span>
                     )}
                   </div>
-                  <div className="text-[11px] text-slate-300 font-mono">{inv.invoiceNumber} • {inv.issueDate}</div>
+                  <div className="text-[11px] text-[#5F5A72] font-mono">{inv.invoiceNumber} • {inv.issueDate}</div>
                 </div>
                 <div className="text-right shrink-0">
-                  <div className="font-mono font-bold text-white text-sm">₹{inv.totalAmount.toLocaleString('en-IN')}</div>
+                  <div className="font-mono font-bold text-[#1E1B2E] text-sm">₹{inv.totalAmount.toLocaleString('en-IN')}</div>
                   <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase inline-block mt-1 ${
                     inv.status === 'paid'
-                      ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
+                      ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                       : inv.status === 'partially_paid'
-                      ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
-                      : 'bg-blue-500/20 text-blue-300 border border-blue-500/40'
+                      ? 'bg-amber-50 text-amber-700 border border-amber-200'
+                      : 'bg-blue-50 text-blue-700 border border-blue-200'
                   }`}>
                     {inv.status.replace('_', ' ')}
                   </span>
@@ -561,15 +569,15 @@ export const DashboardOverview: React.FC = () => {
         </div>
 
         {/* Pending Payments */}
-        <div className="p-6 rounded-2xl bg-gradient-to-br from-[#12214c]/95 via-[#0e193c]/95 to-[#09112a]/95 border border-blue-500/25 shadow-xl backdrop-blur-md space-y-4">
-          <div className="flex justify-between items-center pb-2 border-b border-blue-500/20">
+        <div className="p-6 rounded-2xl bg-white border border-[#E8E0F0] shadow-xs space-y-4">
+          <div className="flex justify-between items-center pb-2 border-b border-[#E8E0F0]">
             <div className="flex items-center space-x-2">
-              <Clock className="w-4 h-4 text-amber-400" />
-              <h3 className="text-sm font-bold text-white">Pending Payments</h3>
+              <Clock className="w-4 h-4 text-[#D97706]" />
+              <h3 className="text-sm font-bold text-[#1E1B2E]">Pending Payments</h3>
             </div>
             <button 
               onClick={() => setActiveTab('invoices')}
-              className="text-xs text-amber-300 hover:text-amber-200 font-semibold flex items-center gap-1 cursor-pointer"
+              className="text-xs text-[#D97706] hover:text-amber-700 font-semibold flex items-center gap-1 cursor-pointer"
             >
               Manage ({pendingInvoices.length}) <ArrowRight className="w-3.5 h-3.5" />
             </button>
@@ -577,18 +585,18 @@ export const DashboardOverview: React.FC = () => {
 
           <div className="space-y-2.5">
             {pendingInvoices.length === 0 ? (
-              <div className="p-6 text-center text-xs text-slate-400 bg-gradient-to-br from-[#0d1736] to-[#091026] rounded-xl border border-blue-500/20">
+              <div className="p-6 text-center text-xs text-[#5F5A72] bg-[#FAF5FF] rounded-xl border border-[#E8E0F0]">
                 All invoices have been paid in full!
               </div>
             ) : (
               pendingInvoices.slice(0, 4).map(inv => (
-                <div key={inv.id} className="p-3.5 rounded-xl bg-gradient-to-r from-[#0d1736]/90 to-[#091026]/90 border border-amber-500/30 flex justify-between items-center text-xs hover:border-amber-400/60 transition-all shadow-sm">
+                <div key={inv.id} className="p-3.5 rounded-xl bg-[#FFF7ED] border border-[#FED7AA] flex justify-between items-center text-xs hover:border-amber-400 transition-all shadow-xs">
                   <div className="space-y-0.5">
-                    <div className="font-bold text-white">{inv.buyerCompany || inv.clientCompany || inv.clientName}</div>
-                    <div className="text-[11px] text-slate-300 font-mono">{inv.invoiceNumber} • Due: {inv.dueDate}</div>
+                    <div className="font-bold text-[#1E1B2E]">{inv.buyerCompany || inv.clientCompany || inv.clientName}</div>
+                    <div className="text-[11px] text-[#5F5A72] font-mono">{inv.invoiceNumber} • Due: {inv.dueDate}</div>
                   </div>
                   <div className="text-right shrink-0">
-                    <div className="font-mono font-bold text-amber-400 text-sm">
+                    <div className="font-mono font-bold text-[#D97706] text-sm">
                       ₹{inv.balanceDue.toLocaleString('en-IN')}
                     </div>
                     <button
@@ -606,7 +614,7 @@ export const DashboardOverview: React.FC = () => {
                           recordedBy: 'Manoj Satapathy'
                         });
                       }}
-                      className="px-2.5 py-0.5 mt-1 rounded-md bg-gradient-to-r from-emerald-600/30 to-teal-600/30 hover:from-emerald-600 hover:to-teal-600 text-emerald-200 hover:text-white border border-emerald-500/40 text-[10px] font-bold transition-all cursor-pointer inline-flex items-center gap-1 shadow-xs"
+                      className="px-2.5 py-0.5 mt-1 rounded-md bg-[#059669] hover:bg-[#047857] text-white text-[10px] font-bold transition-all cursor-pointer inline-flex items-center gap-1 shadow-xs"
                     >
                       <CreditCard className="w-3 h-3" />
                       <span>Record Payment</span>
@@ -615,6 +623,128 @@ export const DashboardOverview: React.FC = () => {
                 </div>
               ))
             )}
+          </div>
+        </div>
+
+      </div>
+
+      {/* ========================================================================= */}
+      {/* 4. GOVERNANCE, LEGAL COMPLIANCE & PRIVACY MONITORING (PHASE 16)           */}
+      {/* ========================================================================= */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        
+        {/* Legal Document & Regulatory Compliance Monitor */}
+        <div className="p-6 rounded-2xl bg-white border border-[#E8E0F0] shadow-xs space-y-4">
+          <div className="flex justify-between items-center pb-2 border-b border-[#E8E0F0]">
+            <div className="flex items-center space-x-2">
+              <Scale className="w-4 h-4 text-[#8E2D9D]" />
+              <h3 className="text-sm font-bold text-[#1E1B2E]">Legal Documents & Compliance</h3>
+            </div>
+            <button 
+              onClick={() => setActiveTab('legal_docs')}
+              className="text-xs text-[#6F42C1] hover:text-[#8E2D9D] font-semibold flex items-center gap-1 cursor-pointer"
+            >
+              Manage ({legalDocuments.length}) <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
+
+          <div className="space-y-2.5">
+            {legalDocuments.map(doc => (
+              <div 
+                key={doc.id}
+                onClick={() => setActiveTab('legal_docs')}
+                className="p-3.5 rounded-xl bg-[#FAF5FF] border border-[#E8E0F0] hover:border-[#C084FC] flex items-center justify-between transition-all cursor-pointer shadow-xs group"
+              >
+                <div className="space-y-0.5 max-w-[70%]">
+                  <div className="font-bold text-[#1E1B2E] text-xs truncate flex items-center gap-1.5">
+                    <span>{doc.title}</span>
+                  </div>
+                  <div className="text-[11px] text-[#5F5A72] flex items-center gap-2">
+                    <span className="font-mono text-[#6F42C1] font-bold">{doc.version}</span>
+                    <span>• Updated: {doc.lastUpdatedDate}</span>
+                    <span>• By: {doc.lastModifiedBy}</span>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
+                    doc.status === 'active' 
+                      ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                      : 'bg-amber-50 text-amber-700 border border-amber-200'
+                  }`}>
+                    {doc.status}
+                  </span>
+                  <ArrowRight className="w-3.5 h-3.5 text-[#817B91] group-hover:text-[#8E2D9D] group-hover:translate-x-0.5 transition-all" />
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="p-3 rounded-xl bg-[#FAF5FF] border border-[#E8E0F0] flex items-center justify-between text-[11px] text-[#5F5A72]">
+            <span className="flex items-center gap-1.5">
+              <ShieldCheck className="w-3.5 h-3.5 text-[#059669]" />
+              <span>DPDP Act 2023 & GST SAC 998314 Compliant</span>
+            </span>
+            <span className="font-mono text-[#059669] font-semibold">100% Verified</span>
+          </div>
+        </div>
+
+        {/* Visitor Telemetry & Privacy Monitoring Summary */}
+        <div className="p-6 rounded-2xl bg-white border border-[#E8E0F0] shadow-xs space-y-4">
+          <div className="flex justify-between items-center pb-2 border-b border-[#E8E0F0]">
+            <div className="flex items-center space-x-2">
+              <Activity className="w-4 h-4 text-[#059669]" />
+              <h3 className="text-sm font-bold text-[#1E1B2E]">Privacy-Conscious Visitor Telemetry</h3>
+            </div>
+            <button 
+              onClick={() => setActiveTab('visitor_monitoring')}
+              className="text-xs text-[#059669] hover:text-emerald-700 font-semibold flex items-center gap-1 cursor-pointer"
+            >
+              View Analytics ({visitorEvents.length}) <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
+
+          {/* Quick Metrics Grid */}
+          <div className="grid grid-cols-3 gap-2 text-center">
+            <div className="p-3 rounded-xl bg-[#FAF5FF] border border-[#E8E0F0]">
+              <div className="text-[10px] uppercase font-bold text-[#817B91]">Total Telemetry Events</div>
+              <div className="text-lg font-black text-[#1E1B2E] font-mono mt-1">{visitorEvents.length}</div>
+            </div>
+            <div className="p-3 rounded-xl bg-[#FAF5FF] border border-[#E8E0F0]">
+              <div className="text-[10px] uppercase font-bold text-[#817B91]">Unique Sessions</div>
+              <div className="text-lg font-black text-[#8E2D9D] font-mono mt-1">
+                {new Set(visitorEvents.map(v => v.sessionId)).size}
+              </div>
+            </div>
+            <div className="p-3 rounded-xl bg-[#FAF5FF] border border-[#E8E0F0]">
+              <div className="text-[10px] uppercase font-bold text-[#817B91]">Telemetry Status</div>
+              <div className="text-xs font-bold text-[#059669] font-mono mt-2 flex items-center justify-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span>{isVisitorTrackingEnabled ? 'Active' : 'Paused'}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Recent Events Feed */}
+          <div className="space-y-2">
+            <div className="text-[11px] font-bold text-[#817B91] uppercase tracking-wider">Recent Inbound Traffic</div>
+            {visitorEvents.slice(0, 3).map(ev => (
+              <div key={ev.id} className="p-2.5 rounded-xl bg-[#FAF5FF] border border-[#E8E0F0] flex items-center justify-between text-xs">
+                <div className="space-y-0.5">
+                  <div className="font-semibold text-[#1E1B2E] flex items-center gap-2">
+                    <span className="text-[11px] font-mono text-[#6F42C1]">{ev.pagePath || '/'}{ev.sectionId || ''}</span>
+                    <span className="text-[10px] px-1.5 py-0.2 rounded bg-white text-[#5F5A72] border border-[#E8E0F0] font-mono">
+                      {ev.deviceType} • {ev.browser}
+                    </span>
+                  </div>
+                  <div className="text-[10px] text-[#817B91]">{ev.region || 'India'} • Ref: {ev.referrer || 'direct'}</div>
+                </div>
+                <div className="text-right">
+                  <span className="px-2 py-0.5 rounded text-[9px] font-mono font-bold bg-[#F3E8FF] text-[#8E2D9D] border border-[#E8E0F0]">
+                    {ev.eventType}
+                  </span>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
 

@@ -633,6 +633,12 @@ export interface ProjectEnquiry {
   phone: string;
   company?: string;
   company_name?: string;
+  gstin?: string;
+  gst_number?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  pincode?: string;
   service?: string;
   serviceCategory?: 'web_development' | 'mobile_app' | 'backend_api' | 'database_solutions' | 'ui_ux_design' | 'full_stack_enterprise' | string;
   message?: string;
@@ -650,6 +656,8 @@ export interface ProjectEnquiry {
   created_at?: string;
   updated_at?: string;
 }
+
+export type Enquiry = ProjectEnquiry;
 
 export interface PortfolioProject {
   id: string;
@@ -1213,6 +1221,7 @@ export type NotificationCategory =
   | 'projects'
   | 'users'
   | 'accounting'
+  | 'compliance'
   | 'system';
 
 export type NotificationPriority = 'low' | 'normal' | 'high' | 'urgent';
@@ -1224,7 +1233,7 @@ export interface AppNotification {
   title: string;
   message: string;
   link?: string;
-  entity_type?: 'enquiry' | 'quotation' | 'invoice' | 'payment' | 'project' | 'user' | 'credit_debit_note' | 'gst_report' | 'purchase' | 'expense' | 'salary' | string;
+  entity_type?: 'enquiry' | 'quotation' | 'invoice' | 'payment' | 'project' | 'user' | 'credit_debit_note' | 'gst_report' | 'purchase' | 'expense' | 'salary' | 'legal_document' | string;
   entity_id?: string;
   priority: NotificationPriority;
   is_read: boolean;
@@ -1250,6 +1259,110 @@ export interface EmailLog {
   entity_id?: string;
   metadata?: Record<string, any>;
   created_at: string;
+}
+
+// =============================================================================
+// PHASE 16: LEGAL DOCUMENT MONITORING AND VISITOR MONITORING
+// =============================================================================
+
+export type LegalDocumentType = 'privacy_policy' | 'terms_of_engagement' | 'gst_compliance';
+export type LegalDocumentStatus = 'active' | 'draft' | 'archived' | 'in_review';
+
+export interface LegalDocument {
+  id: string;
+  slug: 'privacy-policy' | 'terms-of-engagement' | 'gst-compliance' | string;
+  title: string;
+  documentType: LegalDocumentType;
+  version: string;
+  effectiveDate: string;
+  lastUpdatedDate: string;
+  status: LegalDocumentStatus;
+  summary: string;
+  content: string;
+  jurisdiction: string;
+  applicableLaw: string;
+  createdBy: string;
+  createdByEmail?: string;
+  lastModifiedBy: string;
+  lastModifiedByEmail?: string;
+  lastModifiedByRole?: string;
+  changeSummary?: string;
+  versionHistoryCount?: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface LegalDocumentHistoryItem {
+  id: string;
+  documentId: string;
+  documentSlug: string;
+  version: string;
+  title: string;
+  summary: string;
+  content: string;
+  effectiveDate: string;
+  status: LegalDocumentStatus;
+  changedBy: string;
+  changedByEmail?: string;
+  changedByRole?: string;
+  changeSummary: string;
+  created_at: string;
+}
+
+export type VisitorEventType = 
+  | 'page_view' 
+  | 'section_view' 
+  | 'estimator_use' 
+  | 'quote_request' 
+  | 'legal_doc_view' 
+  | 'chat_open' 
+  | 'cta_click' 
+  | 'client_portal_open';
+
+export interface VisitorEvent {
+  id: string;
+  sessionId: string;
+  eventType: VisitorEventType | string;
+  pagePath: string;
+  sectionId?: string;
+  referrer?: string;
+  deviceType: 'desktop' | 'mobile' | 'tablet';
+  browser: string;
+  os: string;
+  region?: string;
+  durationSeconds?: number;
+  metadata?: Record<string, any>;
+  created_at: string;
+}
+
+export interface VisitorMonitoringSummary {
+  totalVisits: number;
+  uniqueSessions: number;
+  todayVisits: number;
+  averageDurationSeconds?: number;
+  sectionBreakdown: {
+    section: string;
+    count: number;
+    visitCount?: number;
+    uniqueVisitors?: number;
+    avgDurationSeconds?: number;
+  }[];
+  deviceBreakdown: {
+    device: string;
+    count: number;
+    percentage?: number;
+  }[];
+  browserBreakdown: {
+    browser: string;
+    count: number;
+    percentage?: number;
+  }[];
+  referrerBreakdown?: {
+    referrer: string;
+    count: number;
+    percentage?: number;
+  }[];
+  recentEvents: VisitorEvent[];
 }
 
 

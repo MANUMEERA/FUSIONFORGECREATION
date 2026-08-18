@@ -431,15 +431,15 @@ export const ClientsManager: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Top Banner & Title */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-gradient-to-r from-[#0d1c44]/95 via-[#091535]/95 to-[#050b1a]/95 p-5 rounded-2xl border border-blue-500/25 shadow-xl">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-5 rounded-2xl border border-[#E8E0F0] shadow-xs">
         <div>
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 border border-blue-400/40 flex items-center justify-center text-white shadow-md">
+            <div className="w-10 h-10 rounded-xl bg-[#F3E8FF] border border-[#E8E0F0] flex items-center justify-center text-[#8E2D9D] shadow-xs">
               <Users className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-white tracking-tight">Client Management</h2>
-              <p className="text-xs text-slate-300">
+              <h2 className="text-xl font-bold text-[#1E1B2E] tracking-tight">Client Management</h2>
+              <p className="text-xs text-[#5F5A72]">
                 Client Master Database, GSTIN records, Place of Supply compliance, and billing ledgers.
               </p>
             </div>
@@ -451,7 +451,7 @@ export const ClientsManager: React.FC = () => {
           <button
             onClick={handleOpenAdd}
             id="btn-add-client"
-            className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-600 hover:from-blue-500 hover:via-indigo-500 hover:to-cyan-500 text-white text-xs font-semibold flex items-center justify-center space-x-2 transition-all shadow-lg shadow-blue-500/25 active:scale-95 cursor-pointer border border-blue-400/30"
+            className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-[#8E2D9D] hover:bg-[#782485] text-white text-xs font-semibold flex items-center justify-center space-x-2 transition-all shadow-xs active:scale-95 cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             <span>Add Client</span>
@@ -461,58 +461,58 @@ export const ClientsManager: React.FC = () => {
 
       {/* Metric Quick Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <div className="p-4 rounded-xl bg-gradient-to-br from-[#0c183a]/90 via-[#0e214d]/90 to-[#071330]/90 border border-emerald-500/25 flex items-center justify-between shadow-lg">
+        <div className="p-4 rounded-xl bg-white border border-[#E8E0F0] flex items-center justify-between shadow-xs">
           <div>
-            <p className="text-[11px] font-semibold text-slate-400 uppercase">Active Clients</p>
-            <p className="text-lg font-bold text-emerald-400 mt-0.5">{activeClientsCount}</p>
+            <p className="text-[11px] font-semibold text-[#5F5A72] uppercase">Active Clients</p>
+            <p className="text-lg font-bold text-[#059669] mt-0.5">{activeClientsCount}</p>
           </div>
-          <div className="w-8 h-8 rounded-lg bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+          <div className="w-8 h-8 rounded-lg bg-[#ECFDF5] border border-[#A7F3D0] flex items-center justify-center text-[#059669]">
             <CheckCircle2 className="w-4 h-4" />
           </div>
         </div>
 
-        <div className="p-4 rounded-xl bg-gradient-to-br from-[#0c183a]/90 via-[#0e214d]/90 to-[#071330]/90 border border-amber-500/25 flex items-center justify-between shadow-lg">
+        <div className="p-4 rounded-xl bg-white border border-[#E8E0F0] flex items-center justify-between shadow-xs">
           <div>
-            <p className="text-[11px] font-semibold text-slate-400 uppercase">Disabled Clients</p>
-            <p className="text-lg font-bold text-amber-400 mt-0.5">{disabledClientsCount}</p>
+            <p className="text-[11px] font-semibold text-[#5F5A72] uppercase">Disabled Clients</p>
+            <p className="text-lg font-bold text-[#D97706] mt-0.5">{disabledClientsCount}</p>
           </div>
-          <div className="w-8 h-8 rounded-lg bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-amber-400">
+          <div className="w-8 h-8 rounded-lg bg-[#FFF7ED] border border-[#FED7AA] flex items-center justify-center text-[#D97706]">
             <XCircle className="w-4 h-4" />
           </div>
         </div>
 
-        <div className="p-4 rounded-xl bg-gradient-to-br from-[#0c183a]/90 via-[#0e214d]/90 to-[#071330]/90 border border-cyan-500/25 flex items-center justify-between shadow-lg">
+        <div className="p-4 rounded-xl bg-white border border-[#E8E0F0] flex items-center justify-between shadow-xs">
           <div>
-            <p className="text-[11px] font-semibold text-slate-400 uppercase">GST Registered</p>
-            <p className="text-lg font-bold text-cyan-400 mt-0.5">{gstRegisteredCount}</p>
+            <p className="text-[11px] font-semibold text-[#5F5A72] uppercase">GST Registered</p>
+            <p className="text-lg font-bold text-[#8E2D9D] mt-0.5">{gstRegisteredCount}</p>
           </div>
-          <div className="w-8 h-8 rounded-lg bg-cyan-500/20 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
+          <div className="w-8 h-8 rounded-lg bg-[#F3E8FF] border border-[#E8E0F0] flex items-center justify-center text-[#8E2D9D]">
             <Receipt className="w-4 h-4" />
           </div>
         </div>
 
-        <div className="p-4 rounded-xl bg-gradient-to-br from-[#0c183a]/90 via-[#0e214d]/90 to-[#071330]/90 border border-blue-500/25 flex items-center justify-between shadow-lg">
+        <div className="p-4 rounded-xl bg-white border border-[#E8E0F0] flex items-center justify-between shadow-xs">
           <div>
-            <p className="text-[11px] font-semibold text-slate-400 uppercase">Archived / Trash</p>
-            <p className="text-lg font-bold text-slate-300 mt-0.5">{trashCount}</p>
+            <p className="text-[11px] font-semibold text-[#5F5A72] uppercase">Archived / Trash</p>
+            <p className="text-lg font-bold text-[#5F5A72] mt-0.5">{trashCount}</p>
           </div>
-          <div className="w-8 h-8 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-400">
+          <div className="w-8 h-8 rounded-lg bg-[#FAF5FF] border border-[#E8E0F0] flex items-center justify-center text-[#5F5A72]">
             <Trash2 className="w-4 h-4" />
           </div>
         </div>
       </div>
 
       {/* Main Container with Tabs, Search & Filters */}
-      <div className="bg-gradient-to-b from-[#0a1533]/90 via-[#060e22]/90 to-[#040817]/90 border border-blue-500/20 rounded-2xl overflow-hidden shadow-xl backdrop-blur-md">
+      <div className="bg-white border border-[#E8E0F0] rounded-2xl overflow-hidden shadow-xs">
         {/* Header Tabs: Active Directory vs Trash */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center px-5 pt-4 pb-3 border-b border-blue-500/20 gap-3">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center px-5 pt-4 pb-3 border-b border-[#E8E0F0] gap-3">
           <div className="flex items-center space-x-2">
             <button
               onClick={() => setActiveTabFilter('active')}
               className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center space-x-2 cursor-pointer ${
                 activeTabFilter === 'active'
-                  ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-500/20 border border-blue-400/30'
-                  : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+                  ? 'bg-[#8E2D9D] text-white shadow-xs'
+                  : 'text-[#5F5A72] hover:text-[#1E1B2E] hover:bg-[#FAF5FF]'
               }`}
             >
               <Users className="w-3.5 h-3.5" />
@@ -523,8 +523,8 @@ export const ClientsManager: React.FC = () => {
               onClick={() => setActiveTabFilter('trash')}
               className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center space-x-2 cursor-pointer ${
                 activeTabFilter === 'trash'
-                  ? 'bg-rose-500/30 text-rose-300 border border-rose-500/50 shadow-xs'
-                  : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+                  ? 'bg-rose-100 text-[#DC2626] border border-rose-200 shadow-xs'
+                  : 'text-[#5F5A72] hover:text-[#1E1B2E] hover:bg-[#FAF5FF]'
               }`}
             >
               <Trash2 className="w-3.5 h-3.5" />
@@ -534,12 +534,12 @@ export const ClientsManager: React.FC = () => {
 
           {/* View Mode Toggle (Table / Grid) */}
           <div className="flex items-center space-x-2 self-end sm:self-auto">
-            <div className="flex items-center bg-[#091129] border border-slate-700 rounded-lg p-0.5">
+            <div className="flex items-center bg-[#FAF5FF] border border-[#E8E0F0] rounded-lg p-0.5">
               <button
                 onClick={() => setViewMode('table')}
                 title="Table View"
                 className={`p-1.5 rounded-md text-xs transition-all ${
-                  viewMode === 'table' ? 'bg-blue-600 text-white shadow-xs font-bold' : 'text-slate-400 hover:text-slate-200'
+                  viewMode === 'table' ? 'bg-[#8E2D9D] text-white shadow-xs font-bold' : 'text-[#817B91] hover:text-[#1E1B2E]'
                 }`}
               >
                 <LayoutList className="w-3.5 h-3.5" />
@@ -548,7 +548,7 @@ export const ClientsManager: React.FC = () => {
                 onClick={() => setViewMode('grid')}
                 title="Grid Cards View"
                 className={`p-1.5 rounded-md text-xs transition-all ${
-                  viewMode === 'grid' ? 'bg-blue-600 text-white shadow-xs font-bold' : 'text-slate-400 hover:text-slate-200'
+                  viewMode === 'grid' ? 'bg-[#8E2D9D] text-white shadow-xs font-bold' : 'text-[#817B91] hover:text-[#1E1B2E]'
                 }`}
               >
                 <LayoutGrid className="w-3.5 h-3.5" />
@@ -558,21 +558,21 @@ export const ClientsManager: React.FC = () => {
         </div>
 
         {/* Filter & Search Bar */}
-        <div className="p-4 border-b border-slate-700/80 bg-[#091129]/60 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3">
+        <div className="p-4 border-b border-[#E8E0F0] bg-[#FAF8FF] grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3">
           {/* Search Box */}
           <div className="lg:col-span-4 relative">
-            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#817B91]" />
             <input
               type="text"
               placeholder="Search company, contact, GSTIN, state, phone..."
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 rounded-xl bg-[#091129] border border-slate-700 text-xs text-white placeholder-slate-500 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
+              className="w-full pl-10 pr-4 py-2 rounded-xl bg-white border border-[#E8E0F0] text-xs text-[#1E1B2E] placeholder-[#817B91] focus:border-[#8E2D9D] focus:ring-1 focus:ring-[#8E2D9D]/30 outline-none"
             />
             {searchTerm && (
               <button 
                 onClick={() => setSearchTerm('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200 text-xs"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#817B91] hover:text-[#1E1B2E] text-xs"
               >
                 ×
               </button>
@@ -584,7 +584,7 @@ export const ClientsManager: React.FC = () => {
             <select
               value={statusFilter}
               onChange={e => setStatusFilter(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl bg-[#091129] border border-slate-700 text-xs text-white focus:border-blue-500 outline-none"
+              className="w-full px-3 py-2 rounded-xl bg-white border border-[#E8E0F0] text-xs text-[#1E1B2E] focus:border-[#8E2D9D] outline-none"
             >
               <option value="all">All Statuses</option>
               <option value="active">Active Only</option>
@@ -597,7 +597,7 @@ export const ClientsManager: React.FC = () => {
             <select
               value={stateFilter}
               onChange={e => setStateFilter(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl bg-[#091129] border border-slate-700 text-xs text-white focus:border-blue-500 outline-none"
+              className="w-full px-3 py-2 rounded-xl bg-white border border-[#E8E0F0] text-xs text-[#1E1B2E] focus:border-[#8E2D9D] outline-none"
             >
               <option value="all">All States</option>
               {availableStates.map(st => (
@@ -611,7 +611,7 @@ export const ClientsManager: React.FC = () => {
             <select
               value={gstFilter}
               onChange={e => setGstFilter(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl bg-[#091129] border border-slate-700 text-xs text-white focus:border-blue-500 outline-none"
+              className="w-full px-3 py-2 rounded-xl bg-white border border-[#E8E0F0] text-xs text-[#1E1B2E] focus:border-[#8E2D9D] outline-none"
             >
               <option value="all">All GST Types</option>
               <option value="registered">Registered (GSTIN)</option>
@@ -624,7 +624,7 @@ export const ClientsManager: React.FC = () => {
             <select
               value={sortBy}
               onChange={e => setSortBy(e.target.value as any)}
-              className="w-full px-3 py-2 rounded-xl bg-[#091129] border border-slate-700 text-xs text-white focus:border-blue-500 outline-none"
+              className="w-full px-3 py-2 rounded-xl bg-white border border-[#E8E0F0] text-xs text-[#1E1B2E] focus:border-[#8E2D9D] outline-none"
             >
               <option value="name_asc">Company (A to Z)</option>
               <option value="name_desc">Company (Z to A)</option>
@@ -637,11 +637,11 @@ export const ClientsManager: React.FC = () => {
         {/* Content Area: Table vs Grid */}
         {filteredClients.length === 0 ? (
           <div className="p-12 text-center">
-            <div className="w-12 h-12 rounded-2xl bg-slate-800/80 border border-slate-700 flex items-center justify-center text-slate-400 mx-auto mb-3">
+            <div className="w-12 h-12 rounded-2xl bg-[#FAF5FF] border border-[#E8E0F0] flex items-center justify-center text-[#817B91] mx-auto mb-3">
               <Users className="w-6 h-6" />
             </div>
-            <h4 className="text-sm font-semibold text-white">No Clients Found</h4>
-            <p className="text-xs text-slate-400 max-w-sm mx-auto mt-1">
+            <h4 className="text-sm font-semibold text-[#1E1B2E]">No Clients Found</h4>
+            <p className="text-xs text-[#5F5A72] max-w-sm mx-auto mt-1">
               {activeTabFilter === 'trash'
                 ? 'The trash bin is currently empty.'
                 : 'No clients match your search criteria. You can create a new client profile or adjust your filters.'}
@@ -649,7 +649,7 @@ export const ClientsManager: React.FC = () => {
             {activeTabFilter !== 'trash' && (
               <button
                 onClick={handleOpenAdd}
-                className="mt-4 px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-semibold inline-flex items-center space-x-2 transition-all shadow-md shadow-blue-500/25"
+                className="mt-4 px-4 py-2 rounded-xl bg-[#8E2D9D] hover:bg-[#782485] text-white text-xs font-semibold inline-flex items-center space-x-2 transition-all shadow-xs"
               >
                 <Plus className="w-3.5 h-3.5" />
                 <span>Add First Client</span>
@@ -661,7 +661,7 @@ export const ClientsManager: React.FC = () => {
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="border-b border-slate-700/80 bg-[#091129] text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+                <tr className="border-b border-[#E8E0F0] bg-[#FAF5FF] text-[11px] font-semibold text-[#5F5A72] uppercase tracking-wider">
                   <th className="py-3 px-4">Client</th>
                   <th className="py-3 px-4">GSTIN</th>
                   <th className="py-3 px-4">State</th>
@@ -670,7 +670,7 @@ export const ClientsManager: React.FC = () => {
                   <th className="py-3 px-4 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800/80 text-xs">
+              <tbody className="divide-y divide-[#E8E0F0] text-xs">
                 {filteredClients.map(client => {
                   const clientState = client.state || client.billingAddress?.state || '—';
                   const clientStateCode = client.stateCode || client.billingAddress?.stateCode;
@@ -683,33 +683,33 @@ export const ClientsManager: React.FC = () => {
                     <tr 
                       key={client.id}
                       onClick={() => setViewingClient(client)}
-                      className={`hover:bg-[#132252]/50 transition-colors cursor-pointer group ${
-                        client.status === 'disabled' ? 'opacity-60 bg-[#091129]/30' : ''
-                      } ${isJPModatex ? 'bg-blue-950/25' : ''}`}
+                      className={`hover:bg-[#FAF8FF] transition-colors cursor-pointer group ${
+                        client.status === 'disabled' ? 'opacity-60 bg-[#FAF8FF]/40' : ''
+                      } ${isJPModatex ? 'bg-[#F3E8FF]/30' : ''}`}
                     >
                       {/* 1. Client Column */}
                       <td className="py-3.5 px-4">
                         <div className="flex items-center space-x-3">
                           <div className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold text-xs shrink-0 ${
                             client.status === 'disabled'
-                              ? 'bg-slate-800 text-slate-400 border border-slate-700'
+                              ? 'bg-slate-100 text-slate-500 border border-slate-200'
                               : isJPModatex
-                              ? 'bg-blue-600/30 text-blue-300 border border-blue-500/40'
-                              : 'bg-indigo-600/25 text-indigo-300 border border-indigo-500/40'
+                              ? 'bg-[#F3E8FF] text-[#8E2D9D] border border-[#E8E0F0]'
+                              : 'bg-[#FAF5FF] text-[#6F42C1] border border-[#E8E0F0]'
                           }`}>
                             {client.companyName.slice(0, 2).toUpperCase()}
                           </div>
                           <div className="min-w-0">
-                            <div className="font-semibold text-white group-hover:text-blue-400 transition-colors flex items-center space-x-1.5">
+                            <div className="font-semibold text-[#1E1B2E] group-hover:text-[#8E2D9D] transition-colors flex items-center space-x-1.5">
                               <span className="truncate">{client.companyName}</span>
                               {isJPModatex && (
-                                <span className="px-1.5 py-0.2 rounded text-[9px] font-semibold bg-blue-500/20 text-blue-300 border border-blue-500/40">
+                                <span className="px-1.5 py-0.2 rounded text-[9px] font-semibold bg-[#F3E8FF] text-[#8E2D9D] border border-[#E8E0F0]">
                                   Primary
                                 </span>
                               )}
                             </div>
                             {contactName && contactName !== client.companyName && (
-                              <p className="text-[11px] text-slate-400 truncate mt-0.5">
+                              <p className="text-[11px] text-[#5F5A72] truncate mt-0.5">
                                 {contactName}
                               </p>
                             )}
@@ -720,31 +720,31 @@ export const ClientsManager: React.FC = () => {
                       {/* 2. GSTIN Column */}
                       <td className="py-3.5 px-4">
                         {client.gstin && client.gstin.trim() !== '' ? (
-                          <div className="flex items-center space-x-1.5 font-mono text-[11px] text-cyan-400 font-semibold">
+                          <div className="flex items-center space-x-1.5 font-mono text-[11px] text-[#8E2D9D] font-semibold">
                             <span>{client.gstin}</span>
                             <button
                               onClick={(e) => copyToClipboard(client.gstin!, `gst_${client.id}`, e)}
                               title="Copy GSTIN"
-                              className="text-slate-500 hover:text-cyan-300 p-0.5 transition-colors cursor-pointer"
+                              className="text-[#817B91] hover:text-[#8E2D9D] p-0.5 transition-colors cursor-pointer"
                             >
                               {copiedField === `gst_${client.id}` ? (
-                                <Check className="w-3 h-3 text-emerald-400" />
+                                <Check className="w-3 h-3 text-[#059669]" />
                               ) : (
                                 <Copy className="w-3 h-3" />
                               )}
                             </button>
                           </div>
                         ) : (
-                          <span className="text-slate-500 font-semibold">—</span>
+                          <span className="text-[#817B91] font-semibold">—</span>
                         )}
                       </td>
 
                       {/* 3. State Column */}
                       <td className="py-3.5 px-4">
                         <div className="flex items-center space-x-1.5">
-                          <span className="text-slate-300 font-medium">{clientState}</span>
+                          <span className="text-[#1E1B2E] font-medium">{clientState}</span>
                           {clientStateCode && (
-                            <span className="px-1.5 py-0.2 rounded text-[10px] font-mono bg-slate-800 text-slate-300 border border-slate-700">
+                            <span className="px-1.5 py-0.2 rounded text-[10px] font-mono bg-[#FAF5FF] text-[#5F5A72] border border-[#E8E0F0]">
                               {clientStateCode}
                             </span>
                           )}
@@ -754,29 +754,29 @@ export const ClientsManager: React.FC = () => {
                       {/* 4. Contact Column */}
                       <td className="py-3.5 px-4">
                         {hasContactInfo ? (
-                          <div className="space-y-0.5 text-[11px] text-slate-300">
+                          <div className="space-y-0.5 text-[11px] text-[#5F5A72]">
                             {client.email && (
                               <div className="flex items-center space-x-1 truncate max-w-[200px]">
-                                <Mail className="w-3 h-3 text-blue-400 shrink-0" />
+                                <Mail className="w-3 h-3 text-[#8E2D9D] shrink-0" />
                                 <span className="truncate">{client.email}</span>
                               </div>
                             )}
                             {client.phone && (
                               <div className="flex items-center space-x-1 truncate">
-                                <Phone className="w-3 h-3 text-blue-400 shrink-0" />
+                                <Phone className="w-3 h-3 text-[#8E2D9D] shrink-0" />
                                 <span>{client.phone}</span>
                               </div>
                             )}
                           </div>
                         ) : (
-                          <span className="text-slate-500 font-semibold">—</span>
+                          <span className="text-[#817B91] font-semibold">—</span>
                         )}
                       </td>
 
                       {/* 5. Status Column */}
                       <td className="py-3.5 px-4">
                         {isDeleted ? (
-                          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold bg-rose-500/20 text-rose-300 border border-rose-500/40">
+                          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold bg-rose-50 text-[#DC2626] border border-rose-200">
                             Deleted
                           </span>
                         ) : (
@@ -785,11 +785,11 @@ export const ClientsManager: React.FC = () => {
                             title={`Click to ${client.status === 'active' ? 'Disable' : 'Activate'}`}
                             className={`inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold border transition-all cursor-pointer ${
                               client.status === 'active'
-                                ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 hover:bg-emerald-500/30'
-                                : 'bg-amber-500/20 text-amber-300 border-amber-500/40 hover:bg-amber-500/30'
+                                ? 'bg-[#ECFDF5] text-[#059669] border-[#A7F3D0] hover:bg-emerald-100'
+                                : 'bg-[#FFF7ED] text-[#D97706] border-[#FED7AA] hover:bg-amber-100'
                             }`}
                           >
-                            <span className={`w-1.5 h-1.5 rounded-full ${client.status === 'active' ? 'bg-emerald-400' : 'bg-amber-400'}`} />
+                            <span className={`w-1.5 h-1.5 rounded-full ${client.status === 'active' ? 'bg-[#059669]' : 'bg-[#D97706]'}`} />
                             <span className="capitalize">{client.status}</span>
                           </button>
                         )}
@@ -803,7 +803,7 @@ export const ClientsManager: React.FC = () => {
                               <button
                                 onClick={(e) => handleRestore(client, e)}
                                 title="Restore Client"
-                                className="px-2.5 py-1 rounded-lg bg-blue-500/20 hover:bg-blue-600 text-blue-300 hover:text-white border border-blue-500/30 text-xs font-semibold flex items-center space-x-1 transition-colors cursor-pointer"
+                                className="px-2.5 py-1 rounded-lg bg-[#EFF6FF] hover:bg-blue-600 text-blue-600 hover:text-white border border-[#BFDBFE] text-xs font-semibold flex items-center space-x-1 transition-colors cursor-pointer"
                               >
                                 <RotateCcw className="w-3 h-3" />
                                 <span>Restore</span>
@@ -811,7 +811,7 @@ export const ClientsManager: React.FC = () => {
                               <button
                                 onClick={(e) => handlePermanentDelete(client, e)}
                                 title="Permanently Delete"
-                                className="p-1.5 rounded-lg bg-rose-500/20 hover:bg-rose-600 text-rose-300 hover:text-white border border-rose-500/30 transition-colors cursor-pointer"
+                                className="p-1.5 rounded-lg bg-rose-50 hover:bg-[#DC2626] text-[#DC2626] hover:text-white border border-rose-200 transition-colors cursor-pointer"
                               >
                                 <Trash2 className="w-3.5 h-3.5" />
                               </button>
@@ -821,7 +821,7 @@ export const ClientsManager: React.FC = () => {
                               <button
                                 onClick={() => setViewingClient(client)}
                                 title="View Details"
-                                className="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-blue-600 text-slate-300 hover:text-white border border-slate-700 text-xs font-medium flex items-center space-x-1 transition-all cursor-pointer"
+                                className="px-2.5 py-1 rounded-lg bg-[#FAF5FF] hover:bg-[#8E2D9D] text-[#5F5A72] hover:text-white border border-[#E8E0F0] text-xs font-medium flex items-center space-x-1 transition-all cursor-pointer"
                               >
                                 <Eye className="w-3 h-3" />
                                 <span>View</span>
@@ -830,7 +830,7 @@ export const ClientsManager: React.FC = () => {
                               <button
                                 onClick={() => handleOpenEdit(client)}
                                 title="Edit Client Master"
-                                className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 transition-colors cursor-pointer"
+                                className="p-1.5 rounded-lg bg-[#FAF5FF] hover:bg-[#F3E8FF] text-[#5F5A72] hover:text-[#1E1B2E] border border-[#E8E0F0] transition-colors cursor-pointer"
                               >
                                 <Edit3 className="w-3.5 h-3.5" />
                               </button>
@@ -840,8 +840,8 @@ export const ClientsManager: React.FC = () => {
                                 title={client.status === 'active' ? 'Disable Client' : 'Enable Client'}
                                 className={`p-1.5 rounded-lg border transition-colors cursor-pointer ${
                                   client.status === 'active'
-                                    ? 'bg-slate-800 hover:bg-amber-500/30 text-slate-400 hover:text-amber-300 border-slate-700'
-                                    : 'bg-slate-800 hover:bg-emerald-500/30 text-slate-400 hover:text-emerald-300 border-slate-700'
+                                    ? 'bg-[#FAF5FF] hover:bg-[#FFF7ED] text-[#5F5A72] hover:text-[#D97706] border-[#E8E0F0]'
+                                    : 'bg-[#FAF5FF] hover:bg-[#ECFDF5] text-[#5F5A72] hover:text-[#059669] border-[#E8E0F0]'
                                 }`}
                               >
                                 {client.status === 'active' ? (
@@ -854,7 +854,7 @@ export const ClientsManager: React.FC = () => {
                               <button
                                 onClick={(e) => handleSoftDelete(client, e)}
                                 title="Move to Trash"
-                                className="p-1.5 rounded-lg bg-slate-800 hover:bg-rose-500/30 text-slate-400 hover:text-rose-300 border border-slate-700 transition-colors cursor-pointer"
+                                className="p-1.5 rounded-lg bg-[#FAF5FF] hover:bg-rose-50 text-[#5F5A72] hover:text-[#DC2626] border border-[#E8E0F0] transition-colors cursor-pointer"
                               >
                                 <Trash2 className="w-3.5 h-3.5" />
                               </button>
@@ -879,54 +879,54 @@ export const ClientsManager: React.FC = () => {
                 <div
                   key={client.id}
                   onClick={() => setViewingClient(client)}
-                  className={`p-5 rounded-2xl bg-gradient-to-b from-[#111e47]/90 to-[#0a1330]/90 border border-slate-700/80 hover:border-blue-500/60 hover:shadow-xl transition-all cursor-pointer flex flex-col justify-between group shadow-lg ${
-                    client.status === 'disabled' ? 'opacity-60 bg-[#0a122e]' : ''
+                  className={`p-5 rounded-2xl bg-white border border-[#E8E0F0] hover:border-[#8E2D9D] hover:shadow-md transition-all cursor-pointer flex flex-col justify-between group shadow-xs ${
+                    client.status === 'disabled' ? 'opacity-60 bg-[#FAF8FF]' : ''
                   }`}
                 >
                   <div>
                     <div className="flex justify-between items-start">
-                      <div className="w-10 h-10 rounded-xl bg-blue-500/20 border border-blue-500/40 flex items-center justify-center text-blue-400 font-bold text-sm">
+                      <div className="w-10 h-10 rounded-xl bg-[#F3E8FF] border border-[#E8E0F0] flex items-center justify-center text-[#8E2D9D] font-bold text-sm">
                         {client.companyName.slice(0, 2).toUpperCase()}
                       </div>
                       <span className={`px-2 py-0.5 rounded text-[10px] font-semibold uppercase ${
                         isDeleted 
-                          ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40'
+                          ? 'bg-rose-50 text-[#DC2626] border border-rose-200'
                           : client.status === 'active'
-                          ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
-                          : 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
+                          ? 'bg-[#ECFDF5] text-[#059669] border-[#A7F3D0]'
+                          : 'bg-[#FFF7ED] text-[#D97706] border-[#FED7AA]'
                       }`}>
                         {isDeleted ? 'Deleted' : client.status}
                       </span>
                     </div>
 
-                    <h3 className="text-sm font-bold text-white mt-3 truncate group-hover:text-blue-400 transition-colors">
+                    <h3 className="text-sm font-bold text-[#1E1B2E] mt-3 truncate group-hover:text-[#8E2D9D] transition-colors">
                       {client.companyName}
                     </h3>
-                    <p className="text-xs text-slate-400 truncate mt-0.5">
+                    <p className="text-xs text-[#5F5A72] truncate mt-0.5">
                       {client.contactPerson || client.name}
                     </p>
 
-                    <div className="mt-4 space-y-1.5 text-[11px] text-slate-300 border-t border-slate-700/80 pt-3">
+                    <div className="mt-4 space-y-1.5 text-[11px] text-[#5F5A72] border-t border-[#E8E0F0] pt-3">
                       <div className="flex items-center justify-between">
-                        <span className="text-slate-400">State:</span>
-                        <span className="text-slate-200 font-medium">{clientState}</span>
+                        <span className="text-[#817B91]">State:</span>
+                        <span className="text-[#1E1B2E] font-medium">{clientState}</span>
                       </div>
                       <div className="flex items-center justify-between">
-                        <span className="text-slate-400">GSTIN:</span>
-                        <span className="font-mono text-cyan-400 font-semibold">{client.gstin || '—'}</span>
+                        <span className="text-[#817B91]">GSTIN:</span>
+                        <span className="font-mono text-[#8E2D9D] font-semibold">{client.gstin || '—'}</span>
                       </div>
                       {client.email && (
-                        <div className="flex items-center space-x-1.5 truncate text-slate-300 pt-1">
-                          <Mail className="w-3.5 h-3.5 text-blue-400 shrink-0" />
+                        <div className="flex items-center space-x-1.5 truncate text-[#5F5A72] pt-1">
+                          <Mail className="w-3.5 h-3.5 text-[#8E2D9D] shrink-0" />
                           <span className="truncate">{client.email}</span>
                         </div>
                       )}
                     </div>
                   </div>
 
-                  <div className="mt-5 pt-3 border-t border-slate-700/80 flex justify-between items-center text-xs">
-                    <span className="text-slate-400">Total Billed</span>
-                    <span className="font-bold text-white">
+                  <div className="mt-5 pt-3 border-t border-[#E8E0F0] flex justify-between items-center text-xs">
+                    <span className="text-[#5F5A72]">Total Billed</span>
+                    <span className="font-bold text-[#1E1B2E]">
                       ₹{(client.totalBilled || 0).toLocaleString('en-IN')}
                     </span>
                   </div>
@@ -937,9 +937,9 @@ export const ClientsManager: React.FC = () => {
         )}
 
         {/* Footer info bar */}
-        <div className="px-5 py-3 border-t border-slate-700/80 bg-[#091129] flex flex-col sm:flex-row justify-between items-center text-xs text-slate-400 gap-2">
+        <div className="px-5 py-3 border-t border-[#E8E0F0] bg-[#FAF8FF] flex flex-col sm:flex-row justify-between items-center text-xs text-[#5F5A72] gap-2">
           <span>Showing {filteredClients.length} of {clients.length} clients</span>
-          <span className="text-slate-400 font-medium">GSTIN verification enabled • SAC 998314 Compliance ready</span>
+          <span className="text-[#817B91] font-medium">GSTIN verification enabled • SAC 998314 Compliance ready</span>
         </div>
       </div>
 

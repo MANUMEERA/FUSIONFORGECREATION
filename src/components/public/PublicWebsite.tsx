@@ -45,9 +45,10 @@ import { useToast } from '../../context/ToastContext';
 import { BrandLogo } from '../BrandLogo';
 import { FrontendChatbot } from './FrontendChatbot';
 import { SupabaseAuthModal } from '../portal/SupabaseAuthModal';
+import { ClientPortalModal } from './ClientPortalModal';
 import { SocialIcon } from '../common/SocialIcon';
 import { formatSocialUrl } from '../../utils/socialPlatforms';
-import { SocialChannelItem } from '../../types';
+import { SocialChannelItem, LegalDocument } from '../../types';
 
 export const PublicWebsite: React.FC = () => {
   const { 
@@ -58,10 +59,21 @@ export const PublicWebsite: React.FC = () => {
     currentUser, 
     setCurrentUser,
     users,
-    agencyConfig 
+    agencyConfig,
+    legalDocuments,
+    trackVisitorEvent
   } = useApp();
 
   const config = agencyConfig || AGENCY_CONFIG;
+
+  // Track initial page view (privacy-conscious telemetry)
+  React.useEffect(() => {
+    trackVisitorEvent({
+      eventType: 'page_view',
+      pagePath: '/',
+      sectionId: '#home'
+    });
+  }, []);
   
   // Extract active social channels dynamically
   const activeSocialChannels: SocialChannelItem[] = React.useMemo(() => {
@@ -87,7 +99,9 @@ export const PublicWebsite: React.FC = () => {
   // Navigation active state & mobile menu
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
+  const [showClientPortalModal, setShowClientPortalModal] = useState(false);
   const [selectedPortfolioModal, setSelectedPortfolioModal] = useState<any | null>(null);
+  const [selectedLegalDoc, setSelectedLegalDoc] = useState<LegalDocument | null>(null);
 
   // Portfolio filter category
   const [portfolioCategory, setPortfolioCategory] = useState<string>('all');
@@ -108,11 +122,14 @@ export const PublicWebsite: React.FC = () => {
     email: '',
     phone: '',
     company: '',
+    gstin: '',
+    address: '',
     serviceCategory: 'web_development' as const,
     projectDescription: '',
     budgetRange: '₹1,50,000 - ₹3,00,000'
   });
   const [submitted, setSubmitted] = useState(false);
+  const [gstinError, setGstinError] = useState<string | null>(null);
 
   // Feature pricing options for estimator
   const featureOptions = [
@@ -159,20 +176,31 @@ export const PublicWebsite: React.FC = () => {
 
   const handleEnquirySubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    // GSTIN format check if provided
+    const cleanGstin = form.gstin.trim().toUpperCase();
+    if (cleanGstin && cleanGstin.length !== 15) {
+      setGstinError('Indian GSTIN must be exactly 15 alphanumeric characters.');
+      return;
+    }
+    setGstinError(null);
+
     addEnquiry({
-      name: form.name,
-      email: form.email,
-      phone: form.phone,
-      company: form.company,
+      name: form.name.trim(),
+      email: form.email.trim(),
+      phone: form.phone.trim(),
+      company: form.company.trim(),
+      gstin: cleanGstin,
+      address: form.address.trim(),
       serviceCategory: form.serviceCategory,
       budgetRange: form.budgetRange,
       estimatedTimeline: '3-6 Weeks',
-      projectDescription: form.projectDescription,
+      projectDescription: form.projectDescription.trim(),
       featuresRequired: selectedFeatures,
       source: 'website_form'
     });
     setSubmitted(true);
-    success('Enquiry Submitted Successfully!', `Thank you ${form.name}. Our solutions architect will contact you within 24 business hours.`);
+    success('Project Scope Submitted Successfully!', `Thank you ${form.name}. Our solutions architect will review your submission and contact you within 24 business hours.`);
   };
 
   const handleLoginAs = (userObj: any) => {
@@ -359,15 +387,15 @@ export const PublicWebsite: React.FC = () => {
             </a>
           </div>
 
-          {/* RIGHT ACTION: Admin Portal & Start Project Buttons */}
+          {/* RIGHT ACTION: SUPER ADMIN PANEL & Start Project Buttons */}
           <div className="flex items-center space-x-3">
             <button
-              id="btn-nav-admin-portal"
+              id="btn-nav-super-admin-panel"
               onClick={() => setShowLoginModal(true)}
               className="hidden sm:inline-flex items-center space-x-1.5 px-3.5 py-2 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-blue-500/30 text-slate-200 hover:text-white text-xs font-semibold shadow-md transition-all cursor-pointer"
             >
               <ShieldCheck className="w-3.5 h-3.5 text-blue-400" />
-              <span>Admin Portal</span>
+              <span>SUPER ADMIN PANEL</span>
             </button>
 
             <a
@@ -382,7 +410,8 @@ export const PublicWebsite: React.FC = () => {
             {/* Mobile Hamburger Button */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 rounded-xl bg-slate-900 border border-blue-500/30 text-slate-300 shadow-md md:hidden"
+              className="p-2 rounded-xl bg-slate-900 border border-blue-500/30 text-slate-300 shadow-md md:hidden cursor-pointer"
+              aria-label="Toggle Navigation Menu"
             >
               {mobileMenuOpen ? <X className="w-5 h-5" /> : <Layers className="w-5 h-5" />}
             </button>
@@ -430,14 +459,15 @@ export const PublicWebsite: React.FC = () => {
             </a>
             <div className="pt-2 border-t border-blue-500/20">
               <button
+                id="btn-mobile-super-admin-panel"
                 onClick={() => {
                   setMobileMenuOpen(false);
                   setShowLoginModal(true);
                 }}
-                className="w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs flex items-center justify-center space-x-2 shadow-md shadow-blue-600/30"
+                className="w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs flex items-center justify-center space-x-2 shadow-md shadow-blue-600/30 cursor-pointer"
               >
-                <Lock className="w-3.5 h-3.5" />
-                <span>Admin & Staff Portal</span>
+                <ShieldCheck className="w-3.5 h-3.5" />
+                <span>SUPER ADMIN PANEL</span>
               </button>
             </div>
           </div>
@@ -1025,10 +1055,10 @@ export const PublicWebsite: React.FC = () => {
             Start Your Engagement
           </span>
           <h2 className="text-3xl sm:text-4xl font-black text-white mt-3 tracking-tight">
-            Initiate Project Enquiry & Quote
+            Project Scope Submission
           </h2>
           <p className="text-sm text-slate-300 mt-2">
-            Submit your scope below or use our interactive cost estimator to receive an official formal Quotation within 24 hours.
+            Submit your project scope, technical requirements, and organizational GST details below or use our interactive cost estimator to receive an official formal Quotation within 24 hours.
           </p>
         </div>
 
@@ -1044,19 +1074,22 @@ export const PublicWebsite: React.FC = () => {
             {submitted ? (
               <div className="p-8 rounded-2xl bg-emerald-950/40 border border-emerald-500/40 text-center space-y-3">
                 <CheckCircle2 className="w-14 h-14 text-emerald-400 mx-auto" />
-                <h3 className="text-2xl font-black text-white">Enquiry Received Successfully!</h3>
+                <h3 className="text-2xl font-black text-white">Project Scope Submitted Successfully!</h3>
                 <p className="text-xs text-slate-300 max-w-md mx-auto leading-relaxed">
-                  Thank you! Your requirements have been registered in our Project Portal. Manoj Satapathy & the engineering team will deliver a structured commercial proposal to <span className="font-mono text-cyan-400 font-bold">{form.email}</span> shortly.
+                  Thank you! Your requirements and organizational details have been registered in our Project Portal. Manoj Satapathy & the engineering team will deliver a structured commercial proposal to <span className="font-mono text-cyan-400 font-bold">{form.email}</span> shortly.
                 </p>
                 <div className="pt-4">
                   <button
                     onClick={() => {
                       setSubmitted(false);
+                      setGstinError(null);
                       setForm({
                         name: '',
                         email: '',
                         phone: '',
                         company: '',
+                        gstin: '',
+                        address: '',
                         serviceCategory: 'web_development',
                         projectDescription: '',
                         budgetRange: '₹1,50,000 - ₹3,00,000'
@@ -1122,6 +1155,46 @@ export const PublicWebsite: React.FC = () => {
                       placeholder="Enterprise / Startup Name"
                       value={form.company}
                       onChange={e => setForm({ ...form, company: e.target.value })}
+                      className="w-full px-4 py-2.5 rounded-xl bg-slate-950/80 border border-slate-700/80 text-xs text-white placeholder:text-slate-500 focus:bg-slate-900 focus:border-blue-500 outline-none transition-colors"
+                    />
+                  </div>
+                </div>
+
+                {/* GSTIN and Address Fields */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="text-[11px] font-bold uppercase tracking-wider text-slate-300">
+                        GSTIN
+                      </label>
+                      <span className="text-[10px] text-slate-400 font-mono">15-Digit (Optional if URP)</span>
+                    </div>
+                    <input
+                      type="text"
+                      maxLength={15}
+                      placeholder="e.g. 27AABCA1234F1ZM"
+                      value={form.gstin}
+                      onChange={e => {
+                        setForm({ ...form, gstin: e.target.value.toUpperCase() });
+                        if (gstinError) setGstinError(null);
+                      }}
+                      className={`w-full px-4 py-2.5 rounded-xl bg-slate-950/80 border text-xs text-white placeholder:text-slate-500 focus:bg-slate-900 outline-none transition-colors uppercase font-mono ${
+                        gstinError ? 'border-rose-500 focus:border-rose-500' : 'border-slate-700/80 focus:border-blue-500'
+                      }`}
+                    />
+                    {gstinError && (
+                      <p className="text-[10px] text-rose-400 mt-1 font-medium">{gstinError}</p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="text-[11px] font-bold uppercase tracking-wider text-slate-300 block mb-1">
+                      Address
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Corporate / Registered Office Address"
+                      value={form.address}
+                      onChange={e => setForm({ ...form, address: e.target.value })}
                       className="w-full px-4 py-2.5 rounded-xl bg-slate-950/80 border border-slate-700/80 text-xs text-white placeholder:text-slate-500 focus:bg-slate-900 focus:border-blue-500 outline-none transition-colors"
                     />
                   </div>
@@ -1438,13 +1511,22 @@ export const PublicWebsite: React.FC = () => {
                   Jurisdiction: <span className="text-slate-200 font-semibold">{config.jurisdiction || 'Silvassa, Dadra & Nagar Haveli'}</span>
                 </div>
               </div>
-              <div className="pt-2">
+              <div className="pt-2 flex flex-wrap items-center gap-2">
                 <button
+                  id="btn-footer-staff-portal"
                   onClick={() => setShowLoginModal(true)}
-                  className="px-3.5 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-blue-500/30 text-slate-300 hover:text-white text-[11px] font-semibold flex items-center space-x-1.5 transition-colors cursor-pointer"
+                  className="px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-blue-500/30 text-slate-300 hover:text-white text-[11px] font-semibold flex items-center space-x-1.5 transition-colors cursor-pointer"
+                >
+                  <ShieldCheck className="w-3 h-3 text-cyan-400" />
+                  <span>Staff Portal</span>
+                </button>
+                <button
+                  id="btn-footer-client-portal"
+                  onClick={() => setShowClientPortalModal(true)}
+                  className="px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-cyan-500/30 text-cyan-300 hover:text-white text-[11px] font-semibold flex items-center space-x-1.5 transition-colors cursor-pointer"
                 >
                   <Lock className="w-3 h-3 text-cyan-400" />
-                  <span>Staff & Client Portal Login</span>
+                  <span>Client Portal</span>
                 </button>
               </div>
             </div>
@@ -1463,15 +1545,98 @@ export const PublicWebsite: React.FC = () => {
               </span>
             </div>
             <div className="flex flex-wrap justify-center items-center gap-3 text-slate-400">
-              <span className="hover:text-slate-200 transition-colors">Privacy Policy</span>
+              <button 
+                type="button"
+                onClick={() => {
+                  const doc = legalDocuments.find(d => d.slug === 'privacy-policy') || legalDocuments[0];
+                  if (doc) setSelectedLegalDoc(doc);
+                }}
+                className="hover:text-cyan-300 transition-colors cursor-pointer"
+              >
+                Privacy Policy
+              </button>
               <span className="text-slate-700">•</span>
-              <span className="hover:text-slate-200 transition-colors">Terms of Engagement</span>
+              <button 
+                type="button"
+                onClick={() => {
+                  const doc = legalDocuments.find(d => d.slug === 'terms-of-engagement') || legalDocuments[1];
+                  if (doc) setSelectedLegalDoc(doc);
+                }}
+                className="hover:text-cyan-300 transition-colors cursor-pointer"
+              >
+                Terms of Engagement
+              </button>
               <span className="text-slate-700">•</span>
-              <span className="hover:text-slate-200 transition-colors">GST Compliance</span>
+              <button 
+                type="button"
+                onClick={() => {
+                  const doc = legalDocuments.find(d => d.slug === 'gst-compliance') || legalDocuments[2];
+                  if (doc) setSelectedLegalDoc(doc);
+                }}
+                className="hover:text-cyan-300 transition-colors cursor-pointer"
+              >
+                GST Compliance
+              </button>
             </div>
           </div>
         </div>
       </footer>
+
+      {/* ─────────────────────────────────────────────────────────────
+          MODAL: PUBLIC LEGAL DOCUMENT VIEWER (DPDP & GST Compliance)
+          ───────────────────────────────────────────────────────────── */}
+      {selectedLegalDoc && (
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="bg-gradient-to-b from-[#111e47] to-[#0a1330] border border-blue-500/30 rounded-3xl w-full max-w-3xl p-6 sm:p-8 shadow-2xl text-white max-h-[90vh] flex flex-col">
+            
+            <div className="flex justify-between items-start pb-4 border-b border-blue-500/20 mb-4 shrink-0">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/40">
+                    {selectedLegalDoc.version}
+                  </span>
+                  <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+                    {selectedLegalDoc.status}
+                  </span>
+                </div>
+                <h3 className="text-xl sm:text-2xl font-black text-white mt-1.5">{selectedLegalDoc.title}</h3>
+                <p className="text-xs text-slate-400 mt-0.5">
+                  Effective: {selectedLegalDoc.effectiveDate} • Last Updated: {selectedLegalDoc.lastUpdatedDate} • Jurisdiction: {selectedLegalDoc.jurisdiction}
+                </p>
+              </div>
+              <button
+                onClick={() => setSelectedLegalDoc(null)}
+                className="p-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto pr-2 space-y-4 text-xs sm:text-sm text-slate-200 leading-relaxed font-sans">
+              <div className="p-3.5 rounded-xl bg-blue-950/40 border border-blue-500/30 text-xs text-blue-200">
+                <strong>Document Summary:</strong> {selectedLegalDoc.summary}
+              </div>
+              
+              <div className="bg-[#070e24] p-5 rounded-2xl border border-blue-500/20 whitespace-pre-wrap font-sans space-y-2">
+                {selectedLegalDoc.content}
+              </div>
+            </div>
+
+            <div className="pt-4 border-t border-blue-500/20 flex justify-between items-center shrink-0">
+              <span className="text-[11px] text-slate-400">
+                Governing Law: <strong className="text-slate-200">{selectedLegalDoc.applicableLaw}</strong>
+              </span>
+              <button
+                onClick={() => setSelectedLegalDoc(null)}
+                className="px-5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs cursor-pointer"
+              >
+                Close Document
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
 
       {/* ─────────────────────────────────────────────────────────────
           MODAL: SECURE SUPABASE AUTHENTICATION MODAL (MFA / 2FA & Password Recovery)
@@ -1479,6 +1644,14 @@ export const PublicWebsite: React.FC = () => {
       <SupabaseAuthModal
         isOpen={showLoginModal}
         onClose={() => setShowLoginModal(false)}
+      />
+
+      {/* ─────────────────────────────────────────────────────────────
+          MODAL: CLIENT PROJECT & DELIVERABLE PORTAL (Partioned from Admin)
+          ───────────────────────────────────────────────────────────── */}
+      <ClientPortalModal
+        isOpen={showClientPortalModal}
+        onClose={() => setShowClientPortalModal(false)}
       />
 
       {/* ─────────────────────────────────────────────────────────────

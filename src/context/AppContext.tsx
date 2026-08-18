@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { 
   UserProfile, 
   UserRole,
@@ -32,7 +32,13 @@ import {
   AccountingReportFilter,
   AppNotification,
   NotificationCategory,
-  EmailLog
+  EmailLog,
+  LegalDocument,
+  LegalDocumentHistoryItem,
+  VisitorEvent,
+  VisitorEventType,
+  VisitorMonitoringSummary,
+  LegalDocumentStatus
 } from '../types';
 import { 
   INITIAL_USERS, 
@@ -61,11 +67,15 @@ import {
   INITIAL_SALARY_RECORDS,
   INITIAL_NOTIFICATIONS,
   INITIAL_EMAIL_LOGS,
+  INITIAL_LEGAL_DOCUMENTS,
+  INITIAL_LEGAL_HISTORY,
+  INITIAL_VISITOR_EVENTS,
   AGENCY_CONFIG 
 } from '../mockData';
 import { DEFAULT_INVOICE_NUMBERING, DEFAULT_QUOTATION_NUMBERING } from '../utils/documentNumbering';
 import { INITIAL_SYSTEM_ROLES, SYSTEM_PERMISSIONS, hasPermission } from '../lib/permissions';
 import { calculateGstInvoiceTotals } from '../utils/gstEngine';
+import { getOrCreateSessionId, detectDeviceType, detectBrowser, detectOS, getSanitizedReferrer, buildPrivacySafeMetadata } from '../utils/visitorTracker';
 import { supabase, isSupabaseConfigured } from '../lib/supabaseClient';
 import { logAuditEvent } from '../utils/auditLogger';
 import { buzzerEngine } from '../utils/buzzerSound';
@@ -108,7 +118,7 @@ interface AppContextType {
   // Phase 12: Central Notification & Email System
   notifications: AppNotification[];
   unreadNotificationsCount: number;
-  addNotification: (notification: Omit<AppNotification, 'id' | 'created_at'>) => Promise<AppNotification | undefined>;
+  addNotification: (notification: Omit<AppNotification, 'id' | 'created_at' | 'is_read'> & { is_read?: boolean }) => Promise<AppNotification | undefined>;
   markNotificationRead: (id: string) => Promise<void>;
   markAllNotificationsRead: (category?: NotificationCategory) => Promise<void>;
   deleteNotification: (id: string) => Promise<void>;
@@ -260,6 +270,26 @@ interface AppContextType {
 
   updateAgencyConfig: (data: Partial<Omit<typeof AGENCY_CONFIG, 'social_links' | 'socialLinks'> & { social_links?: Record<string, string>; socialLinks?: Record<string, string> }>) => void;
   agencyConfig: typeof AGENCY_CONFIG;
+
+  // Phase 16: Legal Document Monitoring & Public Policies (Super Admin)
+  legalDocuments: LegalDocument[];
+  legalHistory: LegalDocumentHistoryItem[];
+  updateLegalDocument: (id: string, updates: Partial<LegalDocument>, changeSummary?: string) => Promise<LegalDocument | undefined>;
+  createLegalDocumentRevision: (id: string, newVersion: string, content: string, changeSummary: string, newStatus?: LegalDocumentStatus) => Promise<LegalDocument | undefined>;
+  restoreLegalDocumentVersion: (documentId: string, historyId: string) => Promise<boolean>;
+
+  // Phase 16: Privacy-Conscious Visitor Monitoring (Super Admin)
+  visitorEvents: VisitorEvent[];
+  trackVisitorEvent: (eventData: Partial<Omit<VisitorEvent, 'id' | 'created_at'>> & { eventType: VisitorEventType | string }) => Promise<VisitorEvent | undefined>;
+  isVisitorTrackingEnabled: boolean;
+  toggleVisitorTracking: () => boolean;
+  clearVisitorEvents: () => Promise<void>;
+  visitorSummary: VisitorMonitoringSummary;
+
+  // Supabase Auth & Role-Based Access State
+  isAuthenticated: boolean;
+  setIsAuthenticated: (val: boolean) => void;
+  logout: () => Promise<void>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -268,6 +298,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [currentUser, setCurrentUser] = useState<UserProfile>(INITIAL_USERS[0]);
   const [currentView, setCurrentView] = useState<'public' | 'portal'>('public');
   const [activeTab, setActiveTab] = useState<string>('dashboard');
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem('fusion_forge_auth_session') === 'true';
+    } catch {
+      return false;
+    }
+  });
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [dbConnected, setDbConnected] = useState<boolean>(isSupabaseConfigured);
@@ -307,139 +344,23 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [technologies, setTechnologies] = useState<TechnologyItem[]>(INITIAL_TECHNOLOGIES);
   const [testimonials, setTestimonials] = useState<TestimonialItem[]>(INITIAL_TESTIMONIALS);
   const [faqs, setFaqs] = useState<FaqItem[]>(INITIAL_FAQS);
-  const [chatbotQAs, setChatbotQAs] = useState<ChatbotQAItem[]>(() => {
-    try {
-      const saved = localStorage.getItem('fusion_forge_chatbot_qas');
-      return saved ? JSON.parse(saved) : INITIAL_CHATBOT_QA;
-    } catch {
-      return INITIAL_CHATBOT_QA;
-    }
-  });
-  const [chatbotSettings, setChatbotSettings] = useState<ChatbotSettings>(() => {
-    try {
-      const saved = localStorage.getItem('fusion_forge_chatbot_settings');
-      return saved ? JSON.parse(saved) : INITIAL_CHATBOT_SETTINGS;
-    } catch {
-      return INITIAL_CHATBOT_SETTINGS;
-    }
-  });
+  const [chatbotQAs, setChatbotQAs] = useState<ChatbotQAItem[]>(INITIAL_CHATBOT_QA);
+  const [chatbotSettings, setChatbotSettings] = useState<ChatbotSettings>(INITIAL_CHATBOT_SETTINGS);
   const [users, setUsers] = useState<UserProfile[]>(INITIAL_USERS);
-  const [roles, setRoles] = useState<RoleDefinition[]>(() => {
-    try {
-      const saved = localStorage.getItem('fusion_forge_roles');
-      return saved ? JSON.parse(saved) : INITIAL_SYSTEM_ROLES;
-    } catch {
-      return INITIAL_SYSTEM_ROLES;
-    }
-  });
+  const [roles, setRoles] = useState<RoleDefinition[]>(INITIAL_SYSTEM_ROLES);
   const [permissions] = useState<PermissionDefinition[]>(SYSTEM_PERMISSIONS);
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>(INITIAL_AUDIT_LOGS);
   const [portfolio, setPortfolio] = useState<PortfolioProject[]>(INITIAL_PORTFOLIO);
-  const [pricePresets, setPricePresets] = useState<ServicePricePreset[]>(() => {
-    try {
-      const saved = localStorage.getItem('fusion_forge_price_presets');
-      return saved ? JSON.parse(saved) : INITIAL_PRICE_PRESETS;
-    } catch {
-      return INITIAL_PRICE_PRESETS;
-    }
-  });
-
-  const [paymentTerms, setPaymentTerms] = useState<PaymentTermItem[]>(() => {
-    try {
-      const saved = localStorage.getItem('fusion_forge_payment_terms');
-      return saved ? JSON.parse(saved) : INITIAL_PAYMENT_TERMS;
-    } catch {
-      return INITIAL_PAYMENT_TERMS;
-    }
-  });
-
-  const [creditDebitNotes, setCreditDebitNotes] = useState<CreditDebitNote[]>(() => {
-    try {
-      const saved = localStorage.getItem('fusion_forge_credit_debit_notes');
-      return saved ? JSON.parse(saved) : INITIAL_CREDIT_DEBIT_NOTES;
-    } catch {
-      return INITIAL_CREDIT_DEBIT_NOTES;
-    }
-  });
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('fusion_forge_credit_debit_notes', JSON.stringify(creditDebitNotes));
-    } catch (e) {
-      console.warn('Failed to persist creditDebitNotes to localStorage', e);
-    }
-  }, [creditDebitNotes]);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('fusion_forge_price_presets', JSON.stringify(pricePresets));
-    } catch (e) {
-      console.warn('Failed to persist price presets to localStorage', e);
-    }
-  }, [pricePresets]);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('fusion_forge_payment_terms', JSON.stringify(paymentTerms));
-    } catch (e) {
-      console.warn('Failed to persist payment terms to localStorage', e);
-    }
-  }, [paymentTerms]);
-
-  const [agencyConfig, setAgencyConfig] = useState<typeof AGENCY_CONFIG>(() => {
-    try {
-      const saved = localStorage.getItem('fusion_forge_agency_config');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        const parsedChannels = parsed.social_channels || parsed.socialChannels || INITIAL_SOCIAL_CHANNELS;
-        return { 
-          ...AGENCY_CONFIG, 
-          ...parsed, 
-          social_channels: parsedChannels,
-          socialChannels: parsedChannels,
-          social_links: { ...AGENCY_CONFIG.social_links, ...(parsed.social_links || parsed.socialLinks || {}) },
-          socialLinks: { ...AGENCY_CONFIG.socialLinks, ...(parsed.social_links || parsed.socialLinks || {}) },
-          numbering_configs: {
-            invoice: { ...DEFAULT_INVOICE_NUMBERING, ...(parsed.numbering_configs?.invoice || {}) },
-            quotation: { ...DEFAULT_QUOTATION_NUMBERING, ...(parsed.numbering_configs?.quotation || {}) }
-          }
-        };
-      }
-      return AGENCY_CONFIG;
-    } catch {
-      return AGENCY_CONFIG;
-    }
-  });
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('fusion_forge_agency_config', JSON.stringify(agencyConfig));
-    } catch (e) {
-      console.warn('Failed to persist agencyConfig to localStorage', e);
-    }
-  }, [agencyConfig]);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('fusion_forge_chatbot_qas', JSON.stringify(chatbotQAs));
-    } catch (e) {
-      console.warn('Failed to persist chatbot Q&As to localStorage', e);
-    }
-  }, [chatbotQAs]);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('fusion_forge_chatbot_settings', JSON.stringify(chatbotSettings));
-    } catch (e) {
-      console.warn('Failed to persist chatbot settings to localStorage', e);
-    }
-  }, [chatbotSettings]);
+  const [pricePresets, setPricePresets] = useState<ServicePricePreset[]>(INITIAL_PRICE_PRESETS);
+  const [paymentTerms, setPaymentTerms] = useState<PaymentTermItem[]>(INITIAL_PAYMENT_TERMS);
+  const [creditDebitNotes, setCreditDebitNotes] = useState<CreditDebitNote[]>(INITIAL_CREDIT_DEBIT_NOTES);
+  const [agencyConfig, setAgencyConfig] = useState<typeof AGENCY_CONFIG>(AGENCY_CONFIG);
 
   // Phase 12: Central Notification & Email State (Persisted in Supabase, NOT localStorage)
   const [notifications, setNotifications] = useState<AppNotification[]>(INITIAL_NOTIFICATIONS);
   const [emailLogs, setEmailLogs] = useState<EmailLog[]>(INITIAL_EMAIL_LOGS);
 
-  const addNotification = useCallback(async (notifData: Omit<AppNotification, 'id' | 'created_at'>): Promise<AppNotification | undefined> => {
+  const addNotification = useCallback(async (notifData: Omit<AppNotification, 'id' | 'created_at' | 'is_read'> & { is_read?: boolean }): Promise<AppNotification | undefined> => {
     // Deduplication check
     if (isDuplicateEvent(notifications, notifData.event_key, notifData.type, notifData.entity_id)) {
       return undefined;
@@ -450,7 +371,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const fullNotif: AppNotification = {
       id: newId,
       created_at: timestamp,
-      is_read: false,
+      is_read: notifData.is_read ?? false,
       priority: notifData.priority || 'normal',
       category: notifData.category || 'system',
       target_role: notifData.target_role || 'all',
@@ -592,6 +513,93 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     return fullLog;
   }, []);
+
+  // Phase 16: Legal Document Monitoring & Visitor Telemetry State (Synced with Supabase PostgreSQL)
+  const [legalDocuments, setLegalDocuments] = useState<LegalDocument[]>(INITIAL_LEGAL_DOCUMENTS);
+  const [legalHistory, setLegalHistory] = useState<LegalDocumentHistoryItem[]>(INITIAL_LEGAL_HISTORY);
+  const [visitorEvents, setVisitorEvents] = useState<VisitorEvent[]>(INITIAL_VISITOR_EVENTS);
+  const [isVisitorTrackingEnabled, setIsVisitorTrackingEnabled] = useState<boolean>(true);
+
+  // Privacy-Conscious Visitor Telemetry Summary Calculator
+  const visitorSummary: VisitorMonitoringSummary = useMemo(() => {
+    const totalVisits = visitorEvents.length;
+    const uniqueSessionSet = new Set(visitorEvents.map(e => e.sessionId));
+    const uniqueSessions = uniqueSessionSet.size;
+
+    const todayStr = new Date().toISOString().split('T')[0];
+    const todayVisits = visitorEvents.filter(e => e.created_at.startsWith(todayStr)).length;
+
+    // Breakdown by Section / Page
+    const sectionMap = new Map<string, { count: number; uniqueSessions: Set<string>; totalDuration: number }>();
+    visitorEvents.forEach(e => {
+      const key = e.sectionId || e.pagePath || '#home';
+      const existing = sectionMap.get(key) || { count: 0, uniqueSessions: new Set(), totalDuration: 0 };
+      existing.count += 1;
+      existing.uniqueSessions.add(e.sessionId);
+      existing.totalDuration += e.durationSeconds || 0;
+      sectionMap.set(key, existing);
+    });
+
+    const sectionBreakdown = Array.from(sectionMap.entries()).map(([section, data]) => ({
+      section,
+      count: data.count,
+      visitCount: data.count,
+      uniqueVisitors: data.uniqueSessions.size,
+      avgDurationSeconds: data.count > 0 ? Math.round(data.totalDuration / data.count) : 0
+    })).sort((a, b) => b.count - a.count);
+
+    // Breakdown by Device
+    const deviceMap = new Map<string, number>();
+    visitorEvents.forEach(e => {
+      const key = e.deviceType || 'desktop';
+      deviceMap.set(key, (deviceMap.get(key) || 0) + 1);
+    });
+    const deviceBreakdown = Array.from(deviceMap.entries()).map(([device, count]) => ({
+      device,
+      count,
+      percentage: totalVisits > 0 ? Math.round((count / totalVisits) * 100) : 0
+    })).sort((a, b) => b.count - a.count);
+
+    // Breakdown by Browser
+    const browserMap = new Map<string, number>();
+    visitorEvents.forEach(e => {
+      const key = e.browser || 'Unknown';
+      browserMap.set(key, (browserMap.get(key) || 0) + 1);
+    });
+    const browserBreakdown = Array.from(browserMap.entries()).map(([browser, count]) => ({
+      browser,
+      count,
+      percentage: totalVisits > 0 ? Math.round((count / totalVisits) * 100) : 0
+    })).sort((a, b) => b.count - a.count);
+
+    // Breakdown by Referrer
+    const referrerMap = new Map<string, number>();
+    visitorEvents.forEach(e => {
+      const key = e.referrer || 'direct';
+      referrerMap.set(key, (referrerMap.get(key) || 0) + 1);
+    });
+    const referrerBreakdown = Array.from(referrerMap.entries()).map(([referrer, count]) => ({
+      referrer,
+      count,
+      percentage: totalVisits > 0 ? Math.round((count / totalVisits) * 100) : 0
+    })).sort((a, b) => b.count - a.count);
+
+    // Average duration across all recorded sessions
+    const totalDuration = visitorEvents.reduce((acc, curr) => acc + (curr.durationSeconds || 0), 0);
+    const averageDurationSeconds = totalVisits > 0 ? Math.round(totalDuration / totalVisits) : 0;
+
+    return {
+      totalVisits,
+      uniqueSessions,
+      todayVisits,
+      sectionBreakdown,
+      deviceBreakdown,
+      browserBreakdown,
+      referrerBreakdown,
+      averageDurationSeconds,
+      recentEvents: visitorEvents.slice(0, 50)
+    };
+  }, [visitorEvents]);
 
   // Sync state from Supabase PostgreSQL tables according to authoritative schema
   const syncFromDatabase = useCallback(async () => {
@@ -800,6 +808,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           company: e.company || '',
           email: e.email,
           phone: e.phone || '',
+          gstin: e.gstin || e.gst_number || '',
+          address: e.address || '',
           service: e.project_type || 'Custom Solution',
           serviceCategory: e.project_type || 'Custom Solution',
           budgetRange: e.budget || 'Custom',
@@ -1363,6 +1373,103 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         console.warn('[Supabase Email Logs Sync] Non-critical fallback:', emlErr);
       }
 
+      // 19. Fetch Legal Documents (Phase 16 Legal Document Monitoring)
+      try {
+        const { data: legalData } = await supabase
+          .from('legal_documents')
+          .select('*')
+          .order('created_at', { ascending: true });
+
+        if (legalData && legalData.length > 0) {
+          const mappedLegal: LegalDocument[] = legalData.map((d: any) => ({
+            id: d.id,
+            slug: d.slug,
+            title: d.title,
+            documentType: d.document_type,
+            version: d.version,
+            effectiveDate: d.effective_date,
+            lastUpdatedDate: d.last_updated_date || d.updated_at,
+            status: d.status || 'active',
+            summary: d.summary || '',
+            content: d.content || '',
+            jurisdiction: d.jurisdiction || 'Dadra and Nagar Haveli and Daman and Diu, India',
+            applicableLaw: d.applicable_law || 'DPDP Act, 2023 & IT Act, 2000',
+            createdBy: d.created_by || 'Manoj Satapathy',
+            createdByEmail: d.created_by_email || 'manojsatapathy.jp@gmail.com',
+            lastModifiedBy: d.last_modified_by || 'Manoj Satapathy',
+            lastModifiedByEmail: d.last_modified_by_email || 'manojsatapathy.jp@gmail.com',
+            lastModifiedByRole: d.last_modified_by_role || 'Super Admin',
+            changeSummary: d.change_summary || '',
+            versionHistoryCount: d.version_history_count || 1,
+            created_at: d.created_at,
+            updated_at: d.updated_at
+          }));
+          setLegalDocuments(mappedLegal);
+        }
+      } catch (legalErr) {
+        console.warn('[Supabase Legal Documents Sync] Non-critical fallback:', legalErr);
+      }
+
+      // 20. Fetch Legal Document History (Phase 16 Audit Tracking)
+      try {
+        const { data: historyData } = await supabase
+          .from('legal_document_history')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (historyData && historyData.length > 0) {
+          const mappedHistory: LegalDocumentHistoryItem[] = historyData.map((h: any) => ({
+            id: h.id,
+            documentId: h.document_id,
+            documentSlug: h.document_slug,
+            version: h.version,
+            title: h.title,
+            summary: h.summary,
+            content: h.content,
+            effectiveDate: h.effective_date,
+            status: h.status,
+            changedBy: h.changed_by,
+            changedByEmail: h.changed_by_email,
+            changedByRole: h.changed_by_role,
+            changeSummary: h.change_summary,
+            created_at: h.created_at
+          }));
+          setLegalHistory(mappedHistory);
+        }
+      } catch (histErr) {
+        console.warn('[Supabase Legal History Sync] Non-critical fallback:', histErr);
+      }
+
+      // 21. Fetch Privacy-Conscious Visitor Telemetry Events (Phase 16)
+      try {
+        const { data: visitorData } = await supabase
+          .from('visitor_events')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .limit(300);
+
+        if (visitorData && visitorData.length > 0) {
+          const mappedVisitor: VisitorEvent[] = visitorData.map((v: any) => ({
+            id: v.id,
+            sessionId: v.session_id,
+            eventType: v.event_type || 'page_view',
+            pagePath: v.page_path || '/',
+            sectionId: v.section_id || undefined,
+            referrer: v.referrer || 'direct',
+            deviceType: v.device_type || 'desktop',
+            browser: v.browser || 'Unknown',
+            os: v.os || 'Unknown',
+            region: v.region || undefined,
+            durationSeconds: v.duration_seconds || undefined,
+            metadata: v.metadata || {},
+            created_at: v.created_at
+          }));
+          setVisitorEvents(mappedVisitor);
+        }
+      } catch (visErr) {
+        console.warn('[Supabase Visitor Events Sync] Non-critical fallback:', visErr);
+      }
+
       setDbConnected(true);
       setLastSyncedAt(new Date().toLocaleTimeString());
     } catch (err) {
@@ -1371,6 +1478,22 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setIsLoading(false);
     }
   }, [agencyConfig]);
+
+  const logout = useCallback(async () => {
+    if (isSupabaseConfigured) {
+      try {
+        await supabase.auth.signOut();
+      } catch (err) {
+        console.warn('[Supabase Auth] Sign out notice:', err);
+      }
+    }
+    setIsAuthenticated(false);
+    try {
+      localStorage.removeItem('fusion_forge_auth_session');
+    } catch {}
+    setCurrentView('public');
+    setActiveTab('dashboard');
+  }, []);
 
   // Initial Database Load & Supabase Auth Listener
   useEffect(() => {
@@ -1388,7 +1511,24 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
         };
-        setCurrentUser(userProfile);
+        // Strict role check: client accounts are not granted administrative portal access
+        if (userProfile.role !== 'client') {
+          setCurrentUser(userProfile);
+          setIsAuthenticated(true);
+          try {
+            localStorage.setItem('fusion_forge_auth_session', 'true');
+          } catch {}
+        } else {
+          setIsAuthenticated(false);
+          try {
+            localStorage.removeItem('fusion_forge_auth_session');
+          } catch {}
+        }
+      } else if (event === 'SIGNED_OUT') {
+        setIsAuthenticated(false);
+        try {
+          localStorage.removeItem('fusion_forge_auth_session');
+        } catch {}
       }
     });
 
@@ -1655,6 +1795,23 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       details: `Generated Quotation ${newQuote.quoteNumber} for ${newQuote.clientCompany} (Total: ₹ ${newQuote.totalAmount.toLocaleString('en-IN')})`
     });
 
+    addNotification({
+      type: 'quotation_created',
+      category: 'financials',
+      title: '📄 Commercial Quotation Created',
+      message: `Quotation ${newQuote.quoteNumber} prepared for ${newQuote.clientCompany || newQuote.clientName} (Total: ₹${newQuote.totalAmount.toLocaleString('en-IN')}).`,
+      link: 'quotations',
+      entity_type: 'quotation',
+      entity_id: newQuote.id,
+      priority: 'normal',
+      metadata: {
+        quotationNumber: newQuote.quoteNumber,
+        clientCompany: newQuote.clientCompany,
+        amount: newQuote.totalAmount
+      },
+      event_key: `quote_${newQuote.id}`
+    });
+
     return newQuote;
   };
 
@@ -1814,6 +1971,23 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       details: `SEND FOR INVOICE action completed: Quotation ${quote.quoteNumber} converted to Tax Invoice ${newInvoice.invoiceNumber} (Total: ₹ ${newInvoice.totalAmount.toLocaleString('en-IN')})`
     });
 
+    addNotification({
+      type: 'quotation_converted',
+      category: 'financials',
+      title: '🔄 Quotation Converted to Tax Invoice',
+      message: `Quotation ${quote.quoteNumber} converted to Tax Invoice ${newInvoice.invoiceNumber} (₹${newInvoice.totalAmount.toLocaleString('en-IN')}).`,
+      link: 'invoices',
+      entity_type: 'invoice',
+      entity_id: newInvoice.id,
+      priority: 'high',
+      metadata: {
+        quoteNumber: quote.quoteNumber,
+        invoiceNumber: newInvoice.invoiceNumber,
+        amount: newInvoice.totalAmount
+      },
+      event_key: `convert_quote_${quote.id}`
+    });
+
     return newInvoice;
   };
 
@@ -1928,6 +2102,23 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       table_name: 'invoices',
       record_id: newInvoice.id,
       details: `Generated Tax Invoice ${newInvoice.invoiceNumber} for ${newInvoice.buyerCompany || newInvoice.clientCompany} (Amount: ₹ ${newInvoice.totalAmount.toLocaleString('en-IN')})`
+    });
+
+    addNotification({
+      type: 'invoice_created',
+      category: 'financials',
+      title: `🧾 Tax Invoice ${newInvoice.invoiceNumber} Generated`,
+      message: `Tax Invoice issued for ${newInvoice.buyerCompany || newInvoice.clientCompany} (Total: ₹${newInvoice.totalAmount.toLocaleString('en-IN')}).`,
+      link: 'invoices',
+      entity_type: 'invoice',
+      entity_id: newInvoice.id,
+      priority: 'normal',
+      metadata: {
+        invoiceNumber: newInvoice.invoiceNumber,
+        buyerCompany: newInvoice.buyerCompany,
+        amount: newInvoice.totalAmount
+      },
+      event_key: `inv_${newInvoice.id}`
     });
 
     return newInvoice;
@@ -2122,6 +2313,24 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       details: `Recorded payment of ₹ ${paymentData.amount.toLocaleString('en-IN')} (${paymentData.paymentMethod.toUpperCase()}) for Invoice ${paymentData.invoiceNumber}`
     });
 
+    addNotification({
+      type: 'payment_received',
+      category: 'financials',
+      title: '💰 Payment Settlement Recorded',
+      message: `Received payment of ₹${paymentData.amount.toLocaleString('en-IN')} (${paymentData.paymentMethod.toUpperCase()}) for Invoice ${paymentData.invoiceNumber}.`,
+      link: 'payments',
+      entity_type: 'payment',
+      entity_id: newPayment.id,
+      priority: 'high',
+      metadata: {
+        receiptNumber: newPayment.receiptNumber,
+        invoiceNumber: paymentData.invoiceNumber,
+        amount: paymentData.amount,
+        method: paymentData.paymentMethod
+      },
+      event_key: `pay_${newPayment.id}`
+    });
+
     return newPayment;
   };
 
@@ -2157,6 +2366,179 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       supabase.from('payments').update(dbUpdates).eq('id', id).then();
     }
   };
+
+  // Phase 12: Computed unread notification count based on user permissions
+  const unreadNotificationsCount = useMemo(() => {
+    const roleFiltered = filterNotificationsByRole(notifications, currentUser);
+    return roleFiltered.filter(n => !n.is_read).length;
+  }, [notifications, currentUser]);
+
+  // Phase 12: Centralized Official Email Dispatch Methods from admin@fusionforgecreation.com
+  const sendInvoiceEmail = useCallback(async (
+    invoiceId: string,
+    customRecipient?: string,
+    customNotes?: string
+  ): Promise<{ success: boolean; messageId?: string; error?: string }> => {
+    const inv = invoices.find(i => i.id === invoiceId);
+    if (!inv) return { success: false, error: 'Invoice not found.' };
+
+    const recipient = customRecipient || inv.clientEmail || '';
+    const res = await sendInvoiceEmailBackend(inv, recipient, undefined, customNotes, agencyConfig);
+
+    if (res.success) {
+      updateInvoice(inv.id, {
+        status: inv.status === 'draft' ? 'issued' : inv.status
+      });
+
+      await addEmailLog({
+        recipient: res.recipient,
+        sender: res.sender,
+        subject: `Tax Invoice: ${inv.invoiceNumber} - Fusion Forge Creation`,
+        category: 'invoice',
+        status: 'sent',
+        message_id: res.messageId,
+        entity_type: 'invoice',
+        entity_id: inv.id,
+        metadata: {
+          invoiceNumber: inv.invoiceNumber,
+          totalAmount: inv.totalAmount,
+          clientCompany: inv.clientCompany
+        }
+      });
+
+      await addNotification({
+        type: 'invoice_sent',
+        category: 'financials',
+        title: '🧾 Tax Invoice Email Dispatched',
+        message: `Tax Invoice ${inv.invoiceNumber} (₹${inv.totalAmount.toLocaleString('en-IN')}) dispatched from admin@fusionforgecreation.com to ${res.recipient}.`,
+        link: 'invoices',
+        entity_type: 'invoice',
+        entity_id: inv.id,
+        priority: 'normal',
+        metadata: {
+          invoiceNumber: inv.invoiceNumber,
+          recipient: res.recipient,
+          amount: inv.totalAmount
+        },
+        event_key: `email_inv_${inv.id}_${Date.now()}`
+      });
+    }
+
+    return res;
+  }, [invoices, agencyConfig, updateInvoice, addEmailLog, addNotification]);
+
+  const sendQuotationEmail = useCallback(async (
+    quotationId: string,
+    customRecipient?: string,
+    customNotes?: string
+  ): Promise<{ success: boolean; messageId?: string; error?: string }> => {
+    const quote = quotations.find(q => q.id === quotationId);
+    if (!quote) return { success: false, error: 'Quotation not found.' };
+
+    const recipient = customRecipient || quote.clientEmail || '';
+    const res = await sendQuotationEmailBackend(quote, recipient, undefined, customNotes, agencyConfig);
+
+    if (res.success) {
+      updateQuotation(quote.id, {
+        status: quote.status === 'draft' ? 'sent' : quote.status
+      });
+
+      await addEmailLog({
+        recipient: res.recipient,
+        sender: res.sender,
+        subject: `Commercial Quotation: ${quote.quoteNumber} - ${quote.title}`,
+        category: 'quotation',
+        status: 'sent',
+        message_id: res.messageId,
+        entity_type: 'quotation',
+        entity_id: quote.id,
+        metadata: {
+          quotationNumber: quote.quoteNumber,
+          totalAmount: quote.totalAmount,
+          clientCompany: quote.clientCompany
+        }
+      });
+
+      await addNotification({
+        type: 'quotation_sent',
+        category: 'financials',
+        title: '📄 Commercial Quotation Dispatched',
+        message: `Quotation ${quote.quoteNumber} (₹${quote.totalAmount.toLocaleString('en-IN')}) dispatched from admin@fusionforgecreation.com to ${res.recipient}.`,
+        link: 'quotations',
+        entity_type: 'quotation',
+        entity_id: quote.id,
+        priority: 'normal',
+        metadata: {
+          quotationNumber: quote.quoteNumber,
+          recipient: res.recipient,
+          amount: quote.totalAmount
+        },
+        event_key: `email_quote_${quote.id}_${Date.now()}`
+      });
+    }
+
+    return res;
+  }, [quotations, agencyConfig, updateQuotation, addEmailLog, addNotification]);
+
+  const sendPaymentReceiptEmail = useCallback(async (
+    paymentId: string,
+    customRecipient?: string,
+    customNotes?: string
+  ): Promise<{ success: boolean; messageId?: string; error?: string }> => {
+    const pay = payments.find(p => p.id === paymentId);
+    if (!pay) return { success: false, error: 'Payment receipt not found.' };
+
+    const inv = invoices.find(i => i.id === pay.invoiceId);
+    const recipient = customRecipient || pay.clientEmail || inv?.clientEmail || '';
+    const res = await sendPaymentReceiptEmailBackend(pay, inv, recipient, undefined, customNotes, agencyConfig);
+
+    if (res.success) {
+      updatePayment(pay.id, {
+        emailStatus: {
+          status: 'sent',
+          sentAt: new Date().toISOString(),
+          recipient: res.recipient,
+          messageId: res.messageId
+        }
+      });
+
+      await addEmailLog({
+        recipient: res.recipient,
+        sender: res.sender,
+        subject: `Payment Receipt: ${pay.receiptNumber} for Invoice ${pay.invoiceNumber}`,
+        category: 'payment_receipt',
+        status: 'sent',
+        message_id: res.messageId,
+        entity_type: 'payment',
+        entity_id: pay.id,
+        metadata: {
+          receiptNumber: pay.receiptNumber,
+          invoiceNumber: pay.invoiceNumber,
+          amount: pay.amount,
+          paymentMethod: pay.paymentMethod
+        }
+      });
+
+      await addNotification({
+        type: 'payment_receipt_sent',
+        category: 'financials',
+        title: '✉️ Payment Receipt Dispatched',
+        message: `Official Payment Receipt ${pay.receiptNumber} (₹${pay.amount.toLocaleString('en-IN')}) dispatched from admin@fusionforgecreation.com to ${res.recipient}.`,
+        link: 'payments',
+        entity_type: 'payment',
+        entity_id: pay.id,
+        priority: 'normal',
+        metadata: {
+          receiptNumber: pay.receiptNumber,
+          recipient: res.recipient,
+          amount: pay.amount
+        },
+        event_key: `email_receipt_${pay.id}_${Date.now()}`
+      });
+    }
+
+    return res;
+  }, [payments, invoices, agencyConfig, updatePayment, addEmailLog, addNotification]);
 
   const deletePayment = (id: string) => {
     setPayments(prev => prev.filter(p => p.id !== id));
@@ -2194,12 +2576,32 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         company: newEnq.company || '',
         email: newEnq.email,
         phone: newEnq.phone || '',
+        gstin: newEnq.gstin || '',
+        gst_number: newEnq.gstin || '',
+        address: newEnq.address || '',
         project_type: newEnq.service || newEnq.serviceCategory || 'Custom Solution',
         budget: newEnq.budgetRange || 'Custom',
         timeline: newEnq.timeline || 'Immediate',
         message: newEnq.projectDescription || '',
         status: 'New'
-      }).then();
+      }).then(({ error }) => {
+        if (error) {
+          console.warn('[Supabase Enquiry Insert] Database column fallback:', error.message);
+          // Fallback if specific column names vary
+          supabase.from('enquiries').insert({
+            id: newEnq.id,
+            name: newEnq.name,
+            company: newEnq.company || '',
+            email: newEnq.email,
+            phone: newEnq.phone || '',
+            project_type: newEnq.service || newEnq.serviceCategory || 'Custom Solution',
+            budget: newEnq.budgetRange || 'Custom',
+            timeline: newEnq.timeline || 'Immediate',
+            message: `${newEnq.projectDescription || ''}${newEnq.gstin ? ` | GSTIN: ${newEnq.gstin}` : ''}${newEnq.address ? ` | Address: ${newEnq.address}` : ''}`,
+            status: 'New'
+          }).then();
+        }
+      });
     }
 
     addAuditLog({
@@ -2209,12 +2611,34 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       action: 'CREATE',
       table_name: 'enquiries',
       record_id: newEnq.id,
-      details: `Public enquiry submitted by ${enqData.name} (${enqData.company || 'Direct'}) for ${enqData.service || enqData.serviceCategory || 'Custom Solution'}`
+      details: `Project Scope Submission by ${enqData.name} (${enqData.company || 'Direct'}) for ${enqData.service || enqData.serviceCategory || 'Custom Solution'}${enqData.gstin ? ` [GSTIN: ${enqData.gstin}]` : ''}`
     });
 
     // Authoritatively notify logged-in Admin user with visual alert and sound buzzer
     setLatestLeadAlert(newEnq);
     buzzerEngine.playLeadBuzzer();
+
+    addNotification({
+      type: 'lead_received',
+      category: 'leads',
+      title: '🚨 New Project Scope Submission Received',
+      message: `${newEnq.name} from ${newEnq.company || 'Direct'}${newEnq.gstin ? ` (GSTIN: ${newEnq.gstin})` : ''} submitted a project scope for "${newEnq.service || newEnq.serviceCategory || 'Custom Solution'}" (Budget: ${newEnq.budgetRange || 'Custom'}).`,
+      link: 'enquiries',
+      entity_type: 'enquiry',
+      entity_id: newEnq.id,
+      priority: 'urgent',
+      metadata: {
+        clientName: newEnq.name,
+        company: newEnq.company,
+        email: newEnq.email,
+        phone: newEnq.phone,
+        gstin: newEnq.gstin,
+        address: newEnq.address,
+        service: newEnq.service || newEnq.serviceCategory,
+        budget: newEnq.budgetRange
+      },
+      event_key: `lead_${newEnq.id}`
+    });
 
     return newEnq;
   };
@@ -2226,6 +2650,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         company: 'Apex Healthtech AI Ltd',
         email: 'v.malhotra@apexhealthtech.io',
         phone: '+91 98450 12890',
+        gstin: '27AAACH1234D1Z9',
+        address: 'Suite 902, Godrej One, Pirojshanagar, Vikhroli, Mumbai, Maharashtra - 400079',
         service: 'Full-Stack Enterprise AI App',
         serviceCategory: 'web_development' as const,
         budgetRange: '₹4,50,000 - ₹8,00,000',
@@ -2237,6 +2663,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         company: 'Zenith Logistics Hub',
         email: 'priyanka@zenithlogistics.in',
         phone: '+91 91234 56780',
+        gstin: '24AABCS5432E1Z3',
+        address: 'Survey 112, GIDC Phase 3, Naroda, Ahmedabad, Gujarat - 382330',
         service: 'Supply Chain & Fleet Tracking Web Platform',
         serviceCategory: 'enterprise_portal' as const,
         budgetRange: '₹3,00,000 - ₹6,00,000',
@@ -2248,6 +2676,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         company: 'CloudNova Fintech',
         email: 'rohan.d@cloudnovafin.com',
         phone: '+91 99887 76655',
+        gstin: '29AABCC9988H1ZM',
+        address: 'Tower 4, Electronic City Phase 1, Bengaluru, Karnataka - 560100',
         service: 'Fintech Payment Gateway & Client Portal',
         serviceCategory: 'mobile_app' as const,
         budgetRange: '₹5,00,000 - ₹10,00,000',
@@ -2261,6 +2691,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const updateEnquiryStatus = (id: string, status: ProjectEnquiry['status']) => {
+    const enq = enquiries.find(e => e.id === id);
     setEnquiries(prev => prev.map(e => e.id === id ? { ...e, status, updatedAt: new Date().toISOString() } : e));
 
     if (isSupabaseConfigured) {
@@ -2286,6 +2717,23 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       table_name: 'enquiries',
       record_id: id,
       details: `Updated enquiry status to ${status}`
+    });
+
+    addNotification({
+      type: 'lead_status_changed',
+      category: 'leads',
+      title: '📋 Lead Status Updated',
+      message: `Enquiry from "${enq?.name || 'Client'}" changed status to "${status.toUpperCase()}".`,
+      link: 'enquiries',
+      entity_type: 'enquiry',
+      entity_id: id,
+      priority: 'normal',
+      metadata: {
+        enquiryId: id,
+        newStatus: status,
+        name: enq?.name
+      },
+      event_key: `lead_status_${id}_${status}`
     });
   };
 
@@ -2315,8 +2763,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       companyName: enq.company || `${enq.name} Ventures`,
       email: enq.email,
       phone: enq.phone,
+      gstin: enq.gstin || '',
+      pan: enq.gstin && enq.gstin.length === 15 ? enq.gstin.substring(2, 12) : undefined,
+      isGstRegistered: Boolean(enq.gstin && enq.gstin.trim().length === 15),
+      isUrp: !Boolean(enq.gstin && enq.gstin.trim().length === 15),
+      address: enq.address || 'Commercial Office',
       billingAddress: {
-        street: 'Commercial Office',
+        street: enq.address || 'Commercial Office',
         city: 'Mumbai',
         state: 'Maharashtra',
         stateCode: '27',
@@ -2325,7 +2778,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       },
       currency: 'INR',
       status: 'active',
-      notes: `Requirements: ${enq.projectDescription}`
+      notes: `Requirements: ${enq.projectDescription || ''}${enq.gstin ? ` | GSTIN: ${enq.gstin}` : ''}`
     });
     updateEnquiryStatus(enquiryId, 'won');
     return client;
@@ -2616,6 +3069,46 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         technologies: data.techStack || existing.techStack || [],
         live_url: data.publicUrl || data.webAppUrl || existing.publicUrl || ''
       }).eq('id', id).then();
+    }
+
+    if (statusChanged) {
+      if (isNowCompleted) {
+        addNotification({
+          type: 'project_completed',
+          category: 'projects',
+          title: '🎉 Project Milestone Completed',
+          message: `Project "${existing.title}" for ${existing.clientName || 'Client'} has been marked COMPLETED. It is now eligible for final invoice generation and showcase archive.`,
+          link: 'projects',
+          entity_type: 'project',
+          entity_id: id,
+          priority: 'high',
+          metadata: {
+            projectId: id,
+            title: existing.title,
+            clientName: existing.clientName,
+            status: 'completed'
+          },
+          event_key: `proj_comp_${id}`
+        });
+      } else {
+        addNotification({
+          type: 'project_status_changed',
+          category: 'projects',
+          title: '🚀 Project Status Changed',
+          message: `Project "${existing.title}" status changed from ${(existing.status || '').toUpperCase()} to ${(data.status || '').toUpperCase()}.`,
+          link: 'projects',
+          entity_type: 'project',
+          entity_id: id,
+          priority: 'normal',
+          metadata: {
+            projectId: id,
+            title: existing.title,
+            previousStatus: existing.status,
+            newStatus: data.status
+          },
+          event_key: `proj_status_${id}_${data.status}`
+        });
+      }
     }
 
     return updatedProject;
@@ -3065,10 +3558,29 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       record_id: newUsr.id,
       details: `Created new authenticated user profile: ${newUsr.email} (${newUsr.role})`
     });
+
+    addNotification({
+      type: 'new_user',
+      category: 'users',
+      title: '👤 New User Registered',
+      message: `User ${newUsr.name || newUsr.email} registered with initial role [${newUsr.role.toUpperCase()}].`,
+      link: 'users',
+      entity_type: 'user',
+      entity_id: newUsr.id,
+      priority: 'normal',
+      metadata: {
+        userId: newUsr.id,
+        email: newUsr.email,
+        role: newUsr.role
+      },
+      event_key: `user_new_${newUsr.id}`
+    });
+
     return newUsr;
   };
 
   const updateUser = (id: string, data: Partial<UserProfile>) => {
+    const existing = users.find(u => u.id === id);
     setUsers(prev => prev.map(u => u.id === id ? { ...u, ...data } : u));
     if (currentUser.id === id) {
       setCurrentUser(prev => ({ ...prev, ...data }));
@@ -3082,6 +3594,25 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       record_id: id,
       details: `Updated user profile ${id}`
     });
+
+    if (data.role && data.role !== existing?.role) {
+      addNotification({
+        type: 'role_changed',
+        category: 'users',
+        title: '🛡️ User Role Updated',
+        message: `Role for ${existing?.name || existing?.email || id} changed to [${data.role.toUpperCase()}].`,
+        link: 'users',
+        entity_type: 'user',
+        entity_id: id,
+        priority: 'high',
+        metadata: {
+          userId: id,
+          newRole: data.role,
+          previousRole: existing?.role
+        },
+        event_key: `user_role_${id}_${data.role}`
+      });
+    }
   };
 
   const deleteUser = (id: string) => {
@@ -3235,6 +3766,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setCurrentUser(prev => ({ ...prev, role: roleCode as any }));
     }
 
+    const targetUser = users.find(u => u.id === userId);
     addAuditLog({
       user_id: currentUser.id,
       user_email: currentUser.email,
@@ -3243,6 +3775,23 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       table_name: 'profiles',
       record_id: userId,
       details: `Assigned new role [${roleCode}] to user ${userId}`
+    });
+
+    addNotification({
+      type: 'role_changed',
+      category: 'users',
+      title: '🛡️ Role Permission Assigned',
+      message: `User ${targetUser?.name || targetUser?.email || userId} was assigned authority role [${roleCode.toUpperCase()}].`,
+      link: 'users',
+      entity_type: 'user',
+      entity_id: userId,
+      priority: 'high',
+      metadata: {
+        userId,
+        newRole: roleCode,
+        assignedBy: currentUser.email
+      },
+      event_key: `assign_role_${userId}_${roleCode}_${Date.now()}`
     });
   };
 
@@ -4196,6 +4745,24 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       details: `Created ${newNote.noteType.toUpperCase()} NOTE ${newNote.noteNumber} against Invoice ${newNote.invoiceNumber} for ${newNote.clientCompany} (₹ ${newNote.totalAmount.toLocaleString('en-IN')})`
     });
 
+    addNotification({
+      type: 'gst_report_generated',
+      category: 'financials',
+      title: `📑 ${newNote.noteType === 'credit' ? 'Credit' : 'Debit'} Note ${newNote.noteNumber} Issued`,
+      message: `${newNote.noteType === 'credit' ? 'Credit Note' : 'Debit Note'} issued against Invoice ${newNote.invoiceNumber} for ${newNote.clientCompany} (₹${newNote.totalAmount.toLocaleString('en-IN')}).`,
+      link: 'credit_debit_notes',
+      entity_type: 'credit_debit_note',
+      entity_id: newNote.id,
+      priority: 'high',
+      metadata: {
+        noteNumber: newNote.noteNumber,
+        noteType: newNote.noteType,
+        invoiceNumber: newNote.invoiceNumber,
+        amount: newNote.totalAmount
+      },
+      event_key: `cdn_${newNote.id}`
+    });
+
     return newNote;
   };
 
@@ -4304,6 +4871,243 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       table_name: 'seller_profile',
       record_id: 'master_seller_profile',
       details: `Updated master seller profile: ${data.company_name || data.name || 'Fusion Forge Creation'}`
+    });
+  };
+
+  // ===========================================================================
+  // PHASE 16: LEGAL DOCUMENT MONITORING & VERSION CONTROL (SUPER ADMIN)
+  // ===========================================================================
+  const updateLegalDocument = async (
+    id: string, 
+    updates: Partial<LegalDocument>, 
+    changeSummary: string = 'Updated legal document contents'
+  ): Promise<LegalDocument | undefined> => {
+    const existing = legalDocuments.find(d => d.id === id || d.slug === id);
+    if (!existing) return undefined;
+
+    const timestamp = new Date().toISOString();
+    const updatedDoc: LegalDocument = {
+      ...existing,
+      ...updates,
+      lastUpdatedDate: timestamp.split('T')[0],
+      lastModifiedBy: currentUser.full_name || currentUser.name,
+      lastModifiedByEmail: currentUser.email,
+      lastModifiedByRole: currentUser.role === 'super_admin' ? 'Super Admin' : currentUser.role,
+      changeSummary: changeSummary || updates.changeSummary || existing.changeSummary,
+      updated_at: timestamp
+    };
+
+    // Create a new revision history snapshot
+    const historyId = `hist_${existing.slug}_${Date.now()}`;
+    const newHistoryItem: LegalDocumentHistoryItem = {
+      id: historyId,
+      documentId: existing.id,
+      documentSlug: existing.slug,
+      version: updatedDoc.version,
+      title: updatedDoc.title,
+      summary: updatedDoc.summary,
+      content: updatedDoc.content,
+      effectiveDate: updatedDoc.effectiveDate,
+      status: updatedDoc.status,
+      changedBy: currentUser.full_name || currentUser.name,
+      changedByEmail: currentUser.email,
+      changedByRole: currentUser.role === 'super_admin' ? 'Super Admin' : currentUser.role,
+      changeSummary: changeSummary,
+      created_at: timestamp
+    };
+
+    setLegalDocuments(prev => prev.map(d => (d.id === existing.id ? updatedDoc : d)));
+    setLegalHistory(prev => [newHistoryItem, ...prev]);
+
+    // Persist authoritatively in Supabase
+    if (isSupabaseConfigured) {
+      try {
+        await supabase.from('legal_documents').update({
+          title: updatedDoc.title,
+          version: updatedDoc.version,
+          effective_date: updatedDoc.effectiveDate,
+          last_updated_date: updatedDoc.lastUpdatedDate,
+          status: updatedDoc.status,
+          summary: updatedDoc.summary,
+          content: updatedDoc.content,
+          jurisdiction: updatedDoc.jurisdiction,
+          applicable_law: updatedDoc.applicableLaw,
+          last_modified_by: updatedDoc.lastModifiedBy,
+          last_modified_by_email: updatedDoc.lastModifiedByEmail,
+          last_modified_by_role: updatedDoc.lastModifiedByRole,
+          change_summary: updatedDoc.changeSummary,
+          version_history_count: (existing.versionHistoryCount || 1) + 1,
+          updated_at: timestamp
+        }).eq('id', existing.id);
+
+        await supabase.from('legal_document_history').insert([{
+          id: newHistoryItem.id,
+          document_id: newHistoryItem.documentId,
+          document_slug: newHistoryItem.documentSlug,
+          version: newHistoryItem.version,
+          title: newHistoryItem.title,
+          summary: newHistoryItem.summary,
+          content: newHistoryItem.content,
+          effective_date: newHistoryItem.effectiveDate,
+          status: newHistoryItem.status,
+          changed_by: newHistoryItem.changedBy,
+          changed_by_email: newHistoryItem.changedByEmail,
+          changed_by_role: newHistoryItem.changedByRole,
+          change_summary: newHistoryItem.changeSummary,
+          created_at: timestamp
+        }]);
+      } catch (err) {
+        console.warn('[Supabase Legal Document Update] Error:', err);
+      }
+    }
+
+    addAuditLog({
+      user_id: currentUser.id,
+      user_email: currentUser.email,
+      user_role: currentUser.role,
+      action: 'UPDATE',
+      table_name: 'legal_documents',
+      record_id: existing.id,
+      details: `Updated legal document "${existing.title}" to ${updatedDoc.version} (${updatedDoc.status}). Summary: ${changeSummary}`
+    });
+
+    addNotification({
+      type: 'system_alert',
+      category: 'compliance',
+      title: `Legal Document Updated: ${existing.title}`,
+      message: `Version ${updatedDoc.version} published by ${currentUser.name} (${currentUser.role}). Status: ${updatedDoc.status.toUpperCase()}`,
+      priority: 'high',
+      target_role: 'admin',
+      entity_type: 'legal_document',
+      entity_id: existing.id,
+      metadata: { slug: existing.slug, version: updatedDoc.version, changeSummary }
+    });
+
+    return updatedDoc;
+  };
+
+  const createLegalDocumentRevision = async (
+    id: string,
+    newVersion: string,
+    content: string,
+    changeSummary: string,
+    newStatus: LegalDocumentStatus = 'active'
+  ): Promise<LegalDocument | undefined> => {
+    return updateLegalDocument(id, { version: newVersion, content, status: newStatus }, changeSummary);
+  };
+
+  const restoreLegalDocumentVersion = async (documentId: string, historyId: string): Promise<boolean> => {
+    const hist = legalHistory.find(h => h.id === historyId);
+    if (!hist) return false;
+
+    const doc = legalDocuments.find(d => d.id === documentId || d.slug === hist.documentSlug);
+    if (!doc) return false;
+
+    await updateLegalDocument(
+      doc.id,
+      {
+        content: hist.content,
+        title: hist.title,
+        summary: hist.summary,
+        version: `${hist.version}-restored`,
+        status: 'active'
+      },
+      `Rollback & restored content from historical revision ${hist.version} (originally authored by ${hist.changedBy})`
+    );
+
+    return true;
+  };
+
+  // ===========================================================================
+  // PHASE 16: PRIVACY-CONSCIOUS VISITOR TELEMETRY (SUPER ADMIN MONITORING)
+  // ===========================================================================
+  const trackVisitorEvent = async (
+    eventData: Partial<Omit<VisitorEvent, 'id' | 'created_at'>> & { eventType: VisitorEventType | string }
+  ): Promise<VisitorEvent | undefined> => {
+    if (!isVisitorTrackingEnabled) return undefined;
+
+    const eventId = `vis_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+    const timestamp = new Date().toISOString();
+
+    const fullEvent: VisitorEvent = {
+      id: eventId,
+      created_at: timestamp,
+      sessionId: eventData.sessionId || getOrCreateSessionId(),
+      eventType: eventData.eventType || 'page_view',
+      pagePath: eventData.pagePath || '/',
+      sectionId: eventData.sectionId,
+      referrer: eventData.referrer || getSanitizedReferrer(),
+      deviceType: eventData.deviceType || detectDeviceType(),
+      browser: eventData.browser || detectBrowser(),
+      os: eventData.os || detectOS(),
+      region: eventData.region || 'India',
+      durationSeconds: eventData.durationSeconds || 10,
+      metadata: buildPrivacySafeMetadata(eventData.metadata)
+    };
+
+    setVisitorEvents(prev => [fullEvent, ...prev.slice(0, 499)]);
+
+    if (isSupabaseConfigured) {
+      try {
+        await supabase.from('visitor_events').insert([{
+          id: fullEvent.id,
+          session_id: fullEvent.sessionId,
+          event_type: fullEvent.eventType,
+          page_path: fullEvent.pagePath,
+          section_id: fullEvent.sectionId || null,
+          referrer: fullEvent.referrer,
+          device_type: fullEvent.deviceType,
+          browser: fullEvent.browser,
+          os: fullEvent.os,
+          region: fullEvent.region || null,
+          duration_seconds: fullEvent.durationSeconds || null,
+          metadata: fullEvent.metadata || {},
+          created_at: fullEvent.created_at
+        }]);
+      } catch (err) {
+        console.warn('[Supabase Visitor Event Tracking] Handled error:', err);
+      }
+    }
+
+    return fullEvent;
+  };
+
+  const toggleVisitorTracking = (): boolean => {
+    const newState = !isVisitorTrackingEnabled;
+    setIsVisitorTrackingEnabled(newState);
+
+    addAuditLog({
+      user_id: currentUser.id,
+      user_email: currentUser.email,
+      user_role: currentUser.role,
+      action: 'UPDATE',
+      table_name: 'visitor_events',
+      record_id: 'telemetry_config',
+      details: `${newState ? 'Enabled' : 'Disabled'} privacy-conscious visitor telemetry monitoring.`
+    });
+
+    return newState;
+  };
+
+  const clearVisitorEvents = async (): Promise<void> => {
+    setVisitorEvents([]);
+
+    if (isSupabaseConfigured) {
+      try {
+        await supabase.from('visitor_events').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+      } catch (err) {
+        console.warn('[Supabase Clear Visitor Logs] Error:', err);
+      }
+    }
+
+    addAuditLog({
+      user_id: currentUser.id,
+      user_email: currentUser.email,
+      user_role: currentUser.role,
+      action: 'DELETE',
+      table_name: 'visitor_events',
+      record_id: 'all_records',
+      details: 'Purged historical visitor analytics logs pursuant to Super Admin privacy maintenance.'
     });
   };
 
@@ -4424,6 +5228,31 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       checkPermission,
       auditLogs,
       addAuditLog,
+      // Phase 12: Central Notification & Email Dispatch System
+      notifications,
+      unreadNotificationsCount,
+      addNotification,
+      markNotificationRead,
+      markAllNotificationsRead,
+      deleteNotification,
+      clearAllNotifications,
+      emailLogs,
+      addEmailLog,
+      sendInvoiceEmail,
+      sendQuotationEmail,
+      sendPaymentReceiptEmail,
+      // Phase 16: Legal Document Monitoring & Visitor Monitoring
+      legalDocuments,
+      legalHistory,
+      updateLegalDocument,
+      createLegalDocumentRevision,
+      restoreLegalDocumentVersion,
+      visitorEvents,
+      trackVisitorEvent,
+      isVisitorTrackingEnabled,
+      toggleVisitorTracking,
+      clearVisitorEvents,
+      visitorSummary,
       pricePresets,
       addPricePreset,
       updatePricePreset,
@@ -4436,7 +5265,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setDefaultPaymentTerm,
       updateDocumentNumberConfig,
       updateAgencyConfig,
-      agencyConfig
+      agencyConfig,
+      isAuthenticated,
+      setIsAuthenticated,
+      logout
     }}>
       {children}
     </AppContext.Provider>
