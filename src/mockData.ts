@@ -1593,12 +1593,12 @@ export const INITIAL_CHATBOT_QA: ChatbotQAItem[] = [
   {
     id: 'cqa_2',
     question: 'How much does developing a custom web or mobile application cost?',
-    answer: 'Our project investments are transparent and milestone-based:\n\n• MVP / Rapid Prototypes: ₹50,000 – ₹1,50,000\n• Standard Web & Mobile Applications: ₹1,50,000 – ₹3,00,000\n• Enterprise Cloud Platforms & Multi-User Portals: ₹3,00,000 – ₹6,00,000+\n• High-Scale Distributed Systems: Custom Scope.\n\nAll estimates include 18% GST with formal SAC 998314 Tax Invoices. You can use our interactive ballpark estimator below!',
+    answer: 'Our project investments are transparent and milestone-based:\n\n• MVP / Rapid Prototypes: ₹50,000 – ₹1,50,000\n• Standard Web & Mobile Applications: ₹1,50,000 – ₹3,00,000\n• Enterprise Cloud Platforms & Multi-User Portals: ₹3,00,000 – ₹6,00,000+\n• High-Scale Distributed Systems: Custom Scope.\n\nAll estimates include 18% GST with formal SAC 998314 Tax Invoices. You can submit your project scope requirements below to receive a formal commercial quotation within 24 hours!',
     category: 'Pricing & Quotes',
     keywords: ['price', 'pricing', 'cost', 'budget', 'rate', 'quote', 'quotation', 'how much', 'fee', 'charge', 'expensive', 'inr', 'rupees'],
-    suggestedFollowUps: ['Open Ballpark Cost Estimator', 'Are your invoices GST compliant?', 'How to get a formal quotation?'],
+    suggestedFollowUps: ['Submit Project Scope', 'Are your invoices GST compliant?', 'How to get a formal quotation?'],
     actionLink: '#contact',
-    actionLabel: 'Calculate Instant Ballpark Estimate',
+    actionLabel: 'Submit Project Scope for Quotation',
     isActive: true,
     orderIndex: 2,
     matchCount: 210

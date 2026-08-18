@@ -109,13 +109,6 @@ export const PublicWebsite: React.FC = () => {
   // FAQ Accordion state
   const [openFaq, setOpenFaq] = useState<number | null>(0);
 
-  // Cost Estimator state
-  const [platform, setPlatform] = useState<'web' | 'mobile' | 'both'>('web');
-  const [backendNeeds, setBackendNeeds] = useState<'standard' | 'enterprise'>('standard');
-  const [uiLevel, setUiLevel] = useState<'custom' | 'design_system'>('custom');
-  const [selectedFeatures, setSelectedFeatures] = useState<string[]>(['Auth & Security', 'Database Storage']);
-  const [estimatorApplied, setEstimatorApplied] = useState(false);
-
   // Contact / Enquiry form state
   const [form, setForm] = useState({
     name: '',
@@ -130,49 +123,6 @@ export const PublicWebsite: React.FC = () => {
   });
   const [submitted, setSubmitted] = useState(false);
   const [gstinError, setGstinError] = useState<string | null>(null);
-
-  // Feature pricing options for estimator
-  const featureOptions = [
-    { id: 'Auth & Security', name: 'User Auth & Role-Based Access Control', price: 25000 },
-    { id: 'Database Storage', name: 'PostgreSQL / Supabase Scalable DB', price: 30000 },
-    { id: 'Payment Gateway', name: 'Razorpay / Stripe Payment Processing', price: 35000 },
-    { id: 'Real-time WebSockets', name: 'Real-time Live Sync & WebSockets', price: 40000 },
-    { id: 'PDF & Reports', name: 'GST Compliant PDF Generation Engine', price: 20000 },
-    { id: 'AI Assistant', name: 'Gemini AI Intelligent Model Integration', price: 45000 }
-  ];
-
-  const calculateEstimatedTotal = () => {
-    let base = platform === 'web' ? 75000 : platform === 'mobile' ? 95000 : 150000;
-    if (backendNeeds === 'enterprise') base += 50000;
-    if (uiLevel === 'design_system') base += 35000;
-    selectedFeatures.forEach(featId => {
-      const found = featureOptions.find(f => f.id === featId);
-      if (found) base += found.price;
-    });
-    return base;
-  };
-
-  const toggleFeature = (id: string) => {
-    setSelectedFeatures(prev => 
-      prev.includes(id) ? prev.filter(f => f !== id) : [...prev, id]
-    );
-  };
-
-  const handleApplyEstimatorToForm = () => {
-    const est = calculateEstimatedTotal();
-    const estFormatted = `₹${(est/100000).toFixed(1)}L - ₹${((est*1.3)/100000).toFixed(1)}L`;
-    setForm(prev => ({
-      ...prev,
-      budgetRange: estFormatted,
-      projectDescription: prev.projectDescription || `Estimated for ${platform === 'both' ? 'Web + Mobile' : platform === 'web' ? 'Web Portal' : 'Mobile App'} with ${selectedFeatures.join(', ')}.`
-    }));
-    setEstimatorApplied(true);
-    info('Estimator Applied', `Populated enquiry scope with calculated estimate (${estFormatted}).`);
-    const contactElem = document.getElementById('contact');
-    if (contactElem) {
-      contactElem.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
 
   const handleEnquirySubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -196,7 +146,7 @@ export const PublicWebsite: React.FC = () => {
       budgetRange: form.budgetRange,
       estimatedTimeline: '3-6 Weeks',
       projectDescription: form.projectDescription.trim(),
-      featuresRequired: selectedFeatures,
+      featuresRequired: [form.serviceCategory],
       source: 'website_form'
     });
     setSubmitted(true);
@@ -1046,7 +996,7 @@ export const PublicWebsite: React.FC = () => {
       </section>
 
       {/* ─────────────────────────────────────────────────────────────
-          8. ENQUIRY / CONTACT & COST ESTIMATOR SECTION
+          8. CONTACT & PROJECT SCOPE
           ───────────────────────────────────────────────────────────── */}
       <section id="contact" className="py-24 max-w-7xl mx-auto px-4 sm:px-6 scroll-mt-20">
         
@@ -1055,20 +1005,25 @@ export const PublicWebsite: React.FC = () => {
             Start Your Engagement
           </span>
           <h2 className="text-3xl sm:text-4xl font-black text-white mt-3 tracking-tight">
-            Project Scope Submission
+            Project Scope Submission & Direct Agency Contacts
           </h2>
           <p className="text-sm text-slate-300 mt-2">
-            Submit your project scope, technical requirements, and organizational GST details below or use our interactive cost estimator to receive an official formal Quotation within 24 hours.
+            Submit your project scope, technical requirements, and organizational GST details below or connect directly with our engineering team to receive an official formal Quotation within 24 hours.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           
-          {/* LEFT: Project Enquiry Form (7 cols) */}
+          {/* LEFT: Project Scope Submission Form (7 cols) */}
           <div className="lg:col-span-7 p-6 sm:p-10 rounded-3xl bg-gradient-to-b from-[#111e47]/95 to-[#0a1330]/95 border border-blue-500/25 shadow-2xl">
-            <div className="flex items-center space-x-2 text-xs font-black uppercase tracking-wider text-cyan-400 mb-4">
-              <Mail className="w-4 h-4" />
-              <span>Project Scope Submission</span>
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center space-x-2 text-xs font-black uppercase tracking-wider text-cyan-400">
+                <Mail className="w-4 h-4" />
+                <span>Project Scope Submission</span>
+              </div>
+              <span className="px-2.5 py-0.5 rounded-full bg-blue-500/15 border border-blue-500/30 text-cyan-300 text-[10px] font-bold font-mono">
+                SAC 998314 • GST Compliant
+              </span>
             </div>
 
             {submitted ? (
@@ -1260,134 +1215,111 @@ export const PublicWebsite: React.FC = () => {
             )}
           </div>
 
-          {/* RIGHT: Quick Interactive Cost Estimator & Agency Info (5 cols) */}
+          {/* RIGHT: Direct Agency Contacts (5 cols) */}
           <div className="lg:col-span-5 space-y-6">
             
-            {/* Cost Estimator Card */}
+            {/* Primary Direct Contact Box */}
             <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-b from-[#111e47]/95 to-[#0a1330]/95 border border-blue-500/25 shadow-2xl space-y-6">
-              <div className="flex items-center justify-between pb-4 border-b border-blue-500/20">
-                <div className="flex items-center space-x-2">
-                  <Calculator className="w-4 h-4 text-cyan-400" />
-                  <span className="text-xs font-black uppercase tracking-wider text-white">Ballpark Estimator</span>
-                </div>
-                <span className="px-2 py-0.5 rounded bg-blue-500/15 border border-blue-500/30 text-cyan-300 text-[10px] font-bold font-mono">
-                  SAC 998314
-                </span>
-              </div>
-
-              {/* Platform Selector */}
-              <div>
-                <label className="text-[11px] font-bold uppercase text-slate-300 tracking-wider block mb-2">
-                  1. Platform
-                </label>
-                <div className="grid grid-cols-3 gap-2">
-                  {[
-                    { id: 'web', label: 'Web' },
-                    { id: 'mobile', label: 'Mobile' },
-                    { id: 'both', label: 'Both' }
-                  ].map(item => (
-                    <button
-                      key={item.id}
-                      type="button"
-                      onClick={() => setPlatform(item.id as any)}
-                      className={`py-2 px-2 rounded-xl text-xs font-bold text-center transition-all cursor-pointer ${
-                        platform === item.id 
-                          ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30' 
-                          : 'bg-[#0e1938] border border-blue-500/30 text-slate-300 hover:text-white'
-                      }`}
-                    >
-                      {item.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Feature checkboxes */}
-              <div>
-                <label className="text-[11px] font-bold uppercase text-slate-300 tracking-wider block mb-2">
-                  2. Select Key Features
-                </label>
-                <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
-                  {featureOptions.map(feat => {
-                    const selected = selectedFeatures.includes(feat.id);
-                    return (
-                      <button
-                        key={feat.id}
-                        type="button"
-                        onClick={() => toggleFeature(feat.id)}
-                        className={`w-full p-2 rounded-xl border text-left flex items-center justify-between transition-all cursor-pointer ${
-                          selected 
-                            ? 'bg-blue-900/40 border-blue-400/60 text-white' 
-                            : 'bg-[#08122c] border-slate-700/80 text-slate-300 hover:border-blue-500/40'
-                        }`}
-                      >
-                        <div className="flex items-center space-x-2 truncate">
-                          <CheckCircle2 className={`w-3.5 h-3.5 flex-shrink-0 ${selected ? 'text-cyan-400' : 'text-slate-500'}`} />
-                          <span className="text-[11px] font-semibold truncate">{feat.name}</span>
-                        </div>
-                        <span className="text-[10px] font-mono text-cyan-300 font-bold ml-2">
-                          +₹{feat.price/1000}k
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Total Calculation */}
-              <div className="pt-4 border-t border-blue-500/20 space-y-1">
-                <div className="text-[11px] text-slate-400">Estimated Development Budget</div>
-                <div className="text-2xl font-black text-white font-mono">
-                  ₹ {calculateEstimatedTotal().toLocaleString('en-IN')}
-                  <span className="text-xs font-normal text-slate-400 ml-1">+ 18% GST</span>
-                </div>
-                <div className="text-xs text-cyan-400 font-mono font-semibold">
-                  Grand Total: ₹ {Math.round(calculateEstimatedTotal() * 1.18).toLocaleString('en-IN')}
-                </div>
-              </div>
-
-              <button
-                type="button"
-                onClick={handleApplyEstimatorToForm}
-                className="w-full py-3 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 hover:opacity-90 text-white text-xs font-bold transition-all flex items-center justify-center space-x-2 shadow-lg shadow-cyan-600/30 cursor-pointer"
-              >
-                <span>{estimatorApplied ? '✓ Applied to Form' : 'Apply Estimate to Scope'}</span>
-              </button>
-            </div>
-
-            {/* Direct Contact Info Box */}
-            <div className="p-6 rounded-3xl bg-gradient-to-b from-[#111e47]/90 to-[#0a1330]/90 border border-blue-500/20 text-xs space-y-3 shadow-xl">
-              <div className="font-bold text-white text-sm flex items-center justify-between">
-                <span>Direct Agency Contacts</span>
-                <span className="text-[10px] text-emerald-400 font-normal">Active Today</span>
-              </div>
               
-              <div className="flex items-start space-x-3 text-slate-300">
-                <MapPin className="w-4 h-4 text-cyan-400 flex-shrink-0 mt-0.5" />
-                <div>
-                  <div className="font-semibold text-white">{config.company_name || config.name}</div>
-                  <div className="text-slate-400 leading-relaxed">{config.address}</div>
+              <div className="flex items-center justify-between pb-4 border-b border-blue-500/20">
+                <div className="flex items-center space-x-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-blue-500/20 border border-blue-500/30 flex items-center justify-center">
+                    <Phone className="w-4 h-4 text-cyan-400" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-black uppercase tracking-wider text-white">Direct Agency Contacts</h3>
+                    <p className="text-[10px] text-slate-400">Engineering & Solutions Office</p>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                  <span className="text-[10px] text-emerald-400 font-bold uppercase tracking-wider">Active Today</span>
                 </div>
               </div>
 
-              <div className="flex items-center space-x-3 text-slate-300">
-                <Mail className="w-4 h-4 text-cyan-400 flex-shrink-0" />
-                <a href={`mailto:${config.email}`} className="font-mono text-slate-300 hover:text-cyan-400 transition-colors">{config.email}</a>
+              {/* Agency Office Location */}
+              <div className="p-4 rounded-2xl bg-slate-950/60 border border-slate-800/80 space-y-2">
+                <div className="flex items-start space-x-3 text-slate-300">
+                  <MapPin className="w-4 h-4 text-cyan-400 flex-shrink-0 mt-1" />
+                  <div>
+                    <div className="font-bold text-white text-xs">{config.company_name || config.name}</div>
+                    <div className="text-[11px] text-slate-300 leading-relaxed mt-0.5">{config.address}</div>
+                    <div className="text-[10px] text-cyan-400/80 font-mono mt-1">Place of Supply: 26 - Dadra & Nagar Haveli and Daman & Diu</div>
+                  </div>
+                </div>
               </div>
 
-              <div className="flex items-center space-x-3 text-slate-300">
-                <Phone className="w-4 h-4 text-emerald-400 flex-shrink-0" />
-                <a href={`tel:${config.phone.replace(/[^0-9+]/g, '')}`} className="font-mono text-slate-300 hover:text-emerald-400 transition-colors">{config.phone}</a>
+              {/* Direct Communication Channels */}
+              <div className="grid grid-cols-1 gap-3">
+                <a
+                  href={`mailto:${config.email}`}
+                  className="p-3.5 rounded-2xl bg-slate-950/60 border border-slate-800/80 hover:border-cyan-500/50 flex items-center justify-between group transition-all cursor-pointer"
+                >
+                  <div className="flex items-center space-x-3">
+                    <div className="w-7 h-7 rounded-lg bg-cyan-500/10 flex items-center justify-center text-cyan-400">
+                      <Mail className="w-3.5 h-3.5" />
+                    </div>
+                    <div>
+                      <div className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">Official Email</div>
+                      <div className="text-xs font-mono font-medium text-slate-200 group-hover:text-cyan-400 transition-colors">{config.email}</div>
+                    </div>
+                  </div>
+                  <ArrowRight className="w-3.5 h-3.5 text-slate-500 group-hover:text-cyan-400 group-hover:translate-x-0.5 transition-all" />
+                </a>
+
+                <a
+                  href={`tel:${config.phone.replace(/[^0-9+]/g, '')}`}
+                  className="p-3.5 rounded-2xl bg-slate-950/60 border border-slate-800/80 hover:border-emerald-500/50 flex items-center justify-between group transition-all cursor-pointer"
+                >
+                  <div className="flex items-center space-x-3">
+                    <div className="w-7 h-7 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-400">
+                      <Phone className="w-3.5 h-3.5" />
+                    </div>
+                    <div>
+                      <div className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">Phone & WhatsApp</div>
+                      <div className="text-xs font-mono font-medium text-slate-200 group-hover:text-emerald-400 transition-colors">{config.phone}</div>
+                    </div>
+                  </div>
+                  <ArrowRight className="w-3.5 h-3.5 text-slate-500 group-hover:text-emerald-400 group-hover:translate-x-0.5 transition-all" />
+                </a>
               </div>
 
-              <div className="pt-2 border-t border-blue-500/20 flex items-center justify-between text-[11px] text-slate-400">
-                <span>GSTIN: <strong className="text-slate-200 font-mono">{config.gstin}</strong></span>
-                <span>PAN: <strong className="text-slate-200 font-mono">{config.pan}</strong></span>
+              {/* Working Hours */}
+              <div className="flex items-center space-x-3 px-3.5 py-2.5 rounded-xl bg-blue-500/10 border border-blue-500/20 text-xs text-slate-300">
+                <Clock className="w-4 h-4 text-cyan-400 flex-shrink-0" />
+                <div className="text-[11px] leading-tight">
+                  <span className="font-semibold text-white">Business Hours:</span> Mon – Sat: 09:30 AM – 07:00 PM IST
+                </div>
+              </div>
+
+              {/* Statutory & GST Compliance */}
+              <div className="pt-4 border-t border-blue-500/20 space-y-2">
+                <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                  Statutory & GST Compliance Details
+                </div>
+                <div className="grid grid-cols-2 gap-2 text-[11px]">
+                  <div className="p-2.5 rounded-xl bg-slate-950/70 border border-slate-800">
+                    <div className="text-[10px] text-slate-400 font-semibold">GSTIN</div>
+                    <div className="font-mono font-bold text-slate-200 text-xs">{config.gstin}</div>
+                  </div>
+                  <div className="p-2.5 rounded-xl bg-slate-950/70 border border-slate-800">
+                    <div className="text-[10px] text-slate-400 font-semibold">PAN</div>
+                    <div className="font-mono font-bold text-slate-200 text-xs">{config.pan}</div>
+                  </div>
+                  <div className="p-2.5 rounded-xl bg-slate-950/70 border border-slate-800">
+                    <div className="text-[10px] text-slate-400 font-semibold">Service Code</div>
+                    <div className="font-mono font-bold text-cyan-400 text-xs">SAC 998314</div>
+                  </div>
+                  <div className="p-2.5 rounded-xl bg-slate-950/70 border border-slate-800">
+                    <div className="text-[10px] text-slate-400 font-semibold">Turnaround</div>
+                    <div className="font-bold text-emerald-400 text-xs">24 Hours SLA</div>
+                  </div>
+                </div>
               </div>
 
               {/* Social Channels in Contact Box */}
-              <div className="pt-2 border-t border-blue-500/20 flex items-center justify-between">
-                <span className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Social Channels</span>
+              <div className="pt-4 border-t border-blue-500/20 flex items-center justify-between">
+                <span className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Official Channels</span>
                 <div className="flex flex-wrap items-center gap-1.5">
                   {activeSocialChannels.map(channel => (
                     <a
@@ -1395,7 +1327,7 @@ export const PublicWebsite: React.FC = () => {
                       href={formatSocialUrl(channel.url, channel.platform)}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="p-1.5 rounded-lg bg-slate-900 border border-slate-700 hover:border-cyan-400 text-slate-400 hover:text-cyan-300 transition-all hover:scale-105"
+                      className="p-2 rounded-xl bg-slate-900 border border-slate-700 hover:border-cyan-400 text-slate-400 hover:text-cyan-300 transition-all hover:scale-105 cursor-pointer"
                       title={channel.name}
                       aria-label={channel.name}
                     >
@@ -1407,6 +1339,7 @@ export const PublicWebsite: React.FC = () => {
                   )}
                 </div>
               </div>
+
             </div>
 
           </div>

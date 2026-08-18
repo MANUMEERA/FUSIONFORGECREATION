@@ -477,7 +477,7 @@ $$;
 DROP TRIGGER IF EXISTS trg_calc_quotation_items ON public.quotation_items;
 CREATE TRIGGER trg_calc_quotation_items AFTER INSERT OR UPDATE OR DELETE ON public.quotation_items FOR EACH ROW EXECUTE FUNCTION public.trg_quotation_items_recalc();
 
--- 18. ROW LEVEL SECURITY POLICIES (ENTERPRISE ISOLATION)
+-- 18. ROW LEVEL SECURITY POLICIES (ENTERPRISE ISOLATION & DELETE SECURITY)
 ALTER TABLE public.permissions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.role_permissions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.service_price_presets ENABLE ROW LEVEL SECURITY;
@@ -499,46 +499,134 @@ ALTER TABLE public.audit_logs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.visitor_logs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.compliance_logs ENABLE ROW LEVEL SECURITY;
 
--- Permissions & Presets
+-- DELETE SECURITY FUNCTION: Only Super Admin is authorized to perform physical deletes
+CREATE OR REPLACE FUNCTION public.enforce_super_admin_delete_only()
+RETURNS TRIGGER LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+BEGIN
+    IF public.get_user_role(auth.uid()) <> 'super_admin' THEN
+        RAISE EXCEPTION 'Access Denied: Only Super Admin is authorized to delete records from table "%". Current role: "%".', 
+            TG_TABLE_NAME, COALESCE(public.get_user_role(auth.uid()), 'anonymous');
+    END IF;
+    RETURN OLD;
+END;
+$$;
+
+-- Attach DELETE guard triggers to all business tables
+DROP TRIGGER IF EXISTS trg_delete_guard_clients ON public.clients;
+CREATE TRIGGER trg_delete_guard_clients BEFORE DELETE ON public.clients FOR EACH ROW EXECUTE FUNCTION public.enforce_super_admin_delete_only();
+
+DROP TRIGGER IF EXISTS trg_delete_guard_invoices ON public.invoices;
+CREATE TRIGGER trg_delete_guard_invoices BEFORE DELETE ON public.invoices FOR EACH ROW EXECUTE FUNCTION public.enforce_super_admin_delete_only();
+
+DROP TRIGGER IF EXISTS trg_delete_guard_quotations ON public.quotations;
+CREATE TRIGGER trg_delete_guard_quotations BEFORE DELETE ON public.quotations FOR EACH ROW EXECUTE FUNCTION public.enforce_super_admin_delete_only();
+
+DROP TRIGGER IF EXISTS trg_delete_guard_payments ON public.payments;
+CREATE TRIGGER trg_delete_guard_payments BEFORE DELETE ON public.payments FOR EACH ROW EXECUTE FUNCTION public.enforce_super_admin_delete_only();
+
+DROP TRIGGER IF EXISTS trg_delete_guard_projects ON public.managed_projects;
+CREATE TRIGGER trg_delete_guard_projects BEFORE DELETE ON public.managed_projects FOR EACH ROW EXECUTE FUNCTION public.enforce_super_admin_delete_only();
+
+DROP TRIGGER IF EXISTS trg_delete_guard_expenses ON public.expenses;
+CREATE TRIGGER trg_delete_guard_expenses BEFORE DELETE ON public.expenses FOR EACH ROW EXECUTE FUNCTION public.enforce_super_admin_delete_only();
+
+DROP TRIGGER IF EXISTS trg_delete_guard_salary ON public.salary_entries;
+CREATE TRIGGER trg_delete_guard_salary BEFORE DELETE ON public.salary_entries FOR EACH ROW EXECUTE FUNCTION public.enforce_super_admin_delete_only();
+
+DROP TRIGGER IF EXISTS trg_delete_guard_credit_notes ON public.credit_notes;
+CREATE TRIGGER trg_delete_guard_credit_notes BEFORE DELETE ON public.credit_notes FOR EACH ROW EXECUTE FUNCTION public.enforce_super_admin_delete_only();
+
+DROP TRIGGER IF EXISTS trg_delete_guard_debit_notes ON public.debit_notes;
+CREATE TRIGGER trg_delete_guard_debit_notes BEFORE DELETE ON public.debit_notes FOR EACH ROW EXECUTE FUNCTION public.enforce_super_admin_delete_only();
+
+DROP TRIGGER IF EXISTS trg_delete_guard_enquiries ON public.enquiries;
+CREATE TRIGGER trg_delete_guard_enquiries BEFORE DELETE ON public.enquiries FOR EACH ROW EXECUTE FUNCTION public.enforce_super_admin_delete_only();
+
+DROP TRIGGER IF EXISTS trg_delete_guard_profiles ON public.profiles;
+CREATE TRIGGER trg_delete_guard_profiles BEFORE DELETE ON public.profiles FOR EACH ROW EXECUTE FUNCTION public.enforce_super_admin_delete_only();
+
+-- Permissions & Presets Policies
+DROP POLICY IF EXISTS "Super admin manage permissions" ON public.permissions;
 CREATE POLICY "Super admin manage permissions" ON public.permissions FOR ALL USING (public.get_user_role(auth.uid()) = 'super_admin');
+DROP POLICY IF EXISTS "Authenticated read permissions" ON public.permissions;
 CREATE POLICY "Authenticated read permissions" ON public.permissions FOR SELECT USING (auth.role() = 'authenticated');
 
+DROP POLICY IF EXISTS "Super admin manage role_permissions" ON public.role_permissions;
 CREATE POLICY "Super admin manage role_permissions" ON public.role_permissions FOR ALL USING (public.get_user_role(auth.uid()) = 'super_admin');
+DROP POLICY IF EXISTS "Authenticated read role_permissions" ON public.role_permissions;
 CREATE POLICY "Authenticated read role_permissions" ON public.role_permissions FOR SELECT USING (auth.role() = 'authenticated');
 
+DROP POLICY IF EXISTS "Admin manage service presets" ON public.service_price_presets;
 CREATE POLICY "Admin manage service presets" ON public.service_price_presets FOR ALL USING (public.get_user_role(auth.uid()) IN ('super_admin', 'admin'));
+DROP POLICY IF EXISTS "Public read service presets" ON public.service_price_presets;
 CREATE POLICY "Public read service presets" ON public.service_price_presets FOR SELECT USING (is_active = TRUE);
 
--- Quotations
-CREATE POLICY "Admins and Staff manage quotations" ON public.quotations FOR ALL USING (public.get_user_role(auth.uid()) IN ('super_admin', 'admin', 'staff', 'project_manager'));
-CREATE POLICY "Admins and Staff manage quotation items" ON public.quotation_items FOR ALL USING (public.get_user_role(auth.uid()) IN ('super_admin', 'admin', 'staff', 'project_manager'));
+-- Quotations Policies (Strict Super Admin Delete)
+DROP POLICY IF EXISTS "Staff select quotations" ON public.quotations;
+CREATE POLICY "Staff select quotations" ON public.quotations FOR SELECT USING (public.get_user_role(auth.uid()) IN ('super_admin', 'admin', 'staff', 'project_manager'));
+DROP POLICY IF EXISTS "Staff insert quotations" ON public.quotations;
+CREATE POLICY "Staff insert quotations" ON public.quotations FOR INSERT WITH CHECK (public.get_user_role(auth.uid()) IN ('super_admin', 'admin', 'staff', 'project_manager'));
+DROP POLICY IF EXISTS "Staff update quotations" ON public.quotations;
+CREATE POLICY "Staff update quotations" ON public.quotations FOR UPDATE USING (public.get_user_role(auth.uid()) IN ('super_admin', 'admin', 'staff', 'project_manager'));
+DROP POLICY IF EXISTS "Super Admin delete quotations" ON public.quotations;
+CREATE POLICY "Super Admin delete quotations" ON public.quotations FOR DELETE USING (public.get_user_role(auth.uid()) = 'super_admin');
 
--- Projects
-CREATE POLICY "Admins and PMs manage projects" ON public.managed_projects FOR ALL USING (public.get_user_role(auth.uid()) IN ('super_admin', 'admin', 'project_manager', 'staff'));
-CREATE POLICY "Admins and PMs manage project history" ON public.project_status_history FOR ALL USING (public.get_user_role(auth.uid()) IN ('super_admin', 'admin', 'project_manager', 'staff'));
+DROP POLICY IF EXISTS "Staff manage quotation items" ON public.quotation_items;
+CREATE POLICY "Staff manage quotation items" ON public.quotation_items FOR ALL USING (public.get_user_role(auth.uid()) IN ('super_admin', 'admin', 'staff', 'project_manager'));
+
+-- Projects Policies
+DROP POLICY IF EXISTS "Staff select projects" ON public.managed_projects;
+CREATE POLICY "Staff select projects" ON public.managed_projects FOR SELECT USING (public.get_user_role(auth.uid()) IN ('super_admin', 'admin', 'project_manager', 'staff'));
+DROP POLICY IF EXISTS "Staff write projects" ON public.managed_projects;
+CREATE POLICY "Staff write projects" ON public.managed_projects FOR INSERT WITH CHECK (public.get_user_role(auth.uid()) IN ('super_admin', 'admin', 'project_manager'));
+DROP POLICY IF EXISTS "Staff update projects" ON public.managed_projects;
+CREATE POLICY "Staff update projects" ON public.managed_projects FOR UPDATE USING (public.get_user_role(auth.uid()) IN ('super_admin', 'admin', 'project_manager'));
+DROP POLICY IF EXISTS "Super Admin delete projects" ON public.managed_projects;
+CREATE POLICY "Super Admin delete projects" ON public.managed_projects FOR DELETE USING (public.get_user_role(auth.uid()) = 'super_admin');
+
+DROP POLICY IF EXISTS "Staff manage project history" ON public.project_status_history;
+CREATE POLICY "Staff manage project history" ON public.project_status_history FOR ALL USING (public.get_user_role(auth.uid()) IN ('super_admin', 'admin', 'project_manager', 'staff'));
 
 -- Financials (Credit/Debit Notes, Expenses, Salaries)
-CREATE POLICY "Accountants and Admins manage credit notes" ON public.credit_notes FOR ALL USING (public.get_user_role(auth.uid()) IN ('super_admin', 'admin', 'accountant'));
-CREATE POLICY "Accountants and Admins manage debit notes" ON public.debit_notes FOR ALL USING (public.get_user_role(auth.uid()) IN ('super_admin', 'admin', 'accountant'));
-CREATE POLICY "Accountants and Admins manage expenses" ON public.expenses FOR ALL USING (public.get_user_role(auth.uid()) IN ('super_admin', 'admin', 'accountant'));
+DROP POLICY IF EXISTS "Accountants manage credit notes" ON public.credit_notes;
+CREATE POLICY "Accountants manage credit notes" ON public.credit_notes FOR ALL USING (public.get_user_role(auth.uid()) IN ('super_admin', 'admin', 'accountant'));
+DROP POLICY IF EXISTS "Accountants manage debit notes" ON public.debit_notes;
+CREATE POLICY "Accountants manage debit notes" ON public.debit_notes FOR ALL USING (public.get_user_role(auth.uid()) IN ('super_admin', 'admin', 'accountant'));
+
+DROP POLICY IF EXISTS "Accountants manage expenses" ON public.expenses;
+CREATE POLICY "Accountants manage expenses" ON public.expenses FOR ALL USING (public.get_user_role(auth.uid()) IN ('super_admin', 'admin', 'accountant'));
+
+DROP POLICY IF EXISTS "Accountants and Super Admin manage salaries" ON public.salary_entries;
 CREATE POLICY "Accountants and Super Admin manage salaries" ON public.salary_entries FOR ALL USING (public.get_user_role(auth.uid()) IN ('super_admin', 'accountant'));
 
 -- Notifications
+DROP POLICY IF EXISTS "Users read own notifications" ON public.notifications;
 CREATE POLICY "Users read own notifications" ON public.notifications FOR SELECT USING (recipient_user_id = auth.uid() OR recipient_user_id IS NULL);
+DROP POLICY IF EXISTS "System and Admins manage notifications" ON public.notifications;
 CREATE POLICY "System and Admins manage notifications" ON public.notifications FOR ALL USING (public.get_user_role(auth.uid()) IN ('super_admin', 'admin'));
 
 -- Chatbot
+DROP POLICY IF EXISTS "Public read chatbot qa" ON public.chatbot_qa;
 CREATE POLICY "Public read chatbot qa" ON public.chatbot_qa FOR SELECT USING (is_active = TRUE);
+DROP POLICY IF EXISTS "Admins manage chatbot qa" ON public.chatbot_qa;
 CREATE POLICY "Admins manage chatbot qa" ON public.chatbot_qa FOR ALL USING (public.get_user_role(auth.uid()) IN ('super_admin', 'admin', 'editor'));
+DROP POLICY IF EXISTS "Public read chatbot settings" ON public.chatbot_settings;
 CREATE POLICY "Public read chatbot settings" ON public.chatbot_settings FOR SELECT USING (TRUE);
+DROP POLICY IF EXISTS "Admins manage chatbot settings" ON public.chatbot_settings;
 CREATE POLICY "Admins manage chatbot settings" ON public.chatbot_settings FOR ALL USING (public.get_user_role(auth.uid()) IN ('super_admin', 'admin'));
 
 -- Audit & Logs
+DROP POLICY IF EXISTS "Super admin read audit logs" ON public.audit_logs;
 CREATE POLICY "Super admin read audit logs" ON public.audit_logs FOR SELECT USING (public.get_user_role(auth.uid()) = 'super_admin');
+DROP POLICY IF EXISTS "Authenticated insert audit logs" ON public.audit_logs;
 CREATE POLICY "Authenticated insert audit logs" ON public.audit_logs FOR INSERT WITH CHECK (TRUE);
+DROP POLICY IF EXISTS "Public insert visitor logs" ON public.visitor_logs;
 CREATE POLICY "Public insert visitor logs" ON public.visitor_logs FOR INSERT WITH CHECK (TRUE);
+DROP POLICY IF EXISTS "Admins read visitor logs" ON public.visitor_logs;
 CREATE POLICY "Admins read visitor logs" ON public.visitor_logs FOR SELECT USING (public.get_user_role(auth.uid()) IN ('super_admin', 'admin'));
+DROP POLICY IF EXISTS "Public insert compliance logs" ON public.compliance_logs;
 CREATE POLICY "Public insert compliance logs" ON public.compliance_logs FOR INSERT WITH CHECK (TRUE);
+DROP POLICY IF EXISTS "Admins read compliance logs" ON public.compliance_logs;
 CREATE POLICY "Admins read compliance logs" ON public.compliance_logs FOR SELECT USING (public.get_user_role(auth.uid()) IN ('super_admin', 'admin'));
 
 -- 19. GRANTS

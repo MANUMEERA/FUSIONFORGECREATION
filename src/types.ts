@@ -248,7 +248,7 @@ export interface AuditLog {
   user_id: string;
   user_email: string;
   user_role: string;
-  action: 'CREATE' | 'UPDATE' | 'DELETE' | 'SOFT_DELETE' | 'RESTORE' | 'PAYMENT_RECORD' | 'AUTH_LOGIN' | 'CALCULATE_GST' | 'ROLE_CHANGE' | 'EMAIL_DISPATCH';
+  action: 'CREATE' | 'UPDATE' | 'DELETE' | 'SOFT_DELETE' | 'RESTORE' | 'PAYMENT_RECORD' | 'AUTH_LOGIN' | 'CALCULATE_GST' | 'ROLE_CHANGE' | 'PERMISSION_CHANGE' | 'STATUS_CHANGE' | 'FINANCIAL_CHANGE' | 'EMAIL_DISPATCH' | 'DOCUMENT_GENERATE' | 'EXPORT_DATA' | string;
   table_name: string;
   record_id: string;
   details: string;
