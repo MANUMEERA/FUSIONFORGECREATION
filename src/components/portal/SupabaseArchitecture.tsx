@@ -524,15 +524,15 @@ export const SupabaseArchitecture: React.FC = () => {
 
   const getCategoryColor = (cat: TableNode['category']) => {
     switch (cat) {
-      case 'auth': return 'bg-amber-500/10 text-amber-400 border-amber-500/30';
-      case 'audit': return 'bg-rose-500/10 text-rose-400 border-rose-500/30';
-      case 'crm': return 'bg-blue-500/10 text-blue-400 border-blue-500/30';
-      case 'sales': return 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30';
-      case 'content': return 'bg-purple-500/10 text-purple-400 border-purple-500/30';
-      case 'seller': return 'bg-cyan-500/10 text-cyan-400 border-cyan-500/30';
-      case 'geography': return 'bg-indigo-500/10 text-indigo-400 border-indigo-500/30';
-      case 'finance': return 'bg-teal-500/10 text-teal-400 border-teal-500/30';
-      case 'payroll': return 'bg-sky-500/10 text-sky-400 border-sky-500/30';
+      case 'auth': return 'bg-amber-50 text-amber-700 border-amber-200';
+      case 'audit': return 'bg-rose-50 text-rose-700 border-rose-200';
+      case 'crm': return 'bg-blue-50 text-blue-700 border-blue-200';
+      case 'sales': return 'bg-emerald-50 text-emerald-700 border-emerald-200';
+      case 'content': return 'bg-purple-50 text-purple-700 border-purple-200';
+      case 'seller': return 'bg-cyan-50 text-cyan-700 border-cyan-200';
+      case 'geography': return 'bg-indigo-50 text-indigo-700 border-indigo-200';
+      case 'finance': return 'bg-teal-50 text-teal-700 border-teal-200';
+      case 'payroll': return 'bg-sky-50 text-sky-700 border-sky-200';
     }
   };
 
@@ -552,22 +552,22 @@ export const SupabaseArchitecture: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center space-x-2">
-            <Database className="w-5 h-5 text-blue-400" />
-            <h1 className="text-xl font-bold text-white">Database Architecture & Table Relationships</h1>
+            <Database className="w-5 h-5 text-[#8E2D9D]" />
+            <h1 className="text-xl font-bold text-[#1E1B2E]">Database Architecture & Table Relationships</h1>
           </div>
-          <p className="text-xs text-slate-400 mt-1">
+          <p className="text-xs text-[#5F5A72] mt-1">
             Complete PostgreSQL Entity-Relationship model, Foreign Key constraints, Row Level Security, and Authoritative GST Triggers.
           </p>
         </div>
 
         {/* Action tabs */}
-        <div className="flex items-center space-x-2 bg-slate-900/80 p-1 rounded-xl border border-slate-800 self-start">
+        <div className="flex items-center space-x-2 bg-white p-1 rounded-xl border border-[#E8E0F0] self-start shadow-xs">
           <button
             onClick={() => setActiveTab('relationships')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center space-x-1.5 transition-all ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center space-x-1.5 transition-all cursor-pointer ${
               activeTab === 'relationships' 
-                ? 'bg-blue-600 text-white shadow' 
-                : 'text-slate-400 hover:text-slate-200'
+                ? 'bg-[#8E2D9D] text-white shadow-xs' 
+                : 'text-[#5F5A72] hover:text-[#1E1B2E] hover:bg-[#FAF5FF]'
             }`}
           >
             <GitFork className="w-3.5 h-3.5" />
@@ -576,10 +576,10 @@ export const SupabaseArchitecture: React.FC = () => {
 
           <button
             onClick={() => setActiveTab('schema')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center space-x-1.5 transition-all ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center space-x-1.5 transition-all cursor-pointer ${
               activeTab === 'schema' 
-                ? 'bg-blue-600 text-white shadow' 
-                : 'text-slate-400 hover:text-slate-200'
+                ? 'bg-[#8E2D9D] text-white shadow-xs' 
+                : 'text-[#5F5A72] hover:text-[#1E1B2E] hover:bg-[#FAF5FF]'
             }`}
           >
             <Layers className="w-3.5 h-3.5" />
@@ -588,10 +588,10 @@ export const SupabaseArchitecture: React.FC = () => {
 
           <button
             onClick={() => setActiveTab('audit_logs')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center space-x-1.5 transition-all ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center space-x-1.5 transition-all cursor-pointer ${
               activeTab === 'audit_logs' 
-                ? 'bg-blue-600 text-white shadow' 
-                : 'text-slate-400 hover:text-slate-200'
+                ? 'bg-[#8E2D9D] text-white shadow-xs' 
+                : 'text-[#5F5A72] hover:text-[#1E1B2E] hover:bg-[#FAF5FF]'
             }`}
           >
             <Shield className="w-3.5 h-3.5" />
@@ -600,10 +600,10 @@ export const SupabaseArchitecture: React.FC = () => {
 
           <button
             onClick={() => setActiveTab('ddl')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center space-x-1.5 transition-all ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center space-x-1.5 transition-all cursor-pointer ${
               activeTab === 'ddl' 
-                ? 'bg-blue-600 text-white shadow' 
-                : 'text-slate-400 hover:text-slate-200'
+                ? 'bg-[#8E2D9D] text-white shadow-xs' 
+                : 'text-[#5F5A72] hover:text-[#1E1B2E] hover:bg-[#FAF5FF]'
             }`}
           >
             <Terminal className="w-3.5 h-3.5" />
@@ -618,16 +618,16 @@ export const SupabaseArchitecture: React.FC = () => {
           {/* Quick Summary Pill Bar */}
           <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-2.5">
             {[
-              { label: 'Auth & Roles', count: '1 Table', color: 'border-amber-500/30 text-amber-400 bg-amber-500/10' },
-              { label: 'Audit Logs', count: '1 Table', color: 'border-rose-500/30 text-rose-400 bg-rose-500/10' },
-              { label: 'CRM Master', count: '1 Table', color: 'border-blue-500/30 text-blue-400 bg-blue-500/10' },
-              { label: 'Sales Flow', count: '5 Tables', color: 'border-emerald-500/30 text-emerald-400 bg-emerald-500/10' },
-              { label: 'Content Hub', count: '6 Tables', color: 'border-purple-500/30 text-purple-400 bg-purple-500/10' },
-              { label: 'Seller Master', count: '1 Table', color: 'border-cyan-500/30 text-cyan-400 bg-cyan-500/10' },
-              { label: 'Geography', count: '39 States', color: 'border-indigo-500/30 text-indigo-400 bg-indigo-500/10' }
+              { label: 'Auth & Roles', count: '1 Table', color: 'border-amber-200 text-amber-800 bg-amber-50' },
+              { label: 'Audit Logs', count: '1 Table', color: 'border-rose-200 text-rose-800 bg-rose-50' },
+              { label: 'CRM Master', count: '1 Table', color: 'border-blue-200 text-blue-800 bg-blue-50' },
+              { label: 'Sales Flow', count: '5 Tables', color: 'border-emerald-200 text-emerald-800 bg-emerald-50' },
+              { label: 'Content Hub', count: '6 Tables', color: 'border-[#E8E0F0] text-[#8E2D9D] bg-[#F3E8FF]' },
+              { label: 'Seller Master', count: '1 Table', color: 'border-cyan-200 text-cyan-800 bg-cyan-50' },
+              { label: 'Geography', count: '39 States', color: 'border-indigo-200 text-indigo-800 bg-indigo-50' }
             ].map((p, i) => (
-              <div key={i} className={`p-2.5 rounded-xl border ${p.color} text-center`}>
-                <div className="text-[10px] uppercase font-bold tracking-wider opacity-80">{p.label}</div>
+              <div key={i} className={`p-2.5 rounded-2xl border ${p.color} text-center shadow-xs`}>
+                <div className="text-[10px] uppercase font-bold tracking-wider opacity-90">{p.label}</div>
                 <div className="text-xs font-extrabold mt-0.5">{p.count}</div>
               </div>
             ))}
@@ -636,163 +636,163 @@ export const SupabaseArchitecture: React.FC = () => {
           {/* Core Visual ER Diagrams */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Cluster 1: Auth & Audit Hierarchy */}
-            <div className="p-5 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-4">
-              <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-                <div className="flex items-center space-x-2 text-amber-400 font-bold text-xs uppercase tracking-wider">
+            <div className="p-5 rounded-3xl bg-white border border-[#E8E0F0] space-y-4 shadow-xs">
+              <div className="flex items-center justify-between border-b border-[#E8E0F0] pb-3">
+                <div className="flex items-center space-x-2 text-amber-700 font-bold text-xs uppercase tracking-wider">
                   <Shield className="w-4 h-4" />
                   <span>1. Authentication & Immutable Audit</span>
                 </div>
-                <span className="text-[10px] font-mono text-slate-400">1-to-Many (1:N)</span>
+                <span className="text-[10px] font-mono text-[#5F5A72] font-semibold">1-to-Many (1:N)</span>
               </div>
 
-              <div className="bg-[#070b14] p-4 rounded-xl border border-slate-800/80 font-mono text-xs text-slate-300 space-y-3">
-                <div className="flex items-center justify-between p-3 rounded-lg bg-amber-950/20 border border-amber-500/30 text-amber-300">
+              <div className="bg-[#FAF8FF] p-4 rounded-2xl border border-[#E8E0F0] font-mono text-xs text-[#1E1B2E] space-y-3">
+                <div className="flex items-center justify-between p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-900">
                   <div className="flex items-center space-x-2">
-                    <Users className="w-4 h-4 text-amber-400" />
+                    <Users className="w-4 h-4 text-amber-600" />
                     <span className="font-bold">profiles</span>
                   </div>
-                  <span className="text-[10px] text-amber-400/80">Primary Key: id (UUID)</span>
+                  <span className="text-[10px] text-amber-700 font-semibold">Primary Key: id (UUID)</span>
                 </div>
 
-                <div className="flex items-center pl-6 text-slate-500 text-xs">
+                <div className="flex items-center pl-6 text-[#817B91] text-xs">
                   <span className="mr-2">│</span>
-                  <span className="text-[11px] text-slate-400 font-sans italic">triggers audit event on user actions</span>
+                  <span className="text-[11px] text-[#5F5A72] font-sans italic">triggers audit event on user actions</span>
                 </div>
 
-                <div className="flex items-center pl-6 text-slate-500 text-xs">
+                <div className="flex items-center pl-6 text-[#817B91] text-xs">
                   <span className="mr-2">└────</span>
-                  <div className="flex-1 flex items-center justify-between p-3 rounded-lg bg-rose-950/20 border border-rose-500/30 text-rose-300">
+                  <div className="flex-1 flex items-center justify-between p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-900">
                     <div className="flex items-center space-x-2">
-                      <FileText className="w-4 h-4 text-rose-400" />
+                      <FileText className="w-4 h-4 text-rose-600" />
                       <span className="font-bold">audit_logs</span>
                     </div>
-                    <span className="text-[10px] text-rose-400/80 font-mono">FK: user_id ➔ profiles.id</span>
+                    <span className="text-[10px] text-rose-700 font-mono font-semibold">FK: user_id ➔ profiles.id</span>
                   </div>
                 </div>
               </div>
 
-              <div className="text-[11px] text-slate-400 leading-relaxed bg-slate-800/40 p-3 rounded-xl border border-slate-700/50">
-                <strong className="text-slate-200">Enforcement:</strong> Every profile action (`CREATE`, `UPDATE`, `DELETE`, `PAYMENT_RECORD`, `CALCULATE_GST`) records immutable JSON payload with user identity, timestamp, and client IP.
+              <div className="text-[11px] text-[#5F5A72] leading-relaxed bg-[#FAF5FF] p-3.5 rounded-2xl border border-[#E8E0F0]">
+                <strong className="text-[#1E1B2E]">Enforcement:</strong> Every profile action (`CREATE`, `UPDATE`, `DELETE`, `PAYMENT_RECORD`, `CALCULATE_GST`) records immutable JSON payload with user identity, timestamp, and client IP.
               </div>
             </div>
 
             {/* Cluster 2: Geography & Seller Tax Master */}
-            <div className="p-5 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-4">
-              <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-                <div className="flex items-center space-x-2 text-indigo-400 font-bold text-xs uppercase tracking-wider">
+            <div className="p-5 rounded-3xl bg-white border border-[#E8E0F0] space-y-4 shadow-xs">
+              <div className="flex items-center justify-between border-b border-[#E8E0F0] pb-3">
+                <div className="flex items-center space-x-2 text-indigo-700 font-bold text-xs uppercase tracking-wider">
                   <Globe2 className="w-4 h-4" />
                   <span>2. Geography & Seller Tax Profile</span>
                 </div>
-                <span className="text-[10px] font-mono text-slate-400">Authoritative Master</span>
+                <span className="text-[10px] font-mono text-[#5F5A72] font-semibold">Authoritative Master</span>
               </div>
 
-              <div className="bg-[#070b14] p-4 rounded-xl border border-slate-800/80 font-mono text-xs text-slate-300 space-y-3">
-                <div className="flex items-center justify-between p-3 rounded-lg bg-indigo-950/20 border border-indigo-500/30 text-indigo-300">
+              <div className="bg-[#FAF8FF] p-4 rounded-2xl border border-[#E8E0F0] font-mono text-xs text-[#1E1B2E] space-y-3">
+                <div className="flex items-center justify-between p-3 rounded-xl bg-indigo-50 border border-indigo-200 text-indigo-900">
                   <div className="flex items-center space-x-2">
-                    <Globe2 className="w-4 h-4 text-indigo-400" />
+                    <Globe2 className="w-4 h-4 text-indigo-600" />
                     <span className="font-bold">state_ut_master</span>
                   </div>
-                  <span className="text-[10px] text-indigo-400/80">PK: code (VARCHAR 2)</span>
+                  <span className="text-[10px] text-indigo-700 font-semibold">PK: code (VARCHAR 2)</span>
                 </div>
 
-                <div className="flex items-center pl-6 text-slate-500 text-xs">
+                <div className="flex items-center pl-6 text-[#817B91] text-xs">
                   <span className="mr-2">│</span>
-                  <span className="text-[11px] text-slate-400 font-sans italic">referenced by clients, quotations, invoices & seller</span>
+                  <span className="text-[11px] text-[#5F5A72] font-sans italic">referenced by clients, quotations, invoices & seller</span>
                 </div>
 
-                <div className="flex items-center pl-6 text-slate-500 text-xs">
+                <div className="flex items-center pl-6 text-[#817B91] text-xs">
                   <span className="mr-2">└────</span>
-                  <div className="flex-1 flex items-center justify-between p-3 rounded-lg bg-cyan-950/20 border border-cyan-500/30 text-cyan-300">
+                  <div className="flex-1 flex items-center justify-between p-3 rounded-xl bg-cyan-50 border border-cyan-200 text-cyan-900">
                     <div className="flex items-center space-x-2">
-                      <Building2 className="w-4 h-4 text-cyan-400" />
+                      <Building2 className="w-4 h-4 text-cyan-600" />
                       <span className="font-bold">seller_profile</span>
                     </div>
-                    <span className="text-[10px] text-cyan-400/80 font-mono">FK: state_code ➔ state_ut_master</span>
+                    <span className="text-[10px] text-cyan-700 font-mono font-semibold">FK: state_code ➔ state_ut_master</span>
                   </div>
                 </div>
               </div>
 
-              <div className="text-[11px] text-slate-400 leading-relaxed bg-slate-800/40 p-3 rounded-xl border border-slate-700/50">
-                <strong className="text-slate-200">GST Jurisdiction:</strong> `state_ut_master` determines whether intra-state transactions levy CGST + SGST (States/UTs with Legislature) or CGST + UTGST (UTs without Legislature).
+              <div className="text-[11px] text-[#5F5A72] leading-relaxed bg-[#FAF5FF] p-3.5 rounded-2xl border border-[#E8E0F0]">
+                <strong className="text-[#1E1B2E]">GST Jurisdiction:</strong> `state_ut_master` determines whether intra-state transactions levy CGST + SGST (States/UTs with Legislature) or CGST + UTGST (UTs without Legislature).
               </div>
             </div>
 
             {/* Cluster 3: Full Commercial CRM & Sales Flow (Clients -> Quotations -> Invoices -> Payments) */}
-            <div className="lg:col-span-2 p-5 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-4">
-              <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-                <div className="flex items-center space-x-2 text-emerald-400 font-bold text-xs uppercase tracking-wider">
+            <div className="lg:col-span-2 p-5 rounded-3xl bg-white border border-[#E8E0F0] space-y-4 shadow-xs">
+              <div className="flex items-center justify-between border-b border-[#E8E0F0] pb-3">
+                <div className="flex items-center space-x-2 text-emerald-700 font-bold text-xs uppercase tracking-wider">
                   <CreditCard className="w-4 h-4" />
                   <span>3. CRM & Commercial Accounting Cascade</span>
                 </div>
-                <span className="text-[10px] font-mono text-slate-400">Strict Relational Constraints</span>
+                <span className="text-[10px] font-mono text-[#5F5A72] font-semibold">Strict Relational Constraints</span>
               </div>
 
-              <div className="bg-[#070b14] p-5 rounded-xl border border-slate-800/80 font-mono text-xs text-slate-300 space-y-3">
+              <div className="bg-[#FAF8FF] p-5 rounded-2xl border border-[#E8E0F0] font-mono text-xs text-[#1E1B2E] space-y-3">
                 {/* Root: Clients */}
-                <div className="flex items-center justify-between p-3 rounded-xl bg-blue-950/30 border border-blue-500/40 text-blue-300 shadow-md">
+                <div className="flex items-center justify-between p-3.5 rounded-2xl bg-blue-50 border border-blue-200 text-blue-900 shadow-xs">
                   <div className="flex items-center space-x-2">
-                    <Users className="w-4 h-4 text-blue-400" />
+                    <Users className="w-4 h-4 text-blue-600" />
                     <span className="font-bold text-sm">clients</span>
                   </div>
-                  <span className="text-[11px] text-blue-400 font-mono">Primary Key: id (UUID) • FK: state_code ➔ state_ut_master</span>
+                  <span className="text-[11px] text-blue-700 font-mono font-semibold">Primary Key: id (UUID) • FK: state_code ➔ state_ut_master</span>
                 </div>
 
-                <div className="pl-6 text-slate-600 text-sm">│</div>
+                <div className="pl-6 text-[#817B91] text-sm">│</div>
 
                 {/* Branch 1: Quotations -> Quotation Items */}
                 <div className="pl-6 space-y-2">
-                  <div className="flex items-center text-slate-500">
+                  <div className="flex items-center text-[#817B91]">
                     <span className="mr-3 font-mono">├────</span>
-                    <div className="flex-1 flex items-center justify-between p-3 rounded-lg bg-emerald-950/20 border border-emerald-500/30 text-emerald-300">
+                    <div className="flex-1 flex items-center justify-between p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900">
                       <div className="flex items-center space-x-2">
-                        <FileText className="w-4 h-4 text-emerald-400" />
+                        <FileText className="w-4 h-4 text-emerald-600" />
                         <span className="font-bold">quotations</span>
                       </div>
-                      <span className="text-[10px] text-emerald-400/80 font-mono">FK: client_id ➔ clients.id (ON DELETE CASCADE)</span>
+                      <span className="text-[10px] text-emerald-700 font-mono font-semibold">FK: client_id ➔ clients.id (ON DELETE CASCADE)</span>
                     </div>
                   </div>
 
-                  <div className="flex items-center pl-10 text-slate-600">
+                  <div className="flex items-center pl-10 text-[#817B91]">
                     <span className="mr-3 font-mono">└────</span>
-                    <div className="flex-1 flex items-center justify-between p-2.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-300">
+                    <div className="flex-1 flex items-center justify-between p-2.5 rounded-xl bg-white border border-[#E8E0F0] text-[#1E1B2E]">
                       <span className="font-bold text-[11px]">quotation_items</span>
-                      <span className="text-[10px] text-slate-400 font-mono">FK: quotation_id ➔ quotations.id (ON DELETE CASCADE)</span>
+                      <span className="text-[10px] text-[#5F5A72] font-mono">FK: quotation_id ➔ quotations.id (ON DELETE CASCADE)</span>
                     </div>
                   </div>
                 </div>
 
-                <div className="pl-6 text-slate-600 text-sm">│</div>
+                <div className="pl-6 text-[#817B91] text-sm">│</div>
 
                 {/* Branch 2: Invoices -> Invoice Items & Payments */}
                 <div className="pl-6 space-y-2">
-                  <div className="flex items-center text-slate-500">
+                  <div className="flex items-center text-[#817B91]">
                     <span className="mr-3 font-mono">└────</span>
-                    <div className="flex-1 flex items-center justify-between p-3 rounded-lg bg-emerald-950/20 border border-emerald-500/30 text-emerald-300">
+                    <div className="flex-1 flex items-center justify-between p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900">
                       <div className="flex items-center space-x-2">
-                        <Receipt className="w-4 h-4 text-emerald-400" />
+                        <Receipt className="w-4 h-4 text-emerald-600" />
                         <span className="font-bold">invoices</span>
                       </div>
-                      <span className="text-[10px] text-emerald-400/80 font-mono">FK: client_id ➔ clients.id (ON DELETE RESTRICT) • FK: quote_id ➔ quotations.id</span>
+                      <span className="text-[10px] text-emerald-700 font-mono font-semibold">FK: client_id ➔ clients.id (ON DELETE RESTRICT) • FK: quote_id ➔ quotations.id</span>
                     </div>
                   </div>
 
                   <div className="pl-10 space-y-2">
-                    <div className="flex items-center text-slate-600">
+                    <div className="flex items-center text-[#817B91]">
                       <span className="mr-3 font-mono">├────</span>
-                      <div className="flex-1 flex items-center justify-between p-2.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-300">
+                      <div className="flex-1 flex items-center justify-between p-2.5 rounded-xl bg-white border border-[#E8E0F0] text-[#1E1B2E]">
                         <span className="font-bold text-[11px]">invoice_items</span>
-                        <span className="text-[10px] text-slate-400 font-mono">FK: invoice_id ➔ invoices.id (ON DELETE CASCADE)</span>
+                        <span className="text-[10px] text-[#5F5A72] font-mono">FK: invoice_id ➔ invoices.id (ON DELETE CASCADE)</span>
                       </div>
                     </div>
 
-                    <div className="flex items-center text-slate-600">
+                    <div className="flex items-center text-[#817B91]">
                       <span className="mr-3 font-mono">└────</span>
-                      <div className="flex-1 flex items-center justify-between p-2.5 rounded-lg bg-cyan-950/20 border border-cyan-500/30 text-cyan-300">
+                      <div className="flex-1 flex items-center justify-between p-2.5 rounded-xl bg-cyan-50 border border-cyan-200 text-cyan-900">
                         <div className="flex items-center space-x-2">
-                          <CreditCard className="w-3.5 h-3.5 text-cyan-400" />
+                          <CreditCard className="w-3.5 h-3.5 text-cyan-600" />
                           <span className="font-bold text-[11px]">payments</span>
                         </div>
-                        <span className="text-[10px] text-cyan-400/80 font-mono">FK: invoice_id ➔ invoices.id (ON DELETE RESTRICT)</span>
+                        <span className="text-[10px] text-cyan-700 font-mono font-semibold">FK: invoice_id ➔ invoices.id (ON DELETE RESTRICT)</span>
                       </div>
                     </div>
                   </div>
@@ -801,13 +801,13 @@ export const SupabaseArchitecture: React.FC = () => {
             </div>
 
             {/* Cluster 4: Content Master Tables */}
-            <div className="lg:col-span-2 p-5 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-4">
-              <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-                <div className="flex items-center space-x-2 text-purple-400 font-bold text-xs uppercase tracking-wider">
+            <div className="lg:col-span-2 p-5 rounded-3xl bg-white border border-[#E8E0F0] space-y-4 shadow-xs">
+              <div className="flex items-center justify-between border-b border-[#E8E0F0] pb-3">
+                <div className="flex items-center space-x-2 text-[#8E2D9D] font-bold text-xs uppercase tracking-wider">
                   <Layers className="w-4 h-4" />
                   <span>4. Content Master Layer (Independent & Client-Linked)</span>
                 </div>
-                <span className="text-[10px] font-mono text-slate-400">6 Specialized Master Tables</span>
+                <span className="text-[10px] font-mono text-[#5F5A72] font-semibold">6 Specialized Master Tables</span>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
@@ -821,17 +821,17 @@ export const SupabaseArchitecture: React.FC = () => {
                 ].map((item, idx) => {
                   const Icon = item.icon;
                   return (
-                    <div key={idx} className="p-4 rounded-xl bg-[#070b14] border border-slate-800/80 flex flex-col justify-between space-y-2">
+                    <div key={idx} className="p-4 rounded-2xl bg-[#FAF8FF] border border-[#E8E0F0] flex flex-col justify-between space-y-2">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-2">
-                          <Icon className="w-4 h-4 text-purple-400" />
-                          <span className="font-mono text-xs font-bold text-purple-300">{item.name}</span>
+                          <Icon className="w-4 h-4 text-[#8E2D9D]" />
+                          <span className="font-mono text-xs font-bold text-[#8E2D9D]">{item.name}</span>
                         </div>
-                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-300 font-mono">
+                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#F3E8FF] text-[#8E2D9D] font-mono font-bold">
                           {item.count} items
                         </span>
                       </div>
-                      <p className="text-[11px] text-slate-400">{item.desc}</p>
+                      <p className="text-[11px] text-[#5F5A72]">{item.desc}</p>
                     </div>
                   );
                 })}
@@ -845,8 +845,8 @@ export const SupabaseArchitecture: React.FC = () => {
       {activeTab === 'schema' && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Table List Sidebar */}
-          <div className="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-2 max-h-[600px] overflow-y-auto custom-scrollbar">
-            <div className="text-[10px] uppercase font-bold tracking-wider text-slate-400 px-2 py-1">
+          <div className="p-4 rounded-3xl bg-white border border-[#E8E0F0] space-y-2 max-h-[600px] overflow-y-auto custom-scrollbar shadow-xs">
+            <div className="text-[10px] uppercase font-bold tracking-wider text-[#5F5A72] px-2 py-1">
               Select PostgreSQL Table
             </div>
             {Object.entries(tablesCatalog).map(([tableName, table]) => {
@@ -855,10 +855,10 @@ export const SupabaseArchitecture: React.FC = () => {
                 <button
                   key={tableName}
                   onClick={() => setSelectedTable(tableName)}
-                  className={`w-full p-2.5 rounded-xl text-left text-xs font-semibold flex items-center justify-between transition-all ${
+                  className={`w-full p-2.5 rounded-xl text-left text-xs font-semibold flex items-center justify-between transition-all cursor-pointer ${
                     active 
-                      ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30' 
-                      : 'text-slate-300 hover:bg-slate-800/60'
+                      ? 'bg-[#8E2D9D] text-white shadow-xs' 
+                      : 'text-[#1E1B2E] hover:bg-[#FAF5FF]'
                   }`}
                 >
                   <div className="flex items-center space-x-2">
@@ -873,22 +873,22 @@ export const SupabaseArchitecture: React.FC = () => {
           </div>
 
           {/* Table Details */}
-          <div className="lg:col-span-2 p-6 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-5">
+          <div className="lg:col-span-2 p-6 rounded-3xl bg-white border border-[#E8E0F0] space-y-5 shadow-xs">
             {tablesCatalog[selectedTable] && (
               <>
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#E8E0F0] pb-4">
                   <div>
                     <div className="flex items-center space-x-2">
-                      <h2 className="text-lg font-bold font-mono text-white">public.{selectedTable}</h2>
-                      <span className={`text-xs px-2.5 py-0.5 rounded-full border ${getCategoryColor(tablesCatalog[selectedTable].category)}`}>
+                      <h2 className="text-lg font-bold font-mono text-[#1E1B2E]">public.{selectedTable}</h2>
+                      <span className={`text-xs px-2.5 py-0.5 rounded-full border font-semibold ${getCategoryColor(tablesCatalog[selectedTable].category)}`}>
                         {tablesCatalog[selectedTable].category.toUpperCase()}
                       </span>
                     </div>
-                    <p className="text-xs text-slate-400 mt-1">{tablesCatalog[selectedTable].description}</p>
+                    <p className="text-xs text-[#5F5A72] mt-1">{tablesCatalog[selectedTable].description}</p>
                   </div>
-                  <div className="text-right font-mono text-xs text-slate-400">
-                    <div>Primary Key: <span className="text-cyan-400 font-bold">{tablesCatalog[selectedTable].primaryKey}</span></div>
-                    <div>Live Records: <span className="text-emerald-400 font-bold">{tablesCatalog[selectedTable].sampleCount ?? 0}</span></div>
+                  <div className="text-right font-mono text-xs text-[#5F5A72]">
+                    <div>Primary Key: <span className="text-[#8E2D9D] font-bold">{tablesCatalog[selectedTable].primaryKey}</span></div>
+                    <div>Live Records: <span className="text-[#059669] font-bold">{tablesCatalog[selectedTable].sampleCount ?? 0}</span></div>
                   </div>
                 </div>
 
@@ -896,13 +896,13 @@ export const SupabaseArchitecture: React.FC = () => {
                 {tablesCatalog[selectedTable].columns && (
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                      <div className="text-xs font-bold text-slate-300">Table Schema ({tablesCatalog[selectedTable].columns?.length} Columns):</div>
-                      <span className="text-[10px] text-slate-400 font-mono">PostgreSQL Exact Data Types</span>
+                      <div className="text-xs font-bold text-[#1E1B2E]">Table Schema ({tablesCatalog[selectedTable].columns?.length} Columns):</div>
+                      <span className="text-[10px] text-[#5F5A72] font-mono">PostgreSQL Exact Data Types</span>
                     </div>
-                    <div className="rounded-xl border border-slate-800 bg-[#070b14] overflow-hidden">
+                    <div className="rounded-2xl border border-[#E8E0F0] bg-[#FAF8FF] overflow-hidden">
                       <div className="max-h-[300px] overflow-y-auto custom-scrollbar">
                         <table className="w-full text-left text-xs font-mono">
-                          <thead className="bg-slate-900/90 text-slate-400 text-[10px] uppercase border-b border-slate-800 sticky top-0">
+                          <thead className="bg-[#F3E8FF] text-[#1E1B2E] text-[10px] font-bold uppercase border-b border-[#E8E0F0] sticky top-0">
                             <tr>
                               <th className="p-2.5">Column Name</th>
                               <th className="p-2.5">Data Type</th>
@@ -911,30 +911,30 @@ export const SupabaseArchitecture: React.FC = () => {
                               <th className="p-2.5">Description</th>
                             </tr>
                           </thead>
-                          <tbody className="divide-y divide-slate-800/60">
+                          <tbody className="divide-y divide-[#E8E0F0]">
                             {tablesCatalog[selectedTable].columns?.map((col, cIdx) => (
-                              <tr key={cIdx} className="hover:bg-slate-800/30">
-                                <td className="p-2.5 text-white font-bold flex items-center gap-1.5">
-                                  {col.isPrimary && <span className="text-[9px] px-1 py-0.2 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40">PK</span>}
-                                  {col.isForeign && <span className="text-[9px] px-1 py-0.2 rounded bg-blue-500/20 text-blue-300 border border-blue-500/40">FK</span>}
+                              <tr key={cIdx} className="hover:bg-white transition-colors">
+                                <td className="p-2.5 text-[#1E1B2E] font-bold flex items-center gap-1.5">
+                                  {col.isPrimary && <span className="text-[9px] px-1 py-0.2 rounded bg-amber-100 text-amber-800 border border-amber-300">PK</span>}
+                                  {col.isForeign && <span className="text-[9px] px-1 py-0.2 rounded bg-blue-100 text-blue-800 border border-blue-300">FK</span>}
                                   <span>{col.name}</span>
                                 </td>
-                                <td className="p-2.5 text-cyan-400">{col.type}</td>
+                                <td className="p-2.5 text-[#8E2D9D] font-bold">{col.type}</td>
                                 <td className="p-2.5">
-                                  <span className={col.isNullable ? 'text-slate-400' : 'text-emerald-400 font-semibold'}>
+                                  <span className={col.isNullable ? 'text-[#817B91]' : 'text-[#059669] font-bold'}>
                                     {col.isNullable ? 'YES' : 'NOT NULL'}
                                   </span>
                                 </td>
-                                <td className="p-2.5 text-slate-400 text-[11px]">
+                                <td className="p-2.5 text-[#5F5A72] text-[11px]">
                                   {col.references ? (
-                                    <span className="text-blue-300">➔ {col.references}</span>
+                                    <span className="text-[#6F42C1] font-semibold">➔ {col.references}</span>
                                   ) : col.defaultValue ? (
-                                    <span className="text-slate-500">DEFAULT {col.defaultValue}</span>
+                                    <span className="text-[#817B91]">DEFAULT {col.defaultValue}</span>
                                   ) : (
                                     '—'
                                   )}
                                 </td>
-                                <td className="p-2.5 text-slate-300 font-sans text-[11px]">{col.description || '—'}</td>
+                                <td className="p-2.5 text-[#4F4960] font-sans text-[11px]">{col.description || '—'}</td>
                               </tr>
                             ))}
                           </tbody>
@@ -947,14 +947,14 @@ export const SupabaseArchitecture: React.FC = () => {
                 {/* Foreign Keys List */}
                 {tablesCatalog[selectedTable].foreignKeys && (
                   <div className="space-y-2">
-                    <div className="text-xs font-bold text-slate-300">Foreign Key Constraints:</div>
+                    <div className="text-xs font-bold text-[#1E1B2E]">Foreign Key Constraints:</div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                       {tablesCatalog[selectedTable].foreignKeys?.map((fk, idx) => (
-                        <div key={idx} className="p-2.5 rounded-xl bg-[#070b14] border border-slate-800 text-xs font-mono">
-                          <div className="text-slate-400 text-[10px]">COLUMN: <span className="text-blue-400 font-bold">{fk.column}</span></div>
-                          <div className="text-slate-300 text-[11px] mt-0.5">REFERENCES: <span className="text-emerald-400">{fk.references}</span></div>
+                        <div key={idx} className="p-3 rounded-2xl bg-[#FAF8FF] border border-[#E8E0F0] text-xs font-mono">
+                          <div className="text-[#5F5A72] text-[10px]">COLUMN: <span className="text-[#8E2D9D] font-bold">{fk.column}</span></div>
+                          <div className="text-[#1E1B2E] text-[11px] mt-0.5">REFERENCES: <span className="text-[#059669] font-bold">{fk.references}</span></div>
                           {fk.onDelete && (
-                            <div className="text-rose-400 text-[10px] mt-0.5">ON DELETE: {fk.onDelete}</div>
+                            <div className="text-[#DC2626] text-[10px] mt-0.5 font-bold">ON DELETE: {fk.onDelete}</div>
                           )}
                         </div>
                       ))}
@@ -963,12 +963,12 @@ export const SupabaseArchitecture: React.FC = () => {
                 )}
 
                 {/* RLS Policy Explanation */}
-                <div className="p-4 rounded-xl bg-slate-800/40 border border-slate-700/50 space-y-2">
-                  <div className="flex items-center space-x-2 text-xs font-bold text-cyan-400">
+                <div className="p-4 rounded-2xl bg-[#FAF5FF] border border-[#E8E0F0] space-y-2">
+                  <div className="flex items-center space-x-2 text-xs font-bold text-[#8E2D9D]">
                     <Lock className="w-4 h-4" />
                     <span>Row Level Security (RLS) Rules Applied</span>
                   </div>
-                  <p className="text-xs text-slate-300 leading-relaxed">
+                  <p className="text-xs text-[#5F5A72] leading-relaxed">
                     {selectedTable === 'profiles' && 'Super Admins have full access. Users can view and update their own profile. Public users cannot access profiles.'}
                     {selectedTable === 'clients' && 'Super Admin, Admin, and Accountants manage clients. Staff can view assigned clients. Clients can only view their own linked record. Public access is strictly forbidden.'}
                     {selectedTable === 'enquiries' && 'Public users can INSERT new project enquiries. Super Admin, Admin, Staff, and Project Managers can SELECT and manage them.'}
@@ -992,13 +992,13 @@ export const SupabaseArchitecture: React.FC = () => {
         <div className="space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="relative flex-1 max-w-md">
-              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#817B91]" />
               <input
                 type="text"
                 placeholder="Search audit trail by user, table, action, or record ID..."
                 value={auditSearch}
                 onChange={e => setAuditSearch(e.target.value)}
-                className="w-full pl-9 pr-4 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
+                className="w-full pl-9 pr-4 py-2 bg-white border border-[#D9D2E3] rounded-xl text-xs text-[#1E1B2E] placeholder-[#817B91] focus:outline-none focus:border-[#8E2D9D]"
               />
             </div>
 
@@ -1006,7 +1006,7 @@ export const SupabaseArchitecture: React.FC = () => {
               <select
                 value={auditActionFilter}
                 onChange={e => setAuditActionFilter(e.target.value)}
-                className="px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs text-slate-300 focus:outline-none"
+                className="px-3 py-2 bg-white border border-[#D9D2E3] rounded-xl text-xs text-[#1E1B2E] focus:outline-none focus:border-[#8E2D9D] cursor-pointer"
               >
                 <option value="ALL">All Actions</option>
                 <option value="CREATE">CREATE</option>
@@ -1021,9 +1021,9 @@ export const SupabaseArchitecture: React.FC = () => {
           </div>
 
           {/* Audit Logs Table */}
-          <div className="rounded-2xl border border-slate-800 bg-[#070b14] overflow-hidden">
+          <div className="rounded-3xl border border-[#E8E0F0] bg-white overflow-hidden shadow-xs">
             <table className="w-full text-left text-xs">
-              <thead className="bg-slate-900/80 border-b border-slate-800 text-slate-400 font-semibold uppercase text-[10px] tracking-wider">
+              <thead className="bg-[#FAF5FF] border-b border-[#E8E0F0] text-[#5F5A72] font-bold uppercase text-[10px] tracking-wider">
                 <tr>
                   <th className="p-3.5">Timestamp</th>
                   <th className="p-3.5">User</th>
@@ -1032,38 +1032,38 @@ export const SupabaseArchitecture: React.FC = () => {
                   <th className="p-3.5">Details</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800/60 font-mono">
+              <tbody className="divide-y divide-[#E8E0F0] font-mono">
                 {filteredLogs.length > 0 ? (
                   filteredLogs.map(log => (
-                    <tr key={log.id} className="hover:bg-slate-800/30 transition-colors">
-                      <td className="p-3.5 text-slate-400 whitespace-nowrap text-[11px]">
+                    <tr key={log.id} className="hover:bg-[#FAF8FF] transition-colors">
+                      <td className="p-3.5 text-[#5F5A72] whitespace-nowrap text-[11px]">
                         {new Date(log.created_at).toLocaleString()}
                       </td>
                       <td className="p-3.5">
-                        <div className="text-white font-bold">{log.user_email}</div>
-                        <div className="text-[10px] text-amber-400 uppercase">{log.user_role}</div>
+                        <div className="text-[#1E1B2E] font-bold">{log.user_email}</div>
+                        <div className="text-[10px] text-amber-700 font-bold uppercase">{log.user_role}</div>
                       </td>
                       <td className="p-3.5">
                         <span className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                          log.action === 'CREATE' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' :
-                          log.action === 'DELETE' || log.action === 'SOFT_DELETE' ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30' :
-                          log.action === 'PAYMENT_RECORD' ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30' :
-                          'bg-blue-500/20 text-blue-300 border border-blue-500/30'
+                          log.action === 'CREATE' ? 'bg-emerald-50 text-[#059669] border border-emerald-200' :
+                          log.action === 'DELETE' || log.action === 'SOFT_DELETE' ? 'bg-rose-50 text-[#DC2626] border border-rose-200' :
+                          log.action === 'PAYMENT_RECORD' ? 'bg-cyan-50 text-cyan-700 border border-cyan-200' :
+                          'bg-blue-50 text-blue-700 border border-blue-200'
                         }`}>
                           {log.action}
                         </span>
                       </td>
-                      <td className="p-3.5 text-cyan-400 font-bold text-[11px]">
+                      <td className="p-3.5 text-[#8E2D9D] font-bold text-[11px]">
                         public.{log.table_name}
                       </td>
-                      <td className="p-3.5 text-slate-300 font-sans text-xs max-w-md">
+                      <td className="p-3.5 text-[#4F4960] font-sans text-xs max-w-md">
                         {log.details}
                       </td>
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={5} className="p-8 text-center text-slate-500 font-sans text-xs">
+                    <td colSpan={5} className="p-8 text-center text-[#817B91] font-sans text-xs">
                       No audit events matched your search criteria.
                     </td>
                   </tr>
@@ -1077,34 +1077,34 @@ export const SupabaseArchitecture: React.FC = () => {
       {/* TAB 4: SUPABASE DDL & TRIGGERS */}
       {activeTab === 'ddl' && (
         <div className="space-y-4">
-          <div className="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="p-4 rounded-3xl bg-white border border-[#E8E0F0] flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xs">
             <div className="flex items-center space-x-3">
-              <div className="p-2.5 rounded-xl bg-blue-600/20 text-blue-400 border border-blue-500/30">
+              <div className="p-2.5 rounded-2xl bg-[#F3E8FF] text-[#8E2D9D] border border-[#C084FC]/50">
                 <Terminal className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-sm font-bold text-white">Full Supabase PostgreSQL DDL Script</h3>
-                <p className="text-xs text-slate-400">Includes all 16 core tables, foreign keys, cascade triggers, RLS policies & authoritative GST engine.</p>
+                <h3 className="text-sm font-bold text-[#1E1B2E]">Full Supabase PostgreSQL DDL Script</h3>
+                <p className="text-xs text-[#5F5A72]">Includes all 16 core tables, foreign keys, cascade triggers, RLS policies & authoritative GST engine.</p>
               </div>
             </div>
 
             <button
               onClick={handleCopy}
-              className="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold flex items-center space-x-2 transition-all shrink-0 shadow-lg shadow-blue-600/30"
+              className="px-4 py-2.5 rounded-xl bg-[#8E2D9D] hover:bg-[#6F42C1] text-white text-xs font-bold flex items-center space-x-2 transition-all shrink-0 shadow-md shadow-[#8E2D9D]/25 cursor-pointer"
             >
               {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
               <span>{copied ? 'SQL Copied to Clipboard!' : 'Copy Supabase SQL'}</span>
             </button>
           </div>
 
-          <div className="rounded-2xl border border-slate-800 bg-[#070b14] overflow-hidden">
-            <div className="p-3 bg-slate-900 border-b border-slate-800 flex justify-between items-center text-xs text-slate-400 font-mono">
+          <div className="rounded-3xl border border-[#E8E0F0] bg-white overflow-hidden shadow-xs">
+            <div className="p-3 bg-[#FAF5FF] border-b border-[#E8E0F0] flex justify-between items-center text-xs text-[#5F5A72] font-mono">
               <div className="flex items-center space-x-2">
-                <Terminal className="w-4 h-4 text-blue-400" />
-                <span>supabase_complete_schema.sql</span>
+                <Terminal className="w-4 h-4 text-[#8E2D9D]" />
+                <span className="font-bold text-[#1E1B2E]">supabase_complete_schema.sql</span>
               </div>
             </div>
-            <pre className="p-4 text-xs font-mono text-slate-300 overflow-x-auto max-h-[500px] leading-relaxed">
+            <pre className="p-4 text-xs font-mono text-[#1E1B2E] bg-[#FAF8FF] overflow-x-auto max-h-[500px] leading-relaxed">
               {SUPABASE_SQL_SCHEMA}
             </pre>
           </div>

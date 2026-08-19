@@ -69,30 +69,30 @@ export const AccountingManager: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-[#E8E0F0] shadow-xs">
         <div>
-          <h1 className="text-2xl font-bold text-white flex items-center gap-2.5">
-            <Calculator className="w-6 h-6 text-cyan-400" />
+          <h1 className="text-2xl font-bold text-[#1E1B2E] flex items-center gap-2.5">
+            <Calculator className="w-6 h-6 text-[#8E2D9D]" />
             Financials, GST Compliance & Accounting Suite
           </h1>
-          <p className="text-sm text-slate-400">
-            GSTIN: <span className="font-mono text-white font-semibold">{agencyConfig.gstin || '26AALFF1234F1Z5'}</span> • Primary SAC: <span className="font-mono text-cyan-400 font-bold">998314</span> (IT Software Design & Development)
+          <p className="text-xs text-[#5F5A72] mt-0.5">
+            GSTIN: <span className="font-mono text-[#1E1B2E] font-semibold">{agencyConfig.gstin || '26AALFF1234F1Z5'}</span> • Primary SAC: <span className="font-mono text-[#8E2D9D] font-bold">998314</span> (IT Software Design & Development)
           </p>
         </div>
 
         <div className="flex items-center space-x-3">
           <button
             onClick={handleExportCSV}
-            className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-semibold text-xs flex items-center space-x-2 border border-slate-700 transition-colors shadow-sm cursor-pointer"
+            className="px-4 py-2 rounded-xl bg-white hover:bg-[#FAF5FF] text-[#1E1B2E] font-semibold text-xs flex items-center space-x-2 border border-[#E8E0F0] hover:border-[#8E2D9D] transition-colors shadow-xs cursor-pointer"
           >
-            <FileSpreadsheet className="w-4 h-4 text-emerald-400" />
+            <FileSpreadsheet className="w-4 h-4 text-[#059669]" />
             <span>Export Master CSV</span>
           </button>
         </div>
       </div>
 
       {/* Main Navigation Tabs */}
-      <div className="flex flex-wrap items-center gap-2 border-b border-slate-800/80 pb-3">
+      <div className="flex flex-wrap items-center gap-2 border-b border-[#E8E0F0] pb-3">
         {[
           { id: 'gst_reports', label: 'GSTR-1 & 3B Statutory Returns', icon: Receipt },
           { id: 'credit_debit', label: `Credit / Debit Notes (${creditDebitNotes.filter(n => !n.isDeleted).length})`, icon: ArrowDownLeft },
@@ -110,8 +110,8 @@ export const AccountingManager: React.FC = () => {
               onClick={() => setActiveTab(tab.id as any)}
               className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
                 isActive
-                  ? 'bg-gradient-to-r from-blue-600 to-cyan-600 text-white shadow-md shadow-cyan-500/20 font-extrabold'
-                  : 'bg-slate-900/60 hover:bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-800'
+                  ? 'bg-[#8E2D9D] text-white shadow-xs font-extrabold'
+                  : 'bg-white hover:bg-[#FAF5FF] text-[#5F5A72] hover:text-[#8E2D9D] border border-[#E8E0F0]'
               }`}
             >
               <Icon className="w-4 h-4" />
@@ -141,29 +141,29 @@ export const AccountingManager: React.FC = () => {
 
       {/* Tab 7: SAC 998314 Ledger */}
       {activeTab === 'ledger' && (
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 space-y-4 shadow-xl">
+        <div className="rounded-2xl border border-[#E8E0F0] bg-white p-6 space-y-4 shadow-xs">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="font-bold text-sm text-white">SAC 998314 Service Breakdown</h3>
-              <p className="text-xs text-slate-400">Information technology software design and development services</p>
+              <h3 className="font-bold text-sm text-[#1E1B2E]">SAC 998314 Service Breakdown</h3>
+              <p className="text-xs text-[#5F5A72]">Information technology software design and development services</p>
             </div>
-            <div className="px-3 py-1 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 font-mono text-xs font-bold">
+            <div className="px-3 py-1 rounded-full bg-[#F3E8FF] text-[#8E2D9D] border border-[#C084FC]/40 font-mono text-xs font-bold">
               Standard Rate: 18% GST
             </div>
           </div>
 
           <div className="space-y-3 text-xs">
             {activeInvoices.map(inv => (
-              <div key={inv.id} className="p-3.5 rounded-xl bg-slate-800/40 border border-slate-800 flex items-center justify-between">
+              <div key={inv.id} className="p-3.5 rounded-xl bg-[#FAF5FF] border border-[#E8E0F0] flex items-center justify-between hover:border-[#C084FC] transition-all">
                 <div>
-                  <div className="font-semibold text-white">{inv.title}</div>
-                  <div className="text-[11px] text-slate-400">
+                  <div className="font-semibold text-[#1E1B2E]">{inv.title}</div>
+                  <div className="text-[11px] text-[#5F5A72]">
                     {inv.invoiceNumber} • Client: {inv.clientCompany || inv.clientName}
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className="font-mono font-bold text-emerald-400 text-sm">₹{inv.totalAmount.toLocaleString('en-IN')}</div>
-                  <div className="text-[10px] text-slate-400 font-mono">Tax: ₹{((inv.cgstAmount || 0) + (inv.sgstAmount || 0) + (inv.utgstAmount || 0) + (inv.igstAmount || 0)).toLocaleString('en-IN')}</div>
+                  <div className="font-mono font-bold text-[#059669] text-sm">₹{inv.totalAmount.toLocaleString('en-IN')}</div>
+                  <div className="text-[10px] text-[#5F5A72] font-mono">Tax: ₹{((inv.cgstAmount || 0) + (inv.sgstAmount || 0) + (inv.utgstAmount || 0) + (inv.igstAmount || 0)).toLocaleString('en-IN')}</div>
                 </div>
               </div>
             ))}

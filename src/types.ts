@@ -36,6 +36,10 @@ export interface UserProfile {
   phone?: string;
   is_active: boolean;
   mfa_enabled?: boolean;
+  two_factor_secret?: string;
+  two_factor_confirmed?: boolean;
+  two_factor_auth_type?: 'google_authenticator' | 'totp' | 'sms';
+  recovery_codes?: string[];
   clientId?: string;
   company?: string;
   created_at: string;

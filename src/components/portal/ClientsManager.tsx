@@ -947,32 +947,32 @@ export const ClientsManager: React.FC = () => {
       {/* ADD / EDIT CLIENT MASTER MODAL */}
       {/* ========================================================================= */}
       {showAddModal && (
-        <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-gradient-to-b from-[#111e47] to-[#0a122e] border border-slate-700/90 rounded-2xl w-full max-w-2xl p-6 shadow-2xl my-8">
-            <div className="flex justify-between items-center pb-4 border-b border-slate-700/80 mb-5">
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white border border-[#D9D2E3] rounded-3xl w-full max-w-2xl p-6 shadow-2xl my-8">
+            <div className="flex justify-between items-center pb-4 border-b border-[#E8E0F0] mb-5">
               <div className="flex items-center space-x-3">
-                <div className="w-9 h-9 rounded-xl bg-blue-500/20 border border-blue-500/40 flex items-center justify-center text-blue-400">
+                <div className="w-10 h-10 rounded-2xl bg-[#F3E8FF] border border-[#C084FC]/50 flex items-center justify-center text-[#8E2D9D]">
                   <Building2 className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-white">
+                  <h3 className="text-base font-bold text-[#1E1B2E]">
                     {editingClient ? 'Edit Client Master Profile' : 'Add New Client Master'}
                   </h3>
-                  <p className="text-xs text-slate-400">
+                  <p className="text-xs text-[#5F5A72]">
                     Enter legal business information, GSTIN, place of supply, and contact coordinates.
                   </p>
                 </div>
               </div>
               <button
                 onClick={() => setShowAddModal(false)}
-                className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition-colors cursor-pointer"
+                className="text-[#817B91] hover:text-[#1E1B2E] p-1.5 rounded-xl hover:bg-[#F3E8FF] transition-colors cursor-pointer"
               >
                 ✕
               </button>
             </div>
 
             {formError && (
-              <div className="mb-4 p-3 rounded-xl bg-rose-500/20 border border-rose-500/40 text-rose-300 text-xs flex items-center space-x-2">
+              <div className="mb-4 p-3 rounded-xl bg-rose-50 border border-rose-200 text-[#DC2626] text-xs flex items-center space-x-2">
                 <AlertTriangle className="w-4 h-4 shrink-0" />
                 <span>{formError}</span>
               </div>
@@ -982,10 +982,10 @@ export const ClientsManager: React.FC = () => {
               {/* ========================================================= */}
               {/* SECTION 1: BILLED TO / LEGAL ENTITY & GST COMPLIANCE */}
               {/* ========================================================= */}
-              <div className="p-4 rounded-xl bg-[#091129] border border-slate-700/80 space-y-3.5">
-                <div className="flex items-center space-x-2 pb-2 border-b border-slate-800">
-                  <Building2 className="w-4 h-4 text-blue-400" />
-                  <h4 className="text-xs font-bold text-white uppercase tracking-wider">
+              <div className="p-4 rounded-2xl bg-[#FAF5FF] border border-[#E8E0F0] space-y-3.5">
+                <div className="flex items-center space-x-2 pb-2 border-b border-[#E8E0F0]">
+                  <Building2 className="w-4 h-4 text-[#8E2D9D]" />
+                  <h4 className="text-xs font-bold text-[#1E1B2E] uppercase tracking-wider">
                     Billed To / Legal Entity & Compliance
                   </h4>
                 </div>
@@ -993,8 +993,8 @@ export const ClientsManager: React.FC = () => {
                 {/* Row 1: Company Name & Contact Person */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                   <div>
-                    <label className="text-[11px] font-semibold text-slate-300 block mb-1">
-                      Company Name * <span className="text-slate-400 font-normal">(e.g. JP MODATEX LLP)</span>
+                    <label className="text-[11px] font-semibold text-[#3F3852] block mb-1">
+                      Company Name * <span className="text-[#817B91] font-normal">(e.g. JP MODATEX LLP)</span>
                     </label>
                     <input
                       required
@@ -1002,19 +1002,19 @@ export const ClientsManager: React.FC = () => {
                       placeholder="Legal Entity Name"
                       value={form.companyName}
                       onChange={e => setForm({ ...form, companyName: e.target.value })}
-                      className="w-full px-3.5 py-2 rounded-xl bg-[#0c1633] border border-slate-700 text-xs text-white placeholder-slate-500 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                      className="w-full px-3.5 py-2 rounded-xl bg-white border border-[#D9D2E3] text-xs text-[#1E1B2E] placeholder-[#817B91] outline-none focus:border-[#8E2D9D] focus:ring-1 focus:ring-[#8E2D9D]"
                     />
                   </div>
                   <div>
-                    <label className="text-[11px] font-semibold text-slate-300 block mb-1">
-                      Contact Person <span className="text-slate-400 font-normal">(Primary Liaison)</span>
+                    <label className="text-[11px] font-semibold text-[#3F3852] block mb-1">
+                      Contact Person <span className="text-[#817B91] font-normal">(Primary Liaison)</span>
                     </label>
                     <input
                       type="text"
                       placeholder="Full Name (e.g. Manoj Satapathy)"
                       value={form.name}
                       onChange={e => setForm({ ...form, name: e.target.value })}
-                      className="w-full px-3.5 py-2 rounded-xl bg-[#0c1633] border border-slate-700 text-xs text-white placeholder-slate-500 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                      className="w-full px-3.5 py-2 rounded-xl bg-white border border-[#D9D2E3] text-xs text-[#1E1B2E] placeholder-[#817B91] outline-none focus:border-[#8E2D9D] focus:ring-1 focus:ring-[#8E2D9D]"
                     />
                   </div>
                 </div>
@@ -1022,32 +1022,32 @@ export const ClientsManager: React.FC = () => {
                 {/* Row 2: Email & Phone */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                   <div>
-                    <label className="text-[11px] font-semibold text-slate-300 block mb-1">
-                      Official Email <span className="text-slate-400 font-normal">(Invoicing & Notices)</span>
+                    <label className="text-[11px] font-semibold text-[#3F3852] block mb-1">
+                      Official Email <span className="text-[#817B91] font-normal">(Invoicing & Notices)</span>
                     </label>
                     <div className="relative">
-                      <Mail className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+                      <Mail className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#817B91]" />
                       <input
                         type="email"
                         placeholder="billing@company.com"
                         value={form.email}
                         onChange={e => setForm({ ...form, email: e.target.value })}
-                        className="w-full pl-9 pr-3.5 py-2 rounded-xl bg-[#0c1633] border border-slate-700 text-xs text-white placeholder-slate-500 outline-none focus:border-blue-500"
+                        className="w-full pl-9 pr-3.5 py-2 rounded-xl bg-white border border-[#D9D2E3] text-xs text-[#1E1B2E] placeholder-[#817B91] outline-none focus:border-[#8E2D9D]"
                       />
                     </div>
                   </div>
                   <div>
-                    <label className="text-[11px] font-semibold text-slate-300 block mb-1">
-                      Phone Number <span className="text-slate-400 font-normal">(Mobile / Landline)</span>
+                    <label className="text-[11px] font-semibold text-[#3F3852] block mb-1">
+                      Phone Number <span className="text-[#817B91] font-normal">(Mobile / Landline)</span>
                     </label>
                     <div className="relative">
-                      <Phone className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+                      <Phone className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#817B91]" />
                       <input
                         type="text"
                         placeholder="+91 98765 00112"
                         value={form.phone}
                         onChange={e => setForm({ ...form, phone: e.target.value })}
-                        className="w-full pl-9 pr-3.5 py-2 rounded-xl bg-[#0c1633] border border-slate-700 text-xs text-white placeholder-slate-500 outline-none focus:border-blue-500"
+                        className="w-full pl-9 pr-3.5 py-2 rounded-xl bg-white border border-[#D9D2E3] text-xs text-[#1E1B2E] placeholder-[#817B91] outline-none focus:border-[#8E2D9D]"
                       />
                     </div>
                   </div>
@@ -1056,25 +1056,25 @@ export const ClientsManager: React.FC = () => {
                 {/* Row 3: Billing Address & City */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
                   <div className="sm:col-span-2">
-                    <label className="text-[11px] font-semibold text-slate-300 block mb-1">
-                      Billing Address <span className="text-slate-400 font-normal">(Street / Premises)</span>
+                    <label className="text-[11px] font-semibold text-[#3F3852] block mb-1">
+                      Billing Address <span className="text-[#817B91] font-normal">(Street / Premises)</span>
                     </label>
                     <input
                       type="text"
                       placeholder="Building, Street, Industrial Area..."
                       value={form.address}
                       onChange={e => setForm({ ...form, address: e.target.value })}
-                      className="w-full px-3.5 py-2 rounded-xl bg-[#0c1633] border border-slate-700 text-xs text-white placeholder-slate-500 outline-none focus:border-blue-500"
+                      className="w-full px-3.5 py-2 rounded-xl bg-white border border-[#D9D2E3] text-xs text-[#1E1B2E] placeholder-[#817B91] outline-none focus:border-[#8E2D9D]"
                     />
                   </div>
                   <div>
-                    <label className="text-[11px] font-semibold text-slate-300 block mb-1">City</label>
+                    <label className="text-[11px] font-semibold text-[#3F3852] block mb-1">City</label>
                     <input
                       type="text"
                       placeholder="e.g. Surat, Mumbai"
                       value={form.city}
                       onChange={e => setForm({ ...form, city: e.target.value })}
-                      className="w-full px-3.5 py-2 rounded-xl bg-[#0c1633] border border-slate-700 text-xs text-white placeholder-slate-500 outline-none focus:border-blue-500"
+                      className="w-full px-3.5 py-2 rounded-xl bg-white border border-[#D9D2E3] text-xs text-[#1E1B2E] placeholder-[#817B91] outline-none focus:border-[#8E2D9D]"
                     />
                   </div>
                 </div>
@@ -1082,8 +1082,8 @@ export const ClientsManager: React.FC = () => {
                 {/* Row 4: GSTIN & Place of Supply (Auto-derived) */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
                   <div>
-                    <label className="text-[11px] font-semibold text-slate-300 block mb-1">
-                      GSTIN <span className="text-slate-400 font-normal">(Leave blank if URP)</span>
+                    <label className="text-[11px] font-semibold text-[#3F3852] block mb-1">
+                      GSTIN <span className="text-[#817B91] font-normal">(Leave blank if URP)</span>
                     </label>
                     <input
                       type="text"
@@ -1091,55 +1091,55 @@ export const ClientsManager: React.FC = () => {
                       placeholder="e.g. 24AABCA1234F1ZM"
                       value={form.gstin}
                       onChange={e => handleGstinChange(e.target.value)}
-                      className="w-full px-3.5 py-2 rounded-xl bg-[#0c1633] border border-slate-700 text-xs text-cyan-400 placeholder-slate-500 outline-none focus:border-blue-500 font-mono uppercase font-semibold"
+                      className="w-full px-3.5 py-2 rounded-xl bg-white border border-[#D9D2E3] text-xs text-[#8E2D9D] placeholder-[#817B91] outline-none focus:border-[#8E2D9D] font-mono uppercase font-semibold"
                     />
                   </div>
                   <div>
-                    <label className="text-[11px] font-semibold text-slate-300 block mb-1">
-                      Place of Supply <span className="text-emerald-400 font-normal">(Auto-derived)</span>
+                    <label className="text-[11px] font-semibold text-[#3F3852] block mb-1">
+                      Place of Supply <span className="text-[#059669] font-normal">(Auto-derived)</span>
                     </label>
                     <input
                       type="text"
                       readOnly
                       placeholder="e.g. 24-Gujarat"
                       value={form.placeOfSupply}
-                      className="w-full px-3.5 py-2 rounded-xl bg-[#060c1e] border border-slate-700/70 text-xs text-emerald-300 outline-none font-medium cursor-not-allowed"
+                      className="w-full px-3.5 py-2 rounded-xl bg-[#F3E8FF]/60 border border-[#D9D2E3] text-xs text-[#1E1B2E] outline-none font-medium cursor-not-allowed font-mono"
                     />
                   </div>
                   <div>
-                    <label className="text-[11px] font-semibold text-slate-300 block mb-1">
-                      PAN <span className="text-slate-400 font-normal">(Auto-extracted)</span>
+                    <label className="text-[11px] font-semibold text-[#3F3852] block mb-1">
+                      PAN <span className="text-[#817B91] font-normal">(Auto-extracted)</span>
                     </label>
                     <input
                       type="text"
                       placeholder="e.g. AABCA1234F"
                       value={form.pan}
                       onChange={e => setForm({ ...form, pan: e.target.value.toUpperCase() })}
-                      className="w-full px-3.5 py-2 rounded-xl bg-[#0c1633] border border-slate-700 text-xs text-slate-200 placeholder-slate-500 outline-none focus:border-blue-500 font-mono uppercase"
+                      className="w-full px-3.5 py-2 rounded-xl bg-white border border-[#D9D2E3] text-xs text-[#1E1B2E] placeholder-[#817B91] outline-none focus:border-[#8E2D9D] font-mono uppercase"
                     />
                   </div>
                 </div>
 
                 {/* GSTIN Live Validation Badge */}
-                <div className="px-3 py-1.5 rounded-lg bg-[#060e24] border border-slate-800 text-[11px] flex items-center space-x-2">
+                <div className="px-3 py-2 rounded-xl bg-white border border-[#E8E0F0] text-[11px] flex items-center space-x-2">
                   {gstValidation.isValid ? (
-                    <div className="flex items-center space-x-1.5 text-emerald-400 font-medium">
+                    <div className="flex items-center space-x-1.5 text-[#059669] font-medium">
                       <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
                       <span>Valid GSTIN • State: {form.state} (Code: {form.stateCode}) • Place of Supply: {form.placeOfSupply}</span>
                     </div>
                   ) : form.gstin.trim().length > 0 && form.gstin.trim().length < 15 ? (
-                    <div className="flex items-center space-x-1.5 text-amber-400 font-medium">
+                    <div className="flex items-center space-x-1.5 text-[#D97706] font-medium">
                       <Info className="w-3.5 h-3.5 shrink-0" />
                       <span>Auto-detected State: {form.state} ({form.stateCode}) • Entering GSTIN ({form.gstin.trim().length}/15 chars)</span>
                     </div>
                   ) : form.gstin.trim().length >= 15 && !gstValidation.isValid ? (
-                    <div className="flex items-center space-x-1.5 text-rose-400 font-medium">
+                    <div className="flex items-center space-x-1.5 text-[#DC2626] font-medium">
                       <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
                       <span>Invalid GSTIN format or unrecognized State Code</span>
                     </div>
                   ) : (
-                    <div className="flex items-center space-x-1.5 text-slate-400">
-                      <Info className="w-3.5 h-3.5 shrink-0 text-blue-400" />
+                    <div className="flex items-center space-x-1.5 text-[#5F5A72]">
+                      <Info className="w-3.5 h-3.5 shrink-0 text-[#8E2D9D]" />
                       <span>Non-GST / Unregistered Person (URP) workflow active. State and Place of Supply derived from state selection.</span>
                     </div>
                   )}
@@ -1148,11 +1148,11 @@ export const ClientsManager: React.FC = () => {
                 {/* Row 5: State (Dropdown) & State Code & Pincode */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
                   <div>
-                    <label className="text-[11px] font-semibold text-slate-300 block mb-1">Billing State / UT</label>
+                    <label className="text-[11px] font-semibold text-[#3F3852] block mb-1">Billing State / UT</label>
                     <select
                       value={form.state}
                       onChange={e => handleStateChange(e.target.value)}
-                      className="w-full px-3 py-2 rounded-xl bg-[#0c1633] border border-slate-700 text-xs text-white focus:border-blue-500 outline-none"
+                      className="w-full px-3 py-2 rounded-xl bg-white border border-[#D9D2E3] text-xs text-[#1E1B2E] focus:border-[#8E2D9D] outline-none cursor-pointer"
                     >
                       {INDIAN_STATES.map(st => (
                         <option key={st.code} value={st.name}>
@@ -1162,36 +1162,36 @@ export const ClientsManager: React.FC = () => {
                     </select>
                   </div>
                   <div>
-                    <label className="text-[11px] font-semibold text-slate-300 block mb-1">
-                      State Code <span className="text-emerald-400 font-normal">(Auto)</span>
+                    <label className="text-[11px] font-semibold text-[#3F3852] block mb-1">
+                      State Code <span className="text-[#059669] font-normal">(Auto)</span>
                     </label>
                     <input
                       type="text"
                       readOnly
                       placeholder="e.g. 24"
                       value={form.stateCode}
-                      className="w-full px-3.5 py-2 rounded-xl bg-[#060c1e] border border-slate-700/70 text-xs text-cyan-300 outline-none font-mono font-bold cursor-not-allowed"
+                      className="w-full px-3.5 py-2 rounded-xl bg-[#F3E8FF]/60 border border-[#D9D2E3] text-xs text-[#1E1B2E] outline-none font-mono font-bold cursor-not-allowed"
                     />
                   </div>
                   <div>
-                    <label className="text-[11px] font-semibold text-slate-300 block mb-1">Pincode</label>
+                    <label className="text-[11px] font-semibold text-[#3F3852] block mb-1">Pincode</label>
                     <input
                       type="text"
                       placeholder="e.g. 394230"
                       value={form.pincode}
                       onChange={e => setForm({ ...form, pincode: e.target.value })}
-                      className="w-full px-3.5 py-2 rounded-xl bg-[#0c1633] border border-slate-700 text-xs text-white placeholder-slate-500 outline-none focus:border-blue-500"
+                      className="w-full px-3.5 py-2 rounded-xl bg-white border border-[#D9D2E3] text-xs text-[#1E1B2E] placeholder-[#817B91] outline-none focus:border-[#8E2D9D]"
                     />
                   </div>
                 </div>
 
                 {/* Row 6: Account Status */}
                 <div>
-                  <label className="text-[11px] font-semibold text-slate-300 block mb-1">Account Status</label>
+                  <label className="text-[11px] font-semibold text-[#3F3852] block mb-1">Account Status</label>
                   <select
                     value={form.status}
                     onChange={e => setForm({ ...form, status: e.target.value as any })}
-                    className="w-full px-3 py-2 rounded-xl bg-[#0c1633] border border-slate-700 text-xs text-white focus:border-blue-500 outline-none"
+                    className="w-full px-3 py-2 rounded-xl bg-white border border-[#D9D2E3] text-xs text-[#1E1B2E] focus:border-[#8E2D9D] outline-none cursor-pointer"
                   >
                     <option value="active">Active (Permits Quotations & Invoices)</option>
                     <option value="disabled">Disabled (Archived / Inactive)</option>
@@ -1202,15 +1202,15 @@ export const ClientsManager: React.FC = () => {
               {/* ========================================================= */}
               {/* SECTION 2: SHIPPED TO / DELIVERY DESTINATION */}
               {/* ========================================================= */}
-              <div className="p-4 rounded-xl bg-[#091129] border border-slate-700/80 space-y-3.5">
-                <div className="flex items-center justify-between pb-2 border-b border-slate-800">
+              <div className="p-4 rounded-2xl bg-[#FAF5FF] border border-[#E8E0F0] space-y-3.5">
+                <div className="flex items-center justify-between pb-2 border-b border-[#E8E0F0]">
                   <div className="flex items-center space-x-2">
-                    <Truck className="w-4 h-4 text-cyan-400" />
-                    <h4 className="text-xs font-bold text-white uppercase tracking-wider">
+                    <Truck className="w-4 h-4 text-[#8E2D9D]" />
+                    <h4 className="text-xs font-bold text-[#1E1B2E] uppercase tracking-wider">
                       Shipped To / Delivery Destination
                     </h4>
                   </div>
-                  <label className="flex items-center space-x-2 text-xs font-semibold text-cyan-300 cursor-pointer bg-cyan-500/10 px-2.5 py-1 rounded-lg border border-cyan-500/30 hover:bg-cyan-500/20 transition-colors">
+                  <label className="flex items-center space-x-2 text-xs font-semibold text-[#8E2D9D] cursor-pointer bg-[#F3E8FF] px-2.5 py-1 rounded-lg border border-[#C084FC]/40 hover:bg-[#EDE9FE] transition-colors">
                     <input
                       type="checkbox"
                       checked={form.sameAsBilling}
@@ -1232,17 +1232,17 @@ export const ClientsManager: React.FC = () => {
                           } : {})
                         }));
                       }}
-                      className="rounded border-slate-700 text-cyan-500 focus:ring-cyan-400 w-3.5 h-3.5 cursor-pointer"
+                      className="rounded border-[#D9D2E3] text-[#8E2D9D] focus:ring-[#8E2D9D] w-3.5 h-3.5 cursor-pointer"
                     />
                     <span>Shipped To Same as Billed To</span>
                   </label>
                 </div>
 
                 {form.sameAsBilling ? (
-                  <div className="p-3 rounded-lg bg-[#060e24] border border-slate-800 text-xs text-slate-300 flex items-center space-x-2.5">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                  <div className="p-3 rounded-xl bg-white border border-[#E8E0F0] text-xs text-[#5F5A72] flex items-center space-x-2.5">
+                    <CheckCircle2 className="w-4 h-4 text-[#059669] shrink-0" />
                     <span>
-                      Shipping destination automatically mirrors legal billing address: <strong className="text-white">{form.companyName || 'Client'}</strong>, {form.city || form.address ? `${form.city || ''} (${form.state})` : form.state}.
+                      Shipping destination automatically mirrors legal billing address: <strong className="text-[#1E1B2E]">{form.companyName || 'Client'}</strong>, {form.city || form.address ? `${form.city || ''} (${form.state})` : form.state}.
                     </span>
                   </div>
                 ) : (
@@ -1250,7 +1250,7 @@ export const ClientsManager: React.FC = () => {
                     {/* Different Shipping Address Fields */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                       <div>
-                        <label className="text-[11px] font-semibold text-slate-300 block mb-1">
+                        <label className="text-[11px] font-semibold text-[#3F3852] block mb-1">
                           Shipping Attention / Recipient Name
                         </label>
                         <input
@@ -1258,11 +1258,11 @@ export const ClientsManager: React.FC = () => {
                           placeholder="e.g. Gurdeep Singh (Logistics Manager)"
                           value={form.shippingName}
                           onChange={e => setForm({ ...form, shippingName: e.target.value })}
-                          className="w-full px-3.5 py-2 rounded-xl bg-[#0c1633] border border-slate-700 text-xs text-white placeholder-slate-500 outline-none focus:border-blue-500"
+                          className="w-full px-3.5 py-2 rounded-xl bg-white border border-[#D9D2E3] text-xs text-[#1E1B2E] placeholder-[#817B91] outline-none focus:border-[#8E2D9D]"
                         />
                       </div>
                       <div>
-                        <label className="text-[11px] font-semibold text-slate-300 block mb-1">
+                        <label className="text-[11px] font-semibold text-[#3F3852] block mb-1">
                           Shipping Company / Unit / Hub Name
                         </label>
                         <input
@@ -1270,14 +1270,14 @@ export const ClientsManager: React.FC = () => {
                           placeholder="e.g. Ludhiana Hosiery Dispatch Centre"
                           value={form.shippingCompany}
                           onChange={e => setForm({ ...form, shippingCompany: e.target.value })}
-                          className="w-full px-3.5 py-2 rounded-xl bg-[#0c1633] border border-slate-700 text-xs text-white placeholder-slate-500 outline-none focus:border-blue-500"
+                          className="w-full px-3.5 py-2 rounded-xl bg-white border border-[#D9D2E3] text-xs text-[#1E1B2E] placeholder-[#817B91] outline-none focus:border-[#8E2D9D]"
                         />
                       </div>
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                       <div>
-                        <label className="text-[11px] font-semibold text-slate-300 block mb-1">
+                        <label className="text-[11px] font-semibold text-[#3F3852] block mb-1">
                           Shipping Contact Phone
                         </label>
                         <input
@@ -1285,12 +1285,12 @@ export const ClientsManager: React.FC = () => {
                           placeholder="+91 98140 99887"
                           value={form.shippingPhone}
                           onChange={e => setForm({ ...form, shippingPhone: e.target.value })}
-                          className="w-full px-3.5 py-2 rounded-xl bg-[#0c1633] border border-slate-700 text-xs text-white placeholder-slate-500 outline-none focus:border-blue-500"
+                          className="w-full px-3.5 py-2 rounded-xl bg-white border border-[#D9D2E3] text-xs text-[#1E1B2E] placeholder-[#817B91] outline-none focus:border-[#8E2D9D]"
                         />
                       </div>
                       <div>
-                        <label className="text-[11px] font-semibold text-slate-300 block mb-1">
-                          Shipping / Branch GSTIN <span className="text-slate-400 font-normal">(Optional)</span>
+                        <label className="text-[11px] font-semibold text-[#3F3852] block mb-1">
+                          Shipping / Branch GSTIN <span className="text-[#817B91] font-normal">(Optional)</span>
                         </label>
                         <input
                           type="text"
@@ -1298,43 +1298,43 @@ export const ClientsManager: React.FC = () => {
                           placeholder="e.g. 03AABCL5544K1Z8"
                           value={form.shippingGstin}
                           onChange={e => setForm({ ...form, shippingGstin: e.target.value.toUpperCase() })}
-                          className="w-full px-3.5 py-2 rounded-xl bg-[#0c1633] border border-slate-700 text-xs text-cyan-400 placeholder-slate-500 outline-none focus:border-blue-500 font-mono uppercase"
+                          className="w-full px-3.5 py-2 rounded-xl bg-white border border-[#D9D2E3] text-xs text-[#8E2D9D] placeholder-[#817B91] outline-none focus:border-[#8E2D9D] font-mono uppercase font-semibold"
                         />
                       </div>
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
                       <div className="sm:col-span-2">
-                        <label className="text-[11px] font-semibold text-slate-300 block mb-1">
-                          Shipping Address <span className="text-slate-400 font-normal">(Delivery Premises)</span>
+                        <label className="text-[11px] font-semibold text-[#3F3852] block mb-1">
+                          Shipping Address <span className="text-[#817B91] font-normal">(Delivery Premises)</span>
                         </label>
                         <input
                           type="text"
                           placeholder="Warehouse #, Plot / Street, Industrial Phase..."
                           value={form.shippingAddress}
                           onChange={e => setForm({ ...form, shippingAddress: e.target.value })}
-                          className="w-full px-3.5 py-2 rounded-xl bg-[#0c1633] border border-slate-700 text-xs text-white placeholder-slate-500 outline-none focus:border-blue-500"
+                          className="w-full px-3.5 py-2 rounded-xl bg-white border border-[#D9D2E3] text-xs text-[#1E1B2E] placeholder-[#817B91] outline-none focus:border-[#8E2D9D]"
                         />
                       </div>
                       <div>
-                        <label className="text-[11px] font-semibold text-slate-300 block mb-1">Shipping City</label>
+                        <label className="text-[11px] font-semibold text-[#3F3852] block mb-1">Shipping City</label>
                         <input
                           type="text"
                           placeholder="e.g. Jalandhar, Pune"
                           value={form.shippingCity}
                           onChange={e => setForm({ ...form, shippingCity: e.target.value })}
-                          className="w-full px-3.5 py-2 rounded-xl bg-[#0c1633] border border-slate-700 text-xs text-white placeholder-slate-500 outline-none focus:border-blue-500"
+                          className="w-full px-3.5 py-2 rounded-xl bg-white border border-[#D9D2E3] text-xs text-[#1E1B2E] placeholder-[#817B91] outline-none focus:border-[#8E2D9D]"
                         />
                       </div>
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
                       <div>
-                        <label className="text-[11px] font-semibold text-slate-300 block mb-1">Shipping State</label>
+                        <label className="text-[11px] font-semibold text-[#3F3852] block mb-1">Shipping State</label>
                         <select
                           value={form.shippingState}
                           onChange={e => handleShippingStateChange(e.target.value)}
-                          className="w-full px-3 py-2 rounded-xl bg-[#0c1633] border border-slate-700 text-xs text-white focus:border-blue-500 outline-none"
+                          className="w-full px-3 py-2 rounded-xl bg-white border border-[#D9D2E3] text-xs text-[#1E1B2E] focus:border-[#8E2D9D] outline-none cursor-pointer"
                         >
                           {INDIAN_STATES.map(st => (
                             <option key={st.code} value={st.name}>
@@ -1344,24 +1344,24 @@ export const ClientsManager: React.FC = () => {
                         </select>
                       </div>
                       <div>
-                        <label className="text-[11px] font-semibold text-slate-300 block mb-1">
-                          Shipping State Code <span className="text-emerald-400 font-normal">(Auto)</span>
+                        <label className="text-[11px] font-semibold text-[#3F3852] block mb-1">
+                          Shipping State Code <span className="text-[#059669] font-normal">(Auto)</span>
                         </label>
                         <input
                           type="text"
                           readOnly
                           value={form.shippingStateCode}
-                          className="w-full px-3.5 py-2 rounded-xl bg-[#060c1e] border border-slate-700/70 text-xs text-cyan-300 outline-none font-mono font-bold cursor-not-allowed"
+                          className="w-full px-3.5 py-2 rounded-xl bg-[#F3E8FF]/60 border border-[#D9D2E3] text-xs text-[#1E1B2E] outline-none font-mono font-bold cursor-not-allowed"
                         />
                       </div>
                       <div>
-                        <label className="text-[11px] font-semibold text-slate-300 block mb-1">Shipping Pincode</label>
+                        <label className="text-[11px] font-semibold text-[#3F3852] block mb-1">Shipping Pincode</label>
                         <input
                           type="text"
                           placeholder="e.g. 144001"
                           value={form.shippingPincode}
                           onChange={e => setForm({ ...form, shippingPincode: e.target.value })}
-                          className="w-full px-3.5 py-2 rounded-xl bg-[#0c1633] border border-slate-700 text-xs text-white placeholder-slate-500 outline-none focus:border-blue-500"
+                          className="w-full px-3.5 py-2 rounded-xl bg-white border border-[#D9D2E3] text-xs text-[#1E1B2E] placeholder-[#817B91] outline-none focus:border-[#8E2D9D]"
                         />
                       </div>
                     </div>
@@ -1371,28 +1371,28 @@ export const ClientsManager: React.FC = () => {
 
               {/* Notes */}
               <div>
-                <label className="text-[11px] font-semibold text-slate-300 block mb-1">Notes / Terms</label>
+                <label className="text-[11px] font-semibold text-[#3F3852] block mb-1">Notes / Terms</label>
                 <textarea
                   rows={2}
                   placeholder="Special client requirements, billing cycles, key contacts, or tax remarks..."
                   value={form.notes}
                   onChange={e => setForm({ ...form, notes: e.target.value })}
-                  className="w-full px-3.5 py-2 rounded-xl bg-[#091129] border border-slate-700 text-xs text-white placeholder-slate-500 outline-none focus:border-blue-500 resize-none"
+                  className="w-full px-3.5 py-2 rounded-xl bg-white border border-[#D9D2E3] text-xs text-[#1E1B2E] placeholder-[#817B91] outline-none focus:border-[#8E2D9D] resize-none"
                 />
               </div>
 
               {/* Form Buttons */}
-              <div className="flex justify-end space-x-3 pt-4 border-t border-slate-700/80">
+              <div className="flex justify-end space-x-3 pt-4 border-t border-[#E8E0F0]">
                 <button
                   type="button"
                   onClick={() => setShowAddModal(false)}
-                  className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-300 transition-colors cursor-pointer"
+                  className="px-4 py-2 rounded-xl bg-white hover:bg-[#FAF5FF] border border-[#C084FC] text-xs font-semibold text-[#6F42C1] transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-xs font-semibold text-white transition-all shadow-md shadow-blue-500/25 cursor-pointer"
+                  className="px-5 py-2 rounded-xl bg-[#8E2D9D] hover:bg-[#6F42C1] text-xs font-bold text-white transition-all shadow-md shadow-[#8E2D9D]/25 cursor-pointer"
                 >
                   {editingClient ? 'Save Changes' : 'Create Client Profile'}
                 </button>
@@ -1406,36 +1406,36 @@ export const ClientsManager: React.FC = () => {
       {/* 360° CLIENT MASTER VIEW MODAL */}
       {/* ========================================================================= */}
       {viewingClient && (
-        <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-gradient-to-b from-[#111e47] to-[#0a122e] border border-slate-700/90 rounded-2xl w-full max-w-3xl p-6 shadow-2xl my-8">
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white border border-[#D9D2E3] rounded-3xl w-full max-w-3xl p-6 shadow-2xl my-8">
             {/* Modal Header */}
-            <div className="flex justify-between items-start pb-4 border-b border-slate-700/80 mb-5">
+            <div className="flex justify-between items-start pb-4 border-b border-[#E8E0F0] mb-5">
               <div className="flex items-center space-x-3">
-                <div className="w-12 h-12 rounded-2xl bg-blue-500/20 border border-blue-500/40 flex items-center justify-center text-blue-400 font-bold text-base">
+                <div className="w-12 h-12 rounded-2xl bg-[#F3E8FF] border border-[#C084FC]/50 flex items-center justify-center text-[#8E2D9D] font-bold text-base">
                   {viewingClient.companyName.slice(0, 2).toUpperCase()}
                 </div>
                 <div>
                   <div className="flex items-center space-x-2">
-                    <h3 className="text-lg font-bold text-white">{viewingClient.companyName}</h3>
-                    <span className={`px-2 py-0.5 rounded text-[10px] font-semibold uppercase ${
+                    <h3 className="text-lg font-bold text-[#1E1B2E]">{viewingClient.companyName}</h3>
+                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
                       viewingClient.status === 'active'
-                        ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
-                        : 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
+                        ? 'bg-emerald-50 text-[#059669] border border-emerald-200'
+                        : 'bg-amber-50 text-[#D97706] border border-amber-200'
                     }`}>
                       {viewingClient.status}
                     </span>
                     {viewingClient.gstin ? (
-                      <span className="px-2 py-0.5 rounded text-[10px] font-semibold uppercase bg-cyan-500/20 text-cyan-300 border border-cyan-500/40">
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-[#F3E8FF] text-[#8E2D9D] border border-[#C084FC]/40 font-mono">
                         GST Registered
                       </span>
                     ) : (
-                      <span className="px-2 py-0.5 rounded text-[10px] font-semibold uppercase bg-slate-700 text-slate-300">
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-[#FAF5FF] text-[#5F5A72] border border-[#E8E0F0]">
                         URP (Non-GST)
                       </span>
                     )}
                   </div>
-                  <p className="text-xs text-slate-400">
-                    Contact: <span className="text-slate-200 font-medium">{viewingClient.contactPerson || viewingClient.name}</span>
+                  <p className="text-xs text-[#5F5A72]">
+                    Contact: <span className="text-[#1E1B2E] font-semibold">{viewingClient.contactPerson || viewingClient.name}</span>
                   </p>
                 </div>
               </div>
@@ -1445,14 +1445,14 @@ export const ClientsManager: React.FC = () => {
                   onClick={() => {
                     handleOpenEdit(viewingClient);
                   }}
-                  className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-200 flex items-center space-x-1.5 transition-colors border border-slate-700 cursor-pointer"
+                  className="px-3 py-1.5 rounded-xl bg-white hover:bg-[#FAF5FF] text-xs font-semibold text-[#6F42C1] flex items-center space-x-1.5 transition-colors border border-[#C084FC] cursor-pointer"
                 >
                   <Edit3 className="w-3.5 h-3.5" />
                   <span>Edit</span>
                 </button>
                 <button
                   onClick={() => setViewingClient(null)}
-                  className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition-colors cursor-pointer"
+                  className="text-[#817B91] hover:text-[#1E1B2E] p-1.5 rounded-xl hover:bg-[#F3E8FF] transition-colors cursor-pointer"
                 >
                   ✕
                 </button>
@@ -1462,65 +1462,65 @@ export const ClientsManager: React.FC = () => {
             {/* Client Master Details Grid */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
               {/* Box 1: Compliance & GST Info */}
-              <div className="p-4 rounded-xl bg-[#091129] border border-slate-700/80 space-y-2.5">
-                <h4 className="text-xs font-bold text-blue-400 uppercase tracking-wider flex items-center space-x-1.5">
+              <div className="p-4 rounded-2xl bg-[#FAF5FF] border border-[#E8E0F0] space-y-2.5">
+                <h4 className="text-xs font-bold text-[#8E2D9D] uppercase tracking-wider flex items-center space-x-1.5">
                   <Receipt className="w-3.5 h-3.5" />
                   <span>Tax & Compliance</span>
                 </h4>
                 
                 <div className="space-y-1.5 text-xs">
-                  <div className="flex justify-between py-1 border-b border-slate-800">
-                    <span className="text-slate-400">GSTIN:</span>
+                  <div className="flex justify-between py-1 border-b border-[#E8E0F0]">
+                    <span className="text-[#5F5A72]">GSTIN:</span>
                     {viewingClient.gstin ? (
-                      <span className="font-mono text-cyan-400 font-semibold">{viewingClient.gstin}</span>
+                      <span className="font-mono text-[#8E2D9D] font-bold">{viewingClient.gstin}</span>
                     ) : (
-                      <span className="text-slate-500 font-semibold">— (URP)</span>
+                      <span className="text-[#817B91] font-semibold">— (URP)</span>
                     )}
                   </div>
-                  <div className="flex justify-between py-1 border-b border-slate-800">
-                    <span className="text-slate-400">Place of Supply:</span>
-                    <span className="text-emerald-300 font-medium">
+                  <div className="flex justify-between py-1 border-b border-[#E8E0F0]">
+                    <span className="text-[#5F5A72]">Place of Supply:</span>
+                    <span className="text-[#059669] font-semibold">
                       {viewingClient.placeOfSupply || formatPlaceOfSupply(viewingClient.state || viewingClient.billingAddress?.state || '', viewingClient.stateCode)}
                     </span>
                   </div>
-                  <div className="flex justify-between py-1 border-b border-slate-800">
-                    <span className="text-slate-400">State & Code:</span>
-                    <span className="text-slate-200 font-medium">
+                  <div className="flex justify-between py-1 border-b border-[#E8E0F0]">
+                    <span className="text-[#5F5A72]">State & Code:</span>
+                    <span className="text-[#1E1B2E] font-medium">
                       {viewingClient.state || viewingClient.billingAddress?.state || '—'} {viewingClient.stateCode ? `(${viewingClient.stateCode})` : ''}
                     </span>
                   </div>
                   <div className="flex justify-between py-1">
-                    <span className="text-slate-400">PAN:</span>
-                    <span className="font-mono text-slate-300">{viewingClient.pan || '—'}</span>
+                    <span className="text-[#5F5A72]">PAN:</span>
+                    <span className="font-mono text-[#1E1B2E] font-semibold">{viewingClient.pan || '—'}</span>
                   </div>
                 </div>
               </div>
 
               {/* Box 2: Billed To Details */}
-              <div className="p-4 rounded-xl bg-[#091129] border border-slate-700/80 space-y-2.5">
-                <h4 className="text-xs font-bold text-indigo-400 uppercase tracking-wider flex items-center space-x-1.5">
+              <div className="p-4 rounded-2xl bg-[#FAF5FF] border border-[#E8E0F0] space-y-2.5">
+                <h4 className="text-xs font-bold text-[#6F42C1] uppercase tracking-wider flex items-center space-x-1.5">
                   <MapPin className="w-3.5 h-3.5" />
                   <span>Billed To (Legal)</span>
                 </h4>
 
                 <div className="space-y-1.5 text-xs">
-                  <div className="flex justify-between py-1 border-b border-slate-800">
-                    <span className="text-slate-400">Email:</span>
-                    <span className="text-slate-200 truncate max-w-[130px]">{viewingClient.email || '—'}</span>
+                  <div className="flex justify-between py-1 border-b border-[#E8E0F0]">
+                    <span className="text-[#5F5A72]">Email:</span>
+                    <span className="text-[#1E1B2E] truncate max-w-[130px] font-medium">{viewingClient.email || '—'}</span>
                   </div>
-                  <div className="flex justify-between py-1 border-b border-slate-800">
-                    <span className="text-slate-400">Phone:</span>
-                    <span className="text-slate-200">{viewingClient.phone || '—'}</span>
+                  <div className="flex justify-between py-1 border-b border-[#E8E0F0]">
+                    <span className="text-[#5F5A72]">Phone:</span>
+                    <span className="text-[#1E1B2E] font-medium">{viewingClient.phone || '—'}</span>
                   </div>
-                  <div className="flex justify-between py-1 border-b border-slate-800">
-                    <span className="text-slate-400">City / Pin:</span>
-                    <span className="text-slate-200">
+                  <div className="flex justify-between py-1 border-b border-[#E8E0F0]">
+                    <span className="text-[#5F5A72]">City / Pin:</span>
+                    <span className="text-[#1E1B2E] font-medium">
                       {viewingClient.city || viewingClient.billingAddress?.city || '—'} {viewingClient.pincode || viewingClient.postalCode ? `- ${viewingClient.pincode || viewingClient.postalCode}` : ''}
                     </span>
                   </div>
                   <div className="py-1">
-                    <span className="text-slate-400 block mb-0.5">Address:</span>
-                    <p className="text-slate-300 text-[11px] line-clamp-2">
+                    <span className="text-[#5F5A72] block mb-0.5">Address:</span>
+                    <p className="text-[#4F4960] text-[11px] line-clamp-2">
                       {viewingClient.address || viewingClient.billingAddress?.street || '—'}
                     </p>
                   </div>
@@ -1528,41 +1528,41 @@ export const ClientsManager: React.FC = () => {
               </div>
 
               {/* Box 3: Shipped To / Delivery Destination */}
-              <div className="p-4 rounded-xl bg-[#091129] border border-slate-700/80 space-y-2.5">
-                <h4 className="text-xs font-bold text-cyan-400 uppercase tracking-wider flex items-center space-x-1.5">
+              <div className="p-4 rounded-2xl bg-[#FAF5FF] border border-[#E8E0F0] space-y-2.5">
+                <h4 className="text-xs font-bold text-[#8E2D9D] uppercase tracking-wider flex items-center space-x-1.5">
                   <Truck className="w-3.5 h-3.5" />
                   <span>Shipped To (Delivery)</span>
                 </h4>
 
                 {viewingClient.sameAsBilling !== false ? (
                   <div className="space-y-2 text-xs">
-                    <div className="p-2 rounded-lg bg-cyan-500/10 border border-cyan-500/30 text-[11px] text-cyan-300 flex items-center space-x-1.5">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+                    <div className="p-2 rounded-xl bg-[#F3E8FF] border border-[#C084FC]/40 text-[11px] text-[#8E2D9D] flex items-center space-x-1.5 font-semibold">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-[#059669] shrink-0" />
                       <span>Same as Billing Address</span>
                     </div>
-                    <div className="text-[11px] text-slate-300 space-y-1">
-                      <p className="font-semibold text-white">{viewingClient.companyName}</p>
+                    <div className="text-[11px] text-[#4F4960] space-y-1">
+                      <p className="font-bold text-[#1E1B2E]">{viewingClient.companyName}</p>
                       <p>{viewingClient.address || viewingClient.billingAddress?.street || '—'}</p>
                       <p>{viewingClient.city || viewingClient.billingAddress?.city || '—'}, {viewingClient.state || viewingClient.billingAddress?.state || '—'} - {viewingClient.pincode || viewingClient.postalCode || ''}</p>
                     </div>
                   </div>
                 ) : (
                   <div className="space-y-1.5 text-xs">
-                    <div className="flex justify-between py-1 border-b border-slate-800">
-                      <span className="text-slate-400">Recipient:</span>
-                      <span className="text-slate-200 truncate max-w-[130px]">{viewingClient.shippingName || viewingClient.shippingCompany || '—'}</span>
+                    <div className="flex justify-between py-1 border-b border-[#E8E0F0]">
+                      <span className="text-[#5F5A72]">Recipient:</span>
+                      <span className="text-[#1E1B2E] truncate max-w-[130px] font-medium">{viewingClient.shippingName || viewingClient.shippingCompany || '—'}</span>
                     </div>
-                    <div className="flex justify-between py-1 border-b border-slate-800">
-                      <span className="text-slate-400">Ship City/State:</span>
-                      <span className="text-slate-200">{viewingClient.shippingCity || '—'}, {viewingClient.shippingState || '—'} ({viewingClient.shippingStateCode || '—'})</span>
+                    <div className="flex justify-between py-1 border-b border-[#E8E0F0]">
+                      <span className="text-[#5F5A72]">Ship City/State:</span>
+                      <span className="text-[#1E1B2E] font-medium">{viewingClient.shippingCity || '—'}, {viewingClient.shippingState || '—'} ({viewingClient.shippingStateCode || '—'})</span>
                     </div>
-                    <div className="flex justify-between py-1 border-b border-slate-800">
-                      <span className="text-slate-400">Ship Pincode:</span>
-                      <span className="text-slate-200">{viewingClient.shippingPincode || '—'}</span>
+                    <div className="flex justify-between py-1 border-b border-[#E8E0F0]">
+                      <span className="text-[#5F5A72]">Ship Pincode:</span>
+                      <span className="text-[#1E1B2E] font-medium">{viewingClient.shippingPincode || '—'}</span>
                     </div>
                     <div className="py-1">
-                      <span className="text-slate-400 block mb-0.5">Ship Address:</span>
-                      <p className="text-slate-300 text-[11px] line-clamp-2">
+                      <span className="text-[#5F5A72] block mb-0.5">Ship Address:</span>
+                      <p className="text-[#4F4960] text-[11px] line-clamp-2">
                         {viewingClient.shippingAddress || '—'}
                       </p>
                     </div>
@@ -1573,10 +1573,10 @@ export const ClientsManager: React.FC = () => {
 
             {/* Notes if any */}
             {viewingClient.notes && (
-              <div className="p-3.5 rounded-xl bg-blue-500/10 border border-blue-500/30 text-xs text-slate-300 mb-6 flex items-start space-x-2">
-                <Info className="w-4 h-4 text-blue-400 shrink-0 mt-0.5" />
+              <div className="p-3.5 rounded-2xl bg-[#F3E8FF]/60 border border-[#E8E0F0] text-xs text-[#4F4960] mb-6 flex items-start space-x-2">
+                <Info className="w-4 h-4 text-[#8E2D9D] shrink-0 mt-0.5" />
                 <div>
-                  <span className="font-semibold text-white">Notes & Terms: </span>
+                  <span className="font-bold text-[#1E1B2E]">Notes & Terms: </span>
                   <span>{viewingClient.notes}</span>
                 </div>
               </div>
@@ -1585,7 +1585,7 @@ export const ClientsManager: React.FC = () => {
             {/* Linked Documents & Invoices */}
             <div className="space-y-4">
               <div className="flex justify-between items-center">
-                <h4 className="text-xs font-bold text-white uppercase tracking-wider">
+                <h4 className="text-xs font-bold text-[#1E1B2E] uppercase tracking-wider">
                   Associated Financial Records ({clientInvoices.length} Invoices, {clientQuotations.length} Quotations)
                 </h4>
                 <div className="flex items-center space-x-2">
@@ -1594,7 +1594,7 @@ export const ClientsManager: React.FC = () => {
                       setViewingClient(null);
                       setActiveTab('quotations');
                     }}
-                    className="px-2.5 py-1 rounded-lg bg-blue-500/20 hover:bg-blue-600 text-blue-300 hover:text-white border border-blue-500/30 text-[11px] font-semibold transition-colors flex items-center space-x-1 cursor-pointer"
+                    className="px-2.5 py-1 rounded-lg bg-[#F3E8FF] hover:bg-[#EDE9FE] text-[#8E2D9D] border border-[#C084FC]/40 text-[11px] font-semibold transition-colors flex items-center space-x-1 cursor-pointer"
                   >
                     <Plus className="w-3 h-3" />
                     <span>Create Quotation</span>
@@ -1604,7 +1604,7 @@ export const ClientsManager: React.FC = () => {
                       setViewingClient(null);
                       setActiveTab('invoices');
                     }}
-                    className="px-2.5 py-1 rounded-lg bg-emerald-500/20 hover:bg-emerald-600 text-emerald-300 hover:text-white border border-emerald-500/30 text-[11px] font-semibold transition-colors flex items-center space-x-1 cursor-pointer"
+                    className="px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-[#059669] border border-emerald-200 text-[11px] font-semibold transition-colors flex items-center space-x-1 cursor-pointer"
                   >
                     <Plus className="w-3 h-3" />
                     <span>Create Invoice</span>
@@ -1614,25 +1614,25 @@ export const ClientsManager: React.FC = () => {
 
               {/* Invoices List */}
               {clientInvoices.length > 0 ? (
-                <div className="bg-[#091129] rounded-xl border border-slate-700/80 overflow-hidden shadow-xs">
+                <div className="bg-white rounded-2xl border border-[#E8E0F0] overflow-hidden shadow-xs">
                   <table className="w-full text-left text-xs">
                     <thead>
-                      <tr className="bg-[#0c1633] text-[10px] font-semibold text-slate-400 uppercase border-b border-slate-700/80">
-                        <th className="py-2 px-3">Invoice #</th>
-                        <th className="py-2 px-3">Date</th>
-                        <th className="py-2 px-3">Amount</th>
-                        <th className="py-2 px-3">Status</th>
+                      <tr className="bg-[#F3E8FF] text-[10px] font-bold text-[#1E1B2E] uppercase border-b border-[#E8E0F0]">
+                        <th className="py-2.5 px-3">Invoice #</th>
+                        <th className="py-2.5 px-3">Date</th>
+                        <th className="py-2.5 px-3">Amount</th>
+                        <th className="py-2.5 px-3">Status</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-800">
+                    <tbody className="divide-y divide-[#E8E0F0]">
                       {clientInvoices.map(inv => (
-                        <tr key={inv.id} className="hover:bg-[#132252]/40">
-                          <td className="py-2 px-3 font-mono text-blue-400 font-semibold">{inv.invoiceNumber}</td>
-                          <td className="py-2 px-3 text-slate-400">{inv.issueDate}</td>
-                          <td className="py-2 px-3 font-semibold text-white">₹{inv.totalAmount.toLocaleString('en-IN')}</td>
-                          <td className="py-2 px-3">
-                            <span className={`px-2 py-0.5 rounded text-[10px] font-semibold uppercase ${
-                              inv.status === 'paid' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' : 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
+                        <tr key={inv.id} className="hover:bg-[#FAF5FF]">
+                          <td className="py-2.5 px-3 font-mono text-[#8E2D9D] font-bold">{inv.invoiceNumber}</td>
+                          <td className="py-2.5 px-3 text-[#5F5A72]">{inv.issueDate}</td>
+                          <td className="py-2.5 px-3 font-bold text-[#1E1B2E]">₹{inv.totalAmount.toLocaleString('en-IN')}</td>
+                          <td className="py-2.5 px-3">
+                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                              inv.status === 'paid' ? 'bg-emerald-50 text-[#059669] border border-emerald-200' : 'bg-amber-50 text-[#D97706] border border-amber-200'
                             }`}>
                               {inv.status}
                             </span>
@@ -1643,20 +1643,20 @@ export const ClientsManager: React.FC = () => {
                   </table>
                 </div>
               ) : (
-                <div className="p-4 rounded-xl bg-[#091129] border border-slate-700/80 text-center text-xs text-slate-400">
+                <div className="p-4 rounded-2xl bg-[#FAF5FF] border border-[#E8E0F0] text-center text-xs text-[#817B91]">
                   No invoices created for this client yet.
                 </div>
               )}
             </div>
 
             {/* Modal Bottom Actions */}
-            <div className="flex justify-between items-center pt-5 mt-6 border-t border-slate-700/80">
+            <div className="flex justify-between items-center pt-5 mt-6 border-t border-[#E8E0F0]">
               <button
                 onClick={() => handleToggleStatus(viewingClient)}
                 className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
                   viewingClient.status === 'active'
-                    ? 'bg-amber-500/20 text-amber-300 border-amber-500/40 hover:bg-amber-500/30'
-                    : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 hover:bg-emerald-500/30'
+                    ? 'bg-amber-50 text-[#D97706] border-amber-200 hover:bg-amber-100'
+                    : 'bg-emerald-50 text-[#059669] border-emerald-200 hover:bg-emerald-100'
                 }`}
               >
                 {viewingClient.status === 'active' ? 'Disable Account' : 'Activate Account'}
@@ -1665,14 +1665,14 @@ export const ClientsManager: React.FC = () => {
               <div className="flex items-center space-x-2">
                 <button
                   onClick={() => handleSoftDelete(viewingClient)}
-                  className="px-3 py-1.5 rounded-xl bg-rose-500/20 hover:bg-rose-600 text-rose-300 hover:text-white border border-rose-500/30 text-xs font-semibold transition-colors flex items-center space-x-1 cursor-pointer"
+                  className="px-3 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-[#DC2626] border border-rose-200 text-xs font-semibold transition-colors flex items-center space-x-1 cursor-pointer"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                   <span>Delete Client</span>
                 </button>
                 <button
                   onClick={() => setViewingClient(null)}
-                  className="px-4 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-300 transition-colors border border-slate-700 cursor-pointer"
+                  className="px-4 py-1.5 rounded-xl bg-white hover:bg-[#FAF5FF] text-xs font-semibold text-[#6F42C1] transition-colors border border-[#C084FC] cursor-pointer"
                 >
                   Close
                 </button>
@@ -1686,23 +1686,23 @@ export const ClientsManager: React.FC = () => {
       {/* DELETE / SOFT-DELETE CONFIRMATION DIALOG */}
       {/* ========================================================================= */}
       {deleteConfirmClient && (
-        <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-gradient-to-b from-[#111e47] to-[#0a122e] border border-slate-700/90 rounded-2xl w-full max-w-md p-6 shadow-2xl">
-            <div className="w-12 h-12 rounded-2xl bg-rose-500/20 border border-rose-500/40 flex items-center justify-center text-rose-400 mx-auto mb-4">
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white border border-[#D9D2E3] rounded-3xl w-full max-w-md p-6 shadow-2xl">
+            <div className="w-12 h-12 rounded-2xl bg-rose-50 border border-rose-200 flex items-center justify-center text-[#DC2626] mx-auto mb-4">
               <ShieldAlert className="w-6 h-6" />
             </div>
 
-            <h3 className="text-base font-bold text-white text-center">
+            <h3 className="text-base font-bold text-[#1E1B2E] text-center">
               {deleteConfirmClient.isPermanent ? 'Permanently Delete Client?' : 'Move Client to Trash?'}
             </h3>
-            <p className="text-xs text-slate-300 text-center mt-2 leading-relaxed">
+            <p className="text-xs text-[#5F5A72] text-center mt-2 leading-relaxed">
               {deleteConfirmClient.isPermanent ? (
                 <>
-                  Are you sure you want to permanently erase <strong className="text-white">{deleteConfirmClient.client.companyName}</strong>? This action cannot be undone.
+                  Are you sure you want to permanently erase <strong className="text-[#1E1B2E]">{deleteConfirmClient.client.companyName}</strong>? This action cannot be undone.
                 </>
               ) : (
                 <>
-                  Are you sure you want to disable and move <strong className="text-white">{deleteConfirmClient.client.companyName}</strong> to Trash? You can restore it anytime from the Trash tab.
+                  Are you sure you want to disable and move <strong className="text-[#1E1B2E]">{deleteConfirmClient.client.companyName}</strong> to Trash? You can restore it anytime from the Trash tab.
                 </>
               )}
             </p>
@@ -1710,13 +1710,13 @@ export const ClientsManager: React.FC = () => {
             <div className="flex items-center justify-center space-x-3 mt-6">
               <button
                 onClick={() => setDeleteConfirmClient(null)}
-                className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-300 border border-slate-700 transition-colors cursor-pointer"
+                className="px-4 py-2 rounded-xl bg-white hover:bg-[#FAF5FF] text-xs font-semibold text-[#6F42C1] border border-[#C084FC] transition-colors cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 onClick={confirmDeleteAction}
-                className="px-4 py-2 rounded-xl bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 hover:to-red-500 text-xs font-semibold text-white transition-all shadow-md shadow-rose-600/25 cursor-pointer"
+                className="px-4 py-2 rounded-xl bg-[#DC2626] hover:bg-red-700 text-xs font-bold text-white transition-all shadow-md shadow-red-600/25 cursor-pointer"
               >
                 {deleteConfirmClient.isPermanent ? 'Delete Forever' : 'Move to Trash'}
               </button>

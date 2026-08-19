@@ -307,11 +307,11 @@ export const CreditDebitNotesSection: React.FC = () => {
       {/* Top Header & Action Controls */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl font-bold text-white flex items-center gap-2">
-            <Receipt className="w-6 h-6 text-cyan-400" />
+          <h2 className="text-xl font-bold text-[#1E1B2E] flex items-center gap-2">
+            <Receipt className="w-6 h-6 text-[#8E2D9D]" />
             Credit & Debit Note Management (GSTR-1 CDNR)
           </h2>
-          <p className="text-xs text-slate-400">
+          <p className="text-xs text-[#5F5A72]">
             Issue statutory Credit Notes (tax reduction) and Debit Notes (supplementary tax charge) linked to tax invoices with full audit trail.
           </p>
         </div>
@@ -319,7 +319,7 @@ export const CreditDebitNotesSection: React.FC = () => {
         <div className="flex items-center space-x-2">
           <button
             onClick={() => handleOpenCreateModal('credit')}
-            className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white font-bold text-xs flex items-center space-x-1.5 shadow-lg shadow-amber-950/40 transition-all cursor-pointer border border-amber-400/30"
+            className="px-3.5 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs flex items-center space-x-1.5 shadow-xs transition-all cursor-pointer"
           >
             <ArrowDownLeft className="w-4 h-4" />
             <span>Issue Credit Note</span>
@@ -327,7 +327,7 @@ export const CreditDebitNotesSection: React.FC = () => {
 
           <button
             onClick={() => handleOpenCreateModal('debit')}
-            className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs flex items-center space-x-1.5 shadow-lg shadow-purple-950/40 transition-all cursor-pointer border border-purple-400/30"
+            className="px-3.5 py-2 rounded-xl bg-[#8E2D9D] hover:bg-[#732280] text-white font-bold text-xs flex items-center space-x-1.5 shadow-xs transition-all cursor-pointer"
           >
             <ArrowUpRight className="w-4 h-4" />
             <span>Issue Debit Note</span>
@@ -337,55 +337,55 @@ export const CreditDebitNotesSection: React.FC = () => {
 
       {/* Summary KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 flex items-center justify-between">
+        <div className="p-4 rounded-2xl bg-white border border-[#E8E0F0] shadow-xs flex items-center justify-between">
           <div>
-            <div className="text-[11px] text-slate-400 uppercase font-semibold">Total Credit Notes (CN)</div>
-            <div className="text-xl font-bold text-amber-400 font-mono mt-1">
+            <div className="text-[11px] text-[#5F5A72] uppercase font-semibold">Total Credit Notes (CN)</div>
+            <div className="text-xl font-bold text-amber-700 font-mono mt-1">
               ₹{totalCreditNotesValue.toLocaleString('en-IN')}
             </div>
-            <div className="text-[10px] text-slate-500 mt-0.5">
+            <div className="text-[10px] text-[#817B91] mt-0.5">
               {creditDebitNotes.filter(n => !n.isDeleted && n.noteType === 'credit').length} Notes Issued
             </div>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
+          <div className="w-10 h-10 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-700">
             <ArrowDownLeft className="w-5 h-5" />
           </div>
         </div>
 
-        <div className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 flex items-center justify-between">
+        <div className="p-4 rounded-2xl bg-white border border-[#E8E0F0] shadow-xs flex items-center justify-between">
           <div>
-            <div className="text-[11px] text-slate-400 uppercase font-semibold">Total Debit Notes (DN)</div>
-            <div className="text-xl font-bold text-purple-400 font-mono mt-1">
+            <div className="text-[11px] text-[#5F5A72] uppercase font-semibold">Total Debit Notes (DN)</div>
+            <div className="text-xl font-bold text-[#8E2D9D] font-mono mt-1">
               ₹{totalDebitNotesValue.toLocaleString('en-IN')}
             </div>
-            <div className="text-[10px] text-slate-500 mt-0.5">
+            <div className="text-[10px] text-[#817B91] mt-0.5">
               {creditDebitNotes.filter(n => !n.isDeleted && n.noteType === 'debit').length} Notes Issued
             </div>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400">
+          <div className="w-10 h-10 rounded-xl bg-[#FAF5FF] border border-[#C084FC]/40 flex items-center justify-center text-[#8E2D9D]">
             <ArrowUpRight className="w-5 h-5" />
           </div>
         </div>
 
-        <div className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 flex items-center justify-between">
+        <div className="p-4 rounded-2xl bg-white border border-[#E8E0F0] shadow-xs flex items-center justify-between">
           <div>
-            <div className="text-[11px] text-slate-400 uppercase font-semibold">Net Output Tax Impact</div>
-            <div className="text-xl font-bold text-cyan-400 font-mono mt-1">
+            <div className="text-[11px] text-[#5F5A72] uppercase font-semibold">Net Output Tax Impact</div>
+            <div className="text-xl font-bold text-[#059669] font-mono mt-1">
               {totalCreditNotesValue > totalDebitNotesValue ? '-' : '+'}₹{Math.abs(totalCreditNotesValue - totalDebitNotesValue).toLocaleString('en-IN')}
             </div>
-            <div className="text-[10px] text-slate-500 mt-0.5">Reconciled in GSTR-3B Table 3.1</div>
+            <div className="text-[10px] text-[#817B91] mt-0.5">Reconciled in GSTR-3B Table 3.1</div>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400">
+          <div className="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-center text-[#059669]">
             <ShieldCheck className="w-5 h-5" />
           </div>
         </div>
       </div>
 
       {/* Filter & Search Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-900/60 p-3 rounded-2xl border border-slate-800">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-3 rounded-2xl border border-[#E8E0F0] shadow-xs">
         <div className="flex flex-wrap items-center gap-2">
           {/* Type Filter */}
-          <div className="flex items-center space-x-1 bg-slate-950 p-1 rounded-xl border border-slate-800 text-xs">
+          <div className="flex items-center space-x-1 bg-[#FAF5FF] p-1 rounded-xl border border-[#E8E0F0] text-xs">
             {[
               { id: 'all', label: 'All Notes' },
               { id: 'credit', label: 'Credit Notes (CN)' },
@@ -396,8 +396,8 @@ export const CreditDebitNotesSection: React.FC = () => {
                 onClick={() => setTypeFilter(f.id as any)}
                 className={`px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer ${
                   typeFilter === f.id
-                    ? 'bg-cyan-500 text-slate-950 shadow-sm'
-                    : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+                    ? 'bg-[#8E2D9D] text-white shadow-xs'
+                    : 'text-[#5F5A72] hover:text-[#1E1B2E] hover:bg-white'
                 }`}
               >
                 {f.label}
@@ -409,7 +409,7 @@ export const CreditDebitNotesSection: React.FC = () => {
           <select
             value={statusFilter}
             onChange={e => setStatusFilter(e.target.value)}
-            className="px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white outline-none cursor-pointer"
+            className="px-3 py-2 rounded-xl bg-white border border-[#E8E0F0] text-xs text-[#1E1B2E] outline-none cursor-pointer"
           >
             <option value="all">All Statuses</option>
             <option value="issued">Issued / Active</option>
@@ -420,22 +420,22 @@ export const CreditDebitNotesSection: React.FC = () => {
 
         {/* Search */}
         <div className="relative">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 text-[#817B91] absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
             placeholder="Search note #, client, GSTIN, invoice #..."
-            className="pl-9 pr-4 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white placeholder-slate-500 outline-none focus:border-cyan-400 w-full sm:w-72"
+            className="pl-9 pr-4 py-2 rounded-xl bg-white border border-[#E8E0F0] text-xs text-[#1E1B2E] placeholder-[#817B91] outline-none focus:border-[#8E2D9D] w-full sm:w-72"
           />
         </div>
       </div>
 
       {/* Notes Table */}
-      <div className="rounded-2xl border border-slate-800 bg-slate-900/70 overflow-hidden shadow-xl">
+      <div className="rounded-2xl border border-[#E8E0F0] bg-white overflow-hidden shadow-xs">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-slate-800/80 text-slate-400 font-semibold border-b border-slate-800 uppercase tracking-wider text-[10px]">
+            <thead className="bg-[#FAF5FF] text-[#5F5A72] font-semibold border-b border-[#E8E0F0] uppercase tracking-wider text-[10px]">
               <tr>
                 <th className="p-3.5">Note Number</th>
                 <th className="p-3.5">Type</th>
@@ -450,49 +450,49 @@ export const CreditDebitNotesSection: React.FC = () => {
                 <th className="p-3.5 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/60 font-mono">
+            <tbody className="divide-y divide-[#E8E0F0] font-mono">
               {filteredNotes.map(note => {
                 const isCredit = note.noteType === 'credit';
                 return (
-                  <tr key={note.id} className="hover:bg-slate-800/40">
-                    <td className="p-3.5 font-bold text-white flex items-center gap-1.5">
+                  <tr key={note.id} className="hover:bg-[#FAF5FF] transition-colors">
+                    <td className="p-3.5 font-bold text-[#1E1B2E] flex items-center gap-1.5">
                       {isCredit ? (
-                        <ArrowDownLeft className="w-3.5 h-3.5 text-amber-400" />
+                        <ArrowDownLeft className="w-3.5 h-3.5 text-amber-600" />
                       ) : (
-                        <ArrowUpRight className="w-3.5 h-3.5 text-purple-400" />
+                        <ArrowUpRight className="w-3.5 h-3.5 text-[#8E2D9D]" />
                       )}
                       <span>{note.noteNumber}</span>
                     </td>
                     <td className="p-3.5">
                       <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
                         isCredit 
-                          ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' 
-                          : 'bg-purple-500/20 text-purple-300 border border-purple-500/30'
+                          ? 'bg-amber-50 text-amber-700 border border-amber-200' 
+                          : 'bg-[#F3E8FF] text-[#8E2D9D] border border-[#C084FC]/40'
                       }`}>
                         {isCredit ? 'Credit Note' : 'Debit Note'}
                       </span>
                     </td>
                     <td className="p-3.5 font-sans">
-                      <div className="font-semibold text-white truncate max-w-[160px]">{note.clientCompany}</div>
-                      <div className="text-[10px] text-cyan-400 font-mono">{note.clientGstin || 'Unregistered B2C'}</div>
+                      <div className="font-semibold text-[#1E1B2E] truncate max-w-[160px]">{note.clientCompany}</div>
+                      <div className="text-[10px] text-[#8E2D9D] font-mono">{note.clientGstin || 'Unregistered B2C'}</div>
                     </td>
-                    <td className="p-3.5 font-sans text-slate-300">
+                    <td className="p-3.5 font-sans text-[#5F5A72]">
                       {note.invoiceNumber ? (
                         <div>
-                          <span className="font-mono font-semibold text-white">{note.invoiceNumber}</span>
-                          {note.invoiceDate && <span className="text-[10px] text-slate-400 block">{formatDateDDMMYYYY(note.invoiceDate)}</span>}
+                          <span className="font-mono font-semibold text-[#1E1B2E]">{note.invoiceNumber}</span>
+                          {note.invoiceDate && <span className="text-[10px] text-[#817B91] block">{formatDateDDMMYYYY(note.invoiceDate)}</span>}
                         </div>
                       ) : (
-                        <span className="text-slate-500">—</span>
+                        <span className="text-[#817B91]">—</span>
                       )}
                     </td>
-                    <td className="p-3.5 text-slate-300 font-sans">{formatDateDDMMYYYY(note.issueDate)}</td>
-                    <td className="p-3.5 font-sans text-slate-400 truncate max-w-[150px]">{note.reason}</td>
-                    <td className="p-3.5 text-right font-bold text-slate-200">₹{note.taxableAmount.toLocaleString('en-IN')}</td>
-                    <td className="p-3.5 text-right text-cyan-400">₹{note.totalTax.toLocaleString('en-IN')}</td>
-                    <td className="p-3.5 text-right font-bold text-white">₹{note.totalAmount.toLocaleString('en-IN')}</td>
+                    <td className="p-3.5 text-[#5F5A72] font-sans">{formatDateDDMMYYYY(note.issueDate)}</td>
+                    <td className="p-3.5 font-sans text-[#5F5A72] truncate max-w-[150px]">{note.reason}</td>
+                    <td className="p-3.5 text-right font-bold text-[#1E1B2E]">₹{note.taxableAmount.toLocaleString('en-IN')}</td>
+                    <td className="p-3.5 text-right text-[#8E2D9D] font-semibold">₹{note.totalTax.toLocaleString('en-IN')}</td>
+                    <td className="p-3.5 text-right font-bold text-[#1E1B2E]">₹{note.totalAmount.toLocaleString('en-IN')}</td>
                     <td className="p-3.5 text-center">
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-[#059669] border border-emerald-200">
                         {note.status.toUpperCase()}
                       </span>
                     </td>
@@ -500,14 +500,14 @@ export const CreditDebitNotesSection: React.FC = () => {
                       <div className="flex items-center justify-end space-x-1.5">
                         <button
                           onClick={() => setViewingNote(note)}
-                          className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors cursor-pointer"
+                          className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-[#5F5A72] hover:text-[#1E1B2E] transition-colors cursor-pointer"
                           title="View / Print Voucher"
                         >
                           <Eye className="w-3.5 h-3.5" />
                         </button>
                         <button
                           onClick={() => handleDelete(note.id, note.noteNumber)}
-                          className="p-1.5 rounded-lg bg-slate-800 hover:bg-red-950/60 text-slate-400 hover:text-red-400 transition-colors cursor-pointer"
+                          className="p-1.5 rounded-lg bg-slate-100 hover:bg-red-50 text-[#817B91] hover:text-red-600 transition-colors cursor-pointer"
                           title="Delete Note"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -519,7 +519,7 @@ export const CreditDebitNotesSection: React.FC = () => {
               })}
               {filteredNotes.length === 0 && (
                 <tr>
-                  <td colSpan={11} className="p-8 text-center text-slate-500 font-sans">
+                  <td colSpan={11} className="p-8 text-center text-[#817B91] font-sans">
                     No Credit or Debit notes match the current filters.
                   </td>
                 </tr>
@@ -531,31 +531,31 @@ export const CreditDebitNotesSection: React.FC = () => {
 
       {/* CREATE NOTE MODAL */}
       {isCreating && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm overflow-y-auto">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-3xl shadow-2xl overflow-hidden my-8">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs overflow-y-auto">
+          <div className="bg-white border border-[#E8E0F0] rounded-2xl w-full max-w-3xl shadow-xl overflow-hidden my-8">
             <div className={`p-4 border-b flex items-center justify-between ${
               createNoteType === 'credit'
-                ? 'bg-amber-950/30 border-amber-500/30'
-                : 'bg-purple-950/30 border-purple-500/30'
+                ? 'bg-amber-50 border-amber-200'
+                : 'bg-[#FAF5FF] border-[#E8E0F0]'
             }`}>
               <div className="flex items-center space-x-2">
                 {createNoteType === 'credit' ? (
-                  <ArrowDownLeft className="w-5 h-5 text-amber-400" />
+                  <ArrowDownLeft className="w-5 h-5 text-amber-600" />
                 ) : (
-                  <ArrowUpRight className="w-5 h-5 text-purple-400" />
+                  <ArrowUpRight className="w-5 h-5 text-[#8E2D9D]" />
                 )}
                 <div>
-                  <h3 className="font-bold text-sm text-white">
+                  <h3 className="font-bold text-sm text-[#1E1B2E]">
                     Issue New {createNoteType === 'credit' ? 'Credit Note (CN)' : 'Debit Note (DN)'}
                   </h3>
-                  <p className="text-[11px] text-slate-400">
+                  <p className="text-[11px] text-[#5F5A72]">
                     Statutory document issued under GST Law & Rule 53 of CGST Rules, 2017.
                   </p>
                 </div>
               </div>
               <button
                 onClick={() => setIsCreating(false)}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 cursor-pointer"
+                className="p-1.5 rounded-lg text-[#817B91] hover:text-[#1E1B2E] hover:bg-slate-100 cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -563,9 +563,9 @@ export const CreditDebitNotesSection: React.FC = () => {
 
             <form onSubmit={handleSaveNote} className="p-6 space-y-4 text-xs">
               {/* Type Switcher & Note Number */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-slate-950/60 p-4 rounded-xl border border-slate-800">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-[#FAF5FF] p-4 rounded-xl border border-[#E8E0F0]">
                 <div>
-                  <label className="text-[11px] font-semibold text-slate-300 block mb-1">Note Type</label>
+                  <label className="text-[11px] font-semibold text-[#1E1B2E] block mb-1">Note Type</label>
                   <select
                     value={createNoteType}
                     onChange={e => {
@@ -574,7 +574,7 @@ export const CreditDebitNotesSection: React.FC = () => {
                       setFormNoteNumber(generateNoteNumber(nt));
                       setFormReason(nt === 'credit' ? '02-Post Sale Discount' : '06-Final Price Hike / Adjustment');
                     }}
-                    className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white font-bold outline-none"
+                    className="w-full px-3 py-2 rounded-lg bg-white border border-[#E8E0F0] text-xs text-[#1E1B2E] font-bold outline-none"
                   >
                     <option value="credit">Credit Note (Tax Reduction)</option>
                     <option value="debit">Debit Note (Additional Tax Charge)</option>
@@ -582,42 +582,42 @@ export const CreditDebitNotesSection: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="text-[11px] font-semibold text-slate-300 block mb-1">Note Number</label>
+                  <label className="text-[11px] font-semibold text-[#1E1B2E] block mb-1">Note Number</label>
                   <input
                     type="text"
                     value={formNoteNumber}
                     onChange={e => setFormNoteNumber(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white font-mono font-bold outline-none"
+                    className="w-full px-3 py-2 rounded-lg bg-white border border-[#E8E0F0] text-xs text-[#1E1B2E] font-mono font-bold outline-none"
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="text-[11px] font-semibold text-slate-300 block mb-1">Issue Date</label>
+                  <label className="text-[11px] font-semibold text-[#1E1B2E] block mb-1">Issue Date</label>
                   <input
                     type="date"
                     value={formIssueDate}
                     onChange={e => setFormIssueDate(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white font-mono outline-none"
+                    className="w-full px-3 py-2 rounded-lg bg-white border border-[#E8E0F0] text-xs text-[#1E1B2E] font-mono outline-none"
                     required
                   />
                 </div>
               </div>
 
               {/* Linked Invoice Selector */}
-              <div className="bg-slate-950/60 p-4 rounded-xl border border-slate-800 space-y-3">
-                <div className="font-bold text-white text-xs flex items-center justify-between">
+              <div className="bg-[#FAF5FF] p-4 rounded-xl border border-[#E8E0F0] space-y-3">
+                <div className="font-bold text-[#1E1B2E] text-xs flex items-center justify-between">
                   <span>Link to Original Tax Invoice</span>
-                  <span className="text-[10px] text-cyan-400 font-mono">GSTR-1 CDNR Mandatory Match</span>
+                  <span className="text-[10px] text-[#8E2D9D] font-mono font-bold">GSTR-1 CDNR Mandatory Match</span>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div className="sm:col-span-2">
-                    <label className="text-[11px] font-semibold text-slate-400 block mb-1">Select Active Tax Invoice</label>
+                    <label className="text-[11px] font-semibold text-[#5F5A72] block mb-1">Select Active Tax Invoice</label>
                     <select
                       value={formSelectedInvoiceId}
                       onChange={e => handleSelectParentInvoice(e.target.value)}
-                      className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white outline-none"
+                      className="w-full px-3 py-2 rounded-lg bg-white border border-[#E8E0F0] text-xs text-[#1E1B2E] outline-none"
                     >
                       <option value="">-- Direct Standalone Note --</option>
                       {invoices.filter(i => !i.isDeleted).map(inv => (
@@ -629,49 +629,49 @@ export const CreditDebitNotesSection: React.FC = () => {
                   </div>
 
                   <div>
-                    <label className="text-[11px] font-semibold text-slate-400 block mb-1">Original Invoice Date</label>
+                    <label className="text-[11px] font-semibold text-[#5F5A72] block mb-1">Original Invoice Date</label>
                     <input
                       type="date"
                       value={formInvoiceDate}
                       onChange={e => setFormInvoiceDate(e.target.value)}
-                      className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white font-mono outline-none"
+                      className="w-full px-3 py-2 rounded-lg bg-white border border-[#E8E0F0] text-xs text-[#1E1B2E] font-mono outline-none"
                     />
                   </div>
                 </div>
               </div>
 
               {/* Recipient Details */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-slate-950/60 p-4 rounded-xl border border-slate-800">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-[#FAF5FF] p-4 rounded-xl border border-[#E8E0F0]">
                 <div>
-                  <label className="text-[11px] font-semibold text-slate-300 block mb-1">Recipient Company</label>
+                  <label className="text-[11px] font-semibold text-[#1E1B2E] block mb-1">Recipient Company</label>
                   <input
                     type="text"
                     value={formClientCompany}
                     onChange={e => setFormClientCompany(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white outline-none font-semibold"
+                    className="w-full px-3 py-2 rounded-lg bg-white border border-[#E8E0F0] text-xs text-[#1E1B2E] outline-none font-semibold"
                     placeholder="e.g. Apex Fintech Solutions Pvt Ltd"
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="text-[11px] font-semibold text-slate-300 block mb-1">Recipient GSTIN</label>
+                  <label className="text-[11px] font-semibold text-[#1E1B2E] block mb-1">Recipient GSTIN</label>
                   <input
                     type="text"
                     value={formClientGstin}
                     onChange={e => setFormClientGstin(e.target.value.toUpperCase())}
-                    className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white font-mono outline-none uppercase"
+                    className="w-full px-3 py-2 rounded-lg bg-white border border-[#E8E0F0] text-xs text-[#1E1B2E] font-mono outline-none uppercase"
                     placeholder="27AABCA1234F1ZM or Blank (B2C)"
                   />
                 </div>
 
                 <div>
-                  <label className="text-[11px] font-semibold text-slate-300 block mb-1">Place of Supply (POS)</label>
+                  <label className="text-[11px] font-semibold text-[#1E1B2E] block mb-1">Place of Supply (POS)</label>
                   <input
                     type="text"
                     value={formPlaceOfSupply}
                     onChange={e => setFormPlaceOfSupply(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white outline-none font-mono"
+                    className="w-full px-3 py-2 rounded-lg bg-white border border-[#E8E0F0] text-xs text-[#1E1B2E] outline-none font-mono"
                     placeholder="27-Maharashtra"
                     required
                   />
@@ -679,13 +679,13 @@ export const CreditDebitNotesSection: React.FC = () => {
               </div>
 
               {/* Statutory Reason */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-slate-950/60 p-4 rounded-xl border border-slate-800">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-[#FAF5FF] p-4 rounded-xl border border-[#E8E0F0]">
                 <div>
-                  <label className="text-[11px] font-semibold text-slate-300 block mb-1">Statutory Reason for Issuance</label>
+                  <label className="text-[11px] font-semibold text-[#1E1B2E] block mb-1">Statutory Reason for Issuance</label>
                   <select
                     value={formReason}
                     onChange={e => setFormReason(e.target.value as NoteReason)}
-                    className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white font-bold outline-none"
+                    className="w-full px-3 py-2 rounded-lg bg-white border border-[#E8E0F0] text-xs text-[#1E1B2E] font-bold outline-none"
                   >
                     <option value="01-Sales Return">01-Sales Return</option>
                     <option value="02-Post Sale Discount">02-Post Sale Discount</option>
@@ -697,12 +697,12 @@ export const CreditDebitNotesSection: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="text-[11px] font-semibold text-slate-300 block mb-1">Reason Notes / Specific Details</label>
+                  <label className="text-[11px] font-semibold text-[#1E1B2E] block mb-1">Reason Notes / Specific Details</label>
                   <input
                     type="text"
                     value={formReasonNotes}
                     onChange={e => setFormReasonNotes(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white outline-none"
+                    className="w-full px-3 py-2 rounded-lg bg-white border border-[#E8E0F0] text-xs text-[#1E1B2E] outline-none"
                     placeholder="e.g. Annual contract volume rebate agreed in Q2 addendum."
                   />
                 </div>
@@ -711,11 +711,11 @@ export const CreditDebitNotesSection: React.FC = () => {
               {/* Line Items */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <label className="text-xs font-bold text-white uppercase tracking-wider">Adjustment Line Items</label>
+                  <label className="text-xs font-bold text-[#1E1B2E] uppercase tracking-wider">Adjustment Line Items</label>
                   <button
                     type="button"
                     onClick={handleAddItem}
-                    className="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-cyan-400 text-[11px] font-bold flex items-center space-x-1 cursor-pointer"
+                    className="px-2.5 py-1 rounded-lg bg-[#FAF5FF] hover:bg-[#F3E8FF] text-[#8E2D9D] border border-[#C084FC]/40 text-[11px] font-bold flex items-center space-x-1 cursor-pointer"
                   >
                     <Plus className="w-3 h-3" />
                     <span>Add Item</span>
@@ -724,14 +724,14 @@ export const CreditDebitNotesSection: React.FC = () => {
 
                 <div className="space-y-2">
                   {formItems.map((item, idx) => (
-                    <div key={item.id || idx} className="grid grid-cols-12 gap-2 bg-slate-950/80 p-2.5 rounded-xl border border-slate-800 items-center">
+                    <div key={item.id || idx} className="grid grid-cols-12 gap-2 bg-[#FAF5FF] p-2.5 rounded-xl border border-[#E8E0F0] items-center">
                       <div className="col-span-6">
                         <input
                           type="text"
                           value={item.description}
                           onChange={e => handleItemChange(idx, 'description', e.target.value)}
                           placeholder="Description of adjustment"
-                          className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white outline-none"
+                          className="w-full px-2.5 py-1.5 rounded-lg bg-white border border-[#E8E0F0] text-xs text-[#1E1B2E] outline-none"
                           required
                         />
                       </div>
@@ -741,7 +741,7 @@ export const CreditDebitNotesSection: React.FC = () => {
                           value={item.sacCode}
                           onChange={e => handleItemChange(idx, 'sacCode', e.target.value)}
                           placeholder="SAC (998314)"
-                          className="w-full px-2 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white font-mono outline-none"
+                          className="w-full px-2 py-1.5 rounded-lg bg-white border border-[#E8E0F0] text-xs text-[#1E1B2E] font-mono outline-none"
                           required
                         />
                       </div>
@@ -751,7 +751,7 @@ export const CreditDebitNotesSection: React.FC = () => {
                           value={item.rate}
                           onChange={e => handleItemChange(idx, 'rate', Number(e.target.value))}
                           placeholder="Taxable Amount"
-                          className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white font-mono outline-none"
+                          className="w-full px-2.5 py-1.5 rounded-lg bg-white border border-[#E8E0F0] text-xs text-[#1E1B2E] font-mono outline-none"
                           required
                         />
                       </div>
@@ -759,7 +759,7 @@ export const CreditDebitNotesSection: React.FC = () => {
                         <button
                           type="button"
                           onClick={() => handleRemoveItem(idx)}
-                          className="p-1 text-slate-500 hover:text-red-400 cursor-pointer"
+                          className="p-1 text-[#817B91] hover:text-red-500 cursor-pointer"
                           title="Remove Row"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -771,18 +771,18 @@ export const CreditDebitNotesSection: React.FC = () => {
               </div>
 
               {/* Tax Calculations Summary */}
-              <div className="p-4 rounded-xl bg-gradient-to-r from-slate-950 to-[#07132b] border border-cyan-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3 font-mono">
+              <div className="p-4 rounded-xl bg-[#FAF5FF] border border-[#C084FC]/40 flex flex-col sm:flex-row sm:items-center justify-between gap-3 font-mono">
                 <div className="text-xs space-y-1">
-                  <div className="text-slate-400">
-                    Tax Type: <strong className="text-cyan-400 font-sans uppercase">{formGstCalculation.taxLabel}</strong> ({formGstRate}%)
+                  <div className="text-[#5F5A72]">
+                    Tax Type: <strong className="text-[#8E2D9D] font-sans uppercase">{formGstCalculation.taxLabel}</strong> ({formGstRate}%)
                   </div>
-                  <div className="text-slate-400">
-                    Taxable: <span className="text-white font-bold">₹{formGstCalculation.taxableAmount.toLocaleString('en-IN')}</span> • Tax: <span className="text-cyan-400">₹{formGstCalculation.totalTaxAmount.toLocaleString('en-IN')}</span>
+                  <div className="text-[#5F5A72]">
+                    Taxable: <span className="text-[#1E1B2E] font-bold">₹{formGstCalculation.taxableAmount.toLocaleString('en-IN')}</span> • Tax: <span className="text-[#8E2D9D] font-semibold">₹{formGstCalculation.totalTaxAmount.toLocaleString('en-IN')}</span>
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className="text-[10px] text-slate-400 uppercase font-sans">Total Note Value</div>
-                  <div className="text-lg font-bold text-white font-mono">
+                  <div className="text-[10px] text-[#5F5A72] uppercase font-sans font-bold">Total Note Value</div>
+                  <div className="text-lg font-bold text-[#1E1B2E] font-mono">
                     ₹{formGstCalculation.grandTotal.toLocaleString('en-IN')}
                   </div>
                 </div>
@@ -793,16 +793,16 @@ export const CreditDebitNotesSection: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setIsCreating(false)}
-                  className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs cursor-pointer"
+                  className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-[#5F5A72] font-bold text-xs cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className={`px-5 py-2 rounded-xl text-white font-bold text-xs shadow-lg transition-all cursor-pointer ${
+                  className={`px-5 py-2 rounded-xl text-white font-bold text-xs shadow-xs transition-all cursor-pointer ${
                     createNoteType === 'credit'
-                      ? 'bg-amber-600 hover:bg-amber-500 shadow-amber-950/40'
-                      : 'bg-purple-600 hover:bg-purple-500 shadow-purple-950/40'
+                      ? 'bg-amber-600 hover:bg-amber-700'
+                      : 'bg-[#8E2D9D] hover:bg-[#732280]'
                   }`}
                 >
                   Issue {createNoteType.toUpperCase()} Note

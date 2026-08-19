@@ -81,13 +81,13 @@ export const TermsConditionsSettings: React.FC = () => {
   return (
     <form onSubmit={handleSaveAll} className="space-y-6">
       {/* Header */}
-      <div className="bg-slate-900/60 p-4 rounded-xl border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div className="bg-white p-4 rounded-2xl border border-[#E8E0F0] flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm">
         <div>
-          <h3 className="text-sm font-bold text-white flex items-center gap-2">
-            <ListOrdered className="w-4 h-4 text-cyan-400" />
+          <h3 className="text-sm font-bold text-[#1E1B2E] flex items-center gap-2">
+            <ListOrdered className="w-4 h-4 text-[#8E2D9D]" />
             <span>Document Legal Clauses & Terms of Service</span>
           </h3>
-          <p className="text-xs text-slate-400 mt-0.5">
+          <p className="text-xs text-[#5F5A72] mt-0.5">
             Configure line-by-line legal clauses printed on generated Quotations, Proposals, and Invoices.
           </p>
         </div>
@@ -97,7 +97,7 @@ export const TermsConditionsSettings: React.FC = () => {
             <button
               type="button"
               onClick={handleResetToDefaults}
-              className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold flex items-center gap-1.5 cursor-pointer border border-slate-700"
+              className="px-3 py-1.5 rounded-xl bg-white hover:bg-[#FAF5FF] text-[#5F5A72] text-xs font-semibold flex items-center gap-1.5 cursor-pointer border border-[#E8E0F0]"
             >
               <RotateCcw className="w-3.5 h-3.5" />
               <span>Reset Defaults</span>
@@ -106,7 +106,7 @@ export const TermsConditionsSettings: React.FC = () => {
 
           <button
             type="submit"
-            className="px-4 py-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-bold flex items-center gap-1.5 shadow cursor-pointer"
+            className="px-4 py-1.5 rounded-xl bg-[#8E2D9D] hover:bg-[#6F42C1] text-white text-xs font-bold flex items-center gap-1.5 shadow-md shadow-[#8E2D9D]/20 cursor-pointer"
           >
             {saved ? <Check className="w-3.5 h-3.5" /> : <Save className="w-3.5 h-3.5" />}
             <span>{saved ? 'Terms Saved' : 'Save All Terms'}</span>
@@ -116,13 +116,13 @@ export const TermsConditionsSettings: React.FC = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Quotation Terms */}
-        <div className="p-5 rounded-xl bg-slate-950/80 border border-emerald-500/30 space-y-4 shadow-lg">
-          <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+        <div className="p-5 rounded-2xl bg-white border border-[#E8E0F0] space-y-4 shadow-sm">
+          <div className="flex items-center justify-between border-b border-[#E8E0F0] pb-2">
             <div className="flex items-center gap-2">
-              <FileSignature className="w-4 h-4 text-emerald-400" />
-              <h4 className="text-xs font-bold uppercase tracking-wider text-white">Quotation Terms & Conditions</h4>
+              <FileSignature className="w-4 h-4 text-[#8E2D9D]" />
+              <h4 className="text-xs font-bold uppercase tracking-wider text-[#1E1B2E]">Quotation Terms & Conditions</h4>
             </div>
-            <span className="text-[10px] font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded">
+            <span className="text-[10px] font-mono text-[#8E2D9D] bg-[#F3E8FF] px-2 py-0.5 rounded-md font-bold">
               {quoteTerms.length} Clauses
             </span>
           </div>
@@ -135,13 +135,13 @@ export const TermsConditionsSettings: React.FC = () => {
               onChange={e => setNewQuoteClause(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleAddQuoteClause(); } }}
               placeholder="Add new quotation clause..."
-              className="flex-1 px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white outline-none focus:border-emerald-400"
+              className="flex-1 px-3 py-1.5 rounded-xl bg-[#FAF5FF] border border-[#E8E0F0] text-xs text-[#1E1B2E] outline-none focus:border-[#8E2D9D] focus:ring-2 focus:ring-[#8E2D9D]/15"
             />
             <button
               type="button"
               onClick={handleAddQuoteClause}
               disabled={!newQuoteClause.trim()}
-              className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white text-xs font-bold flex items-center gap-1 cursor-pointer"
+              className="px-3 py-1.5 rounded-xl bg-[#8E2D9D] hover:bg-[#6F42C1] disabled:opacity-50 text-white text-xs font-bold flex items-center gap-1 cursor-pointer"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>Add</span>
@@ -153,19 +153,19 @@ export const TermsConditionsSettings: React.FC = () => {
             {quoteTerms.map((term, index) => (
               <div
                 key={index}
-                className="p-2.5 rounded-lg bg-slate-900/90 border border-slate-800 flex items-start justify-between gap-2 text-xs"
+                className="p-3 rounded-xl bg-[#FAF8FF] border border-[#E8E0F0] flex items-start justify-between gap-2 text-xs"
               >
                 <div className="flex items-start gap-2 min-w-0">
-                  <span className="w-5 h-5 rounded-full bg-slate-800 border border-slate-700 text-slate-300 text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">
+                  <span className="w-5 h-5 rounded-full bg-[#F3E8FF] border border-[#C084FC]/40 text-[#8E2D9D] text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">
                     {index + 1}
                   </span>
-                  <p className="text-slate-300 text-xs leading-relaxed">{term}</p>
+                  <p className="text-[#1E1B2E] text-xs leading-relaxed">{term}</p>
                 </div>
 
                 <button
                   type="button"
                   onClick={() => handleRemoveQuoteClause(index)}
-                  className="p-1 rounded hover:bg-red-500/20 text-slate-500 hover:text-red-400 transition-colors shrink-0 cursor-pointer"
+                  className="p-1 rounded hover:bg-red-50 text-[#817B91] hover:text-red-600 transition-colors shrink-0 cursor-pointer"
                   title="Remove Clause"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
@@ -176,13 +176,13 @@ export const TermsConditionsSettings: React.FC = () => {
         </div>
 
         {/* Invoice Terms */}
-        <div className="p-5 rounded-xl bg-slate-950/80 border border-blue-500/30 space-y-4 shadow-lg">
-          <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+        <div className="p-5 rounded-2xl bg-white border border-[#E8E0F0] space-y-4 shadow-sm">
+          <div className="flex items-center justify-between border-b border-[#E8E0F0] pb-2">
             <div className="flex items-center gap-2">
-              <FileText className="w-4 h-4 text-blue-400" />
-              <h4 className="text-xs font-bold uppercase tracking-wider text-white">Invoice Terms & Conditions</h4>
+              <FileText className="w-4 h-4 text-[#8E2D9D]" />
+              <h4 className="text-xs font-bold uppercase tracking-wider text-[#1E1B2E]">Invoice Terms & Conditions</h4>
             </div>
-            <span className="text-[10px] font-mono text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded">
+            <span className="text-[10px] font-mono text-[#8E2D9D] bg-[#F3E8FF] px-2 py-0.5 rounded-md font-bold">
               {invTerms.length} Clauses
             </span>
           </div>
@@ -195,13 +195,13 @@ export const TermsConditionsSettings: React.FC = () => {
               onChange={e => setNewInvClause(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleAddInvClause(); } }}
               placeholder="Add new invoice payment clause..."
-              className="flex-1 px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white outline-none focus:border-blue-400"
+              className="flex-1 px-3 py-1.5 rounded-xl bg-[#FAF5FF] border border-[#E8E0F0] text-xs text-[#1E1B2E] outline-none focus:border-[#8E2D9D] focus:ring-2 focus:ring-[#8E2D9D]/15"
             />
             <button
               type="button"
               onClick={handleAddInvClause}
               disabled={!newInvClause.trim()}
-              className="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white text-xs font-bold flex items-center gap-1 cursor-pointer"
+              className="px-3 py-1.5 rounded-xl bg-[#8E2D9D] hover:bg-[#6F42C1] disabled:opacity-50 text-white text-xs font-bold flex items-center gap-1 cursor-pointer"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>Add</span>
@@ -213,19 +213,19 @@ export const TermsConditionsSettings: React.FC = () => {
             {invTerms.map((term, index) => (
               <div
                 key={index}
-                className="p-2.5 rounded-lg bg-slate-900/90 border border-slate-800 flex items-start justify-between gap-2 text-xs"
+                className="p-3 rounded-xl bg-[#FAF8FF] border border-[#E8E0F0] flex items-start justify-between gap-2 text-xs"
               >
                 <div className="flex items-start gap-2 min-w-0">
-                  <span className="w-5 h-5 rounded-full bg-slate-800 border border-slate-700 text-slate-300 text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">
+                  <span className="w-5 h-5 rounded-full bg-[#F3E8FF] border border-[#C084FC]/40 text-[#8E2D9D] text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">
                     {index + 1}
                   </span>
-                  <p className="text-slate-300 text-xs leading-relaxed">{term}</p>
+                  <p className="text-[#1E1B2E] text-xs leading-relaxed">{term}</p>
                 </div>
 
                 <button
                   type="button"
                   onClick={() => handleRemoveInvClause(index)}
-                  className="p-1 rounded hover:bg-red-500/20 text-slate-500 hover:text-red-400 transition-colors shrink-0 cursor-pointer"
+                  className="p-1 rounded hover:bg-red-50 text-[#817B91] hover:text-red-600 transition-colors shrink-0 cursor-pointer"
                   title="Remove Clause"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
@@ -237,17 +237,17 @@ export const TermsConditionsSettings: React.FC = () => {
       </div>
 
       {/* Delay Interest & Statutory Defaults Section */}
-      <div className="p-5 rounded-xl bg-slate-900/60 border border-slate-800 space-y-4 shadow-lg">
-        <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+      <div className="p-5 rounded-2xl bg-white border border-[#E8E0F0] space-y-4 shadow-sm">
+        <div className="flex items-center justify-between border-b border-[#E8E0F0] pb-2">
           <div className="flex items-center gap-2">
-            <ShieldCheck className="w-4 h-4 text-cyan-400" />
-            <h4 className="text-xs font-bold uppercase tracking-wider text-white">Delay Interest Clause & Reverse Charge Defaults</h4>
+            <ShieldCheck className="w-4 h-4 text-[#8E2D9D]" />
+            <h4 className="text-xs font-bold uppercase tracking-wider text-[#1E1B2E]">Delay Interest Clause & Reverse Charge Defaults</h4>
           </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="md:col-span-2">
-            <label className="text-[11px] font-bold text-slate-300 block mb-1">
+            <label className="text-[11px] font-bold text-[#5F5A72] block mb-1">
               Late Payment / Delay-Interest Clause (Printed on Invoices)
             </label>
             <input
@@ -255,26 +255,26 @@ export const TermsConditionsSettings: React.FC = () => {
               value={delayInterestClause}
               onChange={e => setDelayInterestClause(e.target.value)}
               placeholder="Interest @ 18% per annum will be charged on all delayed payments exceeding the due date."
-              className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-xs text-white outline-none focus:border-cyan-400"
+              className="w-full px-3 py-2 rounded-xl bg-[#FAF5FF] border border-[#E8E0F0] text-xs text-[#1E1B2E] outline-none focus:border-[#8E2D9D] focus:ring-2 focus:ring-[#8E2D9D]/15"
             />
-            <p className="text-[10px] text-slate-500 mt-1">
+            <p className="text-[10px] text-[#817B91] mt-1">
               Legal clause printed on all issued and overdue invoices as specified in Phase 7.
             </p>
           </div>
 
           <div>
-            <label className="text-[11px] font-bold text-slate-300 block mb-1">
+            <label className="text-[11px] font-bold text-[#5F5A72] block mb-1">
               Default Reverse Charge (RCM)
             </label>
             <select
               value={reverseChargeDefault}
               onChange={e => setReverseChargeDefault(e.target.value as 'Yes' | 'No')}
-              className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-xs text-white outline-none focus:border-cyan-400 cursor-pointer"
+              className="w-full px-3 py-2 rounded-xl bg-[#FAF5FF] border border-[#E8E0F0] text-xs text-[#1E1B2E] outline-none focus:border-[#8E2D9D] focus:ring-2 focus:ring-[#8E2D9D]/15 cursor-pointer"
             >
               <option value="No">No (Standard GST forward charge)</option>
               <option value="Yes">Yes (Reverse Charge applicable)</option>
             </select>
-            <p className="text-[10px] text-slate-500 mt-1">
+            <p className="text-[10px] text-[#817B91] mt-1">
               {agencyConfig.gstin ? 'Agency is GST registered (Defaults to No).' : 'Agency has no GSTIN (Configurable RCM default).'}
             </p>
           </div>

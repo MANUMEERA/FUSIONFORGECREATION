@@ -119,52 +119,52 @@ export const ChatbotManager: React.FC = () => {
   const handleAddKeyword = () => {
     const trimmed = keywordInput.trim().toLowerCase();
     if (trimmed && !keywords.includes(trimmed)) {
-      setKeywords([...keywords, trimmed]);
+      setKeywords(prev => [...prev, trimmed]);
       setKeywordInput('');
     }
   };
 
   const handleRemoveKeyword = (kw: string) => {
-    setKeywords(keywords.filter(k => k !== kw));
+    setKeywords(prev => prev.filter(k => k !== kw));
   };
 
   const handleAddFollowUp = () => {
     const trimmed = followUpInput.trim();
     if (trimmed && !suggestedFollowUps.includes(trimmed)) {
-      setSuggestedFollowUps([...suggestedFollowUps, trimmed]);
+      setSuggestedFollowUps(prev => [...prev, trimmed]);
       setFollowUpInput('');
     }
   };
 
   const handleRemoveFollowUp = (fu: string) => {
-    setSuggestedFollowUps(suggestedFollowUps.filter(f => f !== fu));
+    setSuggestedFollowUps(prev => prev.filter(f => f !== fu));
   };
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!question.trim() || !answer.trim()) return;
-
     if (editingId) {
       updateChatbotQA(editingId, {
-        question: question.trim(),
-        answer: answer.trim(),
+        question,
+        answer,
         category,
         keywords,
         suggestedFollowUps,
-        actionLink: actionLink.trim() || undefined,
-        actionLabel: actionLabel.trim() || undefined,
-        isActive
+        actionLink: actionLink || undefined,
+        actionLabel: actionLabel || undefined,
+        isActive,
+        updatedAt: new Date().toISOString()
       });
     } else {
       addChatbotQA({
-        question: question.trim(),
-        answer: answer.trim(),
+        question,
+        answer,
         category,
-        keywords: keywords.length > 0 ? keywords : [question.toLowerCase().slice(0, 20)],
+        keywords,
         suggestedFollowUps,
-        actionLink: actionLink.trim() || undefined,
-        actionLabel: actionLabel.trim() || undefined,
+        actionLink: actionLink || undefined,
+        actionLabel: actionLabel || undefined,
         isActive,
+        matchCount: 0,
         orderIndex: chatbotQAs.length + 1
       });
     }
@@ -179,23 +179,23 @@ export const ChatbotManager: React.FC = () => {
   };
 
   const handleAddQuickPrompt = () => {
-    if (newQuickPrompt.trim()) {
+    const trimmed = newQuickPrompt.trim();
+    if (trimmed) {
       setSettingsForm(prev => ({
         ...prev,
-        quickPrompts: [...(prev.quickPrompts || []), newQuickPrompt.trim()]
+        quickPrompts: [...(prev.quickPrompts || []), trimmed]
       }));
       setNewQuickPrompt('');
     }
   };
 
-  const handleRemoveQuickPrompt = (index: number) => {
+  const handleRemoveQuickPrompt = (idx: number) => {
     setSettingsForm(prev => ({
       ...prev,
-      quickPrompts: prev.quickPrompts.filter((_, i) => i !== index)
+      quickPrompts: (prev.quickPrompts || []).filter((_, i) => i !== idx)
     }));
   };
 
-  // Simulator search logic
   const handleSimSend = (queryText?: string) => {
     const query = (queryText || simInput).trim();
     if (!query) return;
@@ -255,7 +255,6 @@ export const ChatbotManager: React.FC = () => {
       }
 
       if (bestMatch && highestScore >= 15) {
-        // Increment matchCount locally
         updateChatbotQA(bestMatch.id, { matchCount: (bestMatch.matchCount || 0) + 1 });
 
         const botMsg: SimMessage = {
@@ -303,23 +302,23 @@ export const ChatbotManager: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-gradient-to-r from-slate-900 via-[#0b1633] to-slate-900 p-6 rounded-2xl border border-slate-800 shadow-xl">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-[#E8E0F0] shadow-sm">
         <div className="flex items-start space-x-4">
-          <div className="p-3 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 shadow-lg shadow-cyan-500/20">
+          <div className="p-3 rounded-2xl bg-[#FAF5FF] border border-[#C084FC]/30 text-[#8E2D9D] shadow-xs">
             <Bot className="w-7 h-7" />
           </div>
           <div>
             <div className="flex items-center space-x-3">
-              <h1 className="text-2xl font-black text-white tracking-tight">
+              <h1 className="text-2xl font-black text-[#1E1B2E] tracking-tight">
                 Chatbot & Q&A Knowledge Base
               </h1>
               <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${
-                chatbotSettings.enableBot ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
+                chatbotSettings.enableBot ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-rose-50 text-rose-700 border border-rose-200'
               }`}>
                 {chatbotSettings.enableBot ? '● Bot Live on Website' : '○ Bot Disabled'}
               </span>
             </div>
-            <p className="text-xs text-slate-400 mt-1 max-w-2xl">
+            <p className="text-xs text-[#5F5A72] mt-1 max-w-2xl">
               Control the public website assistant with automated Q&A matching, keyword trigger tags, contextual CTA buttons, and custom response flows.
             </p>
           </div>
@@ -328,10 +327,10 @@ export const ChatbotManager: React.FC = () => {
         <div className="flex items-center gap-2">
           <button
             onClick={() => setActiveTab('simulator')}
-            className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center space-x-1.5 transition-all ${
+            className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center space-x-1.5 transition-all cursor-pointer ${
               activeTab === 'simulator' 
-                ? 'bg-cyan-500 text-slate-950 shadow-lg shadow-cyan-500/30 font-extrabold' 
-                : 'bg-slate-800/80 hover:bg-slate-700 text-slate-200 border border-slate-700'
+                ? 'bg-[#8E2D9D] text-white shadow-xs' 
+                : 'bg-white hover:bg-[#FAF8FF] text-[#5F5A72] border border-[#E8E0F0]'
             }`}
           >
             <Play className="w-3.5 h-3.5" />
@@ -340,7 +339,7 @@ export const ChatbotManager: React.FC = () => {
 
           <button
             onClick={openCreateModal}
-            className="px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white font-bold text-xs flex items-center space-x-1.5 transition-all shadow-lg shadow-cyan-600/25"
+            className="px-4 py-2 rounded-xl bg-[#8E2D9D] hover:bg-[#732280] text-white font-bold text-xs flex items-center space-x-1.5 transition-all shadow-xs cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             <span>Add Q&A Entry</span>
@@ -349,14 +348,14 @@ export const ChatbotManager: React.FC = () => {
       </div>
 
       {/* Tabs Navigation */}
-      <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+      <div className="flex items-center justify-between border-b border-[#E8E0F0] pb-3">
         <div className="flex items-center space-x-2">
           <button
             onClick={() => setActiveTab('qa_list')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center space-x-2 ${
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center space-x-2 cursor-pointer ${
               activeTab === 'qa_list'
-                ? 'bg-blue-600/20 text-blue-400 border border-blue-500/30'
-                : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
+                ? 'bg-[#8E2D9D] text-white shadow-sm'
+                : 'text-[#5F5A72] hover:text-[#1E1B2E] hover:bg-white border border-transparent'
             }`}
           >
             <MessageSquare className="w-4 h-4" />
@@ -365,10 +364,10 @@ export const ChatbotManager: React.FC = () => {
 
           <button
             onClick={() => setActiveTab('simulator')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center space-x-2 ${
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center space-x-2 cursor-pointer ${
               activeTab === 'simulator'
-                ? 'bg-cyan-600/20 text-cyan-400 border border-cyan-500/30'
-                : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
+                ? 'bg-[#8E2D9D] text-white shadow-sm'
+                : 'text-[#5F5A72] hover:text-[#1E1B2E] hover:bg-white border border-transparent'
             }`}
           >
             <Sparkles className="w-4 h-4" />
@@ -377,10 +376,10 @@ export const ChatbotManager: React.FC = () => {
 
           <button
             onClick={() => setActiveTab('settings')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center space-x-2 ${
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center space-x-2 cursor-pointer ${
               activeTab === 'settings'
-                ? 'bg-purple-600/20 text-purple-400 border border-purple-500/30'
-                : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
+                ? 'bg-[#8E2D9D] text-white shadow-sm'
+                : 'text-[#5F5A72] hover:text-[#1E1B2E] hover:bg-white border border-transparent'
             }`}
           >
             <Sliders className="w-4 h-4" />
@@ -388,8 +387,8 @@ export const ChatbotManager: React.FC = () => {
           </button>
         </div>
 
-        <div className="text-xs text-slate-400">
-          <span className="text-cyan-400 font-semibold">{chatbotQAs.filter(q => q.isActive).length}</span> Active Answers
+        <div className="text-xs text-[#5F5A72]">
+          <span className="text-[#8E2D9D] font-bold">{chatbotQAs.filter(q => q.isActive).length}</span> Active Answers
         </div>
       </div>
 
@@ -399,18 +398,18 @@ export const ChatbotManager: React.FC = () => {
           {/* Filters Bar */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
             <div className="md:col-span-2 relative">
-              <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+              <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#817B91]" />
               <input
                 type="text"
                 placeholder="Search questions, answers, keywords, or triggers..."
                 value={searchTerm}
                 onChange={e => setSearchTerm(e.target.value)}
-                className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-slate-900/90 border border-slate-800 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-cyan-500 transition-all"
+                className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-white border border-[#E8E0F0] text-xs text-[#1E1B2E] placeholder:text-[#817B91] focus:outline-none focus:border-[#8E2D9D] transition-all"
               />
               {searchTerm && (
                 <button 
                   onClick={() => setSearchTerm('')} 
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#817B91] hover:text-[#1E1B2E]"
                 >
                   <X className="w-3.5 h-3.5" />
                 </button>
@@ -420,7 +419,7 @@ export const ChatbotManager: React.FC = () => {
             <select
               value={categoryFilter}
               onChange={e => setCategoryFilter(e.target.value)}
-              className="px-3.5 py-2.5 rounded-xl bg-slate-900/90 border border-slate-800 text-xs text-slate-300 focus:outline-none focus:border-cyan-500"
+              className="px-3.5 py-2.5 rounded-xl bg-white border border-[#E8E0F0] text-xs text-[#1E1B2E] focus:outline-none focus:border-[#8E2D9D]"
             >
               <option value="all">All Categories ({chatbotQAs.length})</option>
               {categories.map(cat => (
@@ -433,7 +432,7 @@ export const ChatbotManager: React.FC = () => {
             <select
               value={statusFilter}
               onChange={e => setStatusFilter(e.target.value as any)}
-              className="px-3.5 py-2.5 rounded-xl bg-slate-900/90 border border-slate-800 text-xs text-slate-300 focus:outline-none focus:border-cyan-500"
+              className="px-3.5 py-2.5 rounded-xl bg-white border border-[#E8E0F0] text-xs text-[#1E1B2E] focus:outline-none focus:border-[#8E2D9D]"
             >
               <option value="all">All Statuses</option>
               <option value="active">Active Only ({chatbotQAs.filter(q => q.isActive).length})</option>
@@ -443,73 +442,55 @@ export const ChatbotManager: React.FC = () => {
 
           {/* Q&A Cards List */}
           {filteredQAs.length === 0 ? (
-            <div className="p-12 text-center rounded-2xl bg-slate-900/40 border border-slate-800/80 space-y-3">
-              <Bot className="w-10 h-10 text-slate-600 mx-auto" />
-              <h3 className="text-base font-bold text-slate-300">No Chatbot Q&A Items Found</h3>
-              <p className="text-xs text-slate-500 max-w-md mx-auto">
+            <div className="p-12 text-center rounded-2xl bg-white border border-[#E8E0F0] space-y-3">
+              <Bot className="w-10 h-10 text-[#817B91] mx-auto" />
+              <h3 className="text-base font-bold text-[#1E1B2E]">No Chatbot Q&A Items Found</h3>
+              <p className="text-xs text-[#5F5A72] max-w-md mx-auto">
                 No questions match your current search query or category filters. Try resetting the filters or create a new Q&A item.
               </p>
-              <button
-                onClick={openCreateModal}
-                className="px-4 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-bold text-xs inline-flex items-center space-x-1.5 transition-all shadow-lg shadow-cyan-600/20"
-              >
-                <Plus className="w-4 h-4" />
-                <span>Create New Q&A</span>
-              </button>
             </div>
           ) : (
-            <div className="space-y-3.5">
+            <div className="space-y-3">
               {filteredQAs.map(item => (
                 <div
                   key={item.id}
-                  className={`p-5 rounded-2xl transition-all border ${
-                    item.isActive 
-                      ? 'bg-slate-900/70 border-slate-800/90 hover:border-cyan-500/40 shadow-sm' 
-                      : 'bg-slate-950/60 border-slate-800/40 opacity-70'
+                  className={`p-5 rounded-2xl bg-white border transition-all ${
+                    item.isActive
+                      ? 'border-[#E8E0F0] hover:border-[#C084FC] shadow-sm'
+                      : 'border-slate-200 opacity-60'
                   }`}
                 >
                   <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4">
-                    {/* Left: Question & Answer */}
+                    {/* Left: Content */}
                     <div className="space-y-2.5 flex-1">
                       <div className="flex flex-wrap items-center gap-2">
-                        <span className="px-2.5 py-1 rounded-md text-[10px] font-bold bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#FAF5FF] text-[#8E2D9D] border border-[#C084FC]/30">
                           {item.category || 'General'}
                         </span>
-                        
-                        <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold ${
-                          item.isActive 
-                            ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' 
-                            : 'bg-slate-800 text-slate-400'
-                        }`}>
-                          {item.isActive ? 'Active in Bot' : 'Disabled'}
+                        <span className="text-[11px] text-[#5F5A72] font-mono">
+                          Triggered: <strong className="text-[#1E1B2E]">{item.matchCount || 0} times</strong>
                         </span>
-
-                        {item.matchCount !== undefined && item.matchCount > 0 && (
-                          <span className="px-2 py-0.5 rounded text-[10px] font-medium bg-slate-800/80 text-slate-400">
-                            Triggered {item.matchCount} times
-                          </span>
-                        )}
                       </div>
 
-                      <h3 className="text-base font-bold text-white tracking-tight flex items-start space-x-2">
-                        <span className="text-cyan-400 font-mono text-xs mt-1 font-bold">Q:</span>
+                      <h3 className="text-sm font-bold text-[#1E1B2E] flex items-center gap-2">
+                        <HelpCircle className="w-4 h-4 text-[#8E2D9D] shrink-0" />
                         <span>{item.question}</span>
                       </h3>
 
-                      <div className="bg-slate-950/70 p-3.5 rounded-xl border border-slate-800/60 text-xs text-slate-200 leading-relaxed whitespace-pre-line font-normal">
+                      <div className="text-xs text-[#5F5A72] whitespace-pre-line leading-relaxed pl-6 border-l-2 border-[#E8E0F0]">
                         {item.answer}
                       </div>
 
                       {/* Keywords / Trigger Tags */}
                       {item.keywords && item.keywords.length > 0 && (
                         <div className="flex flex-wrap items-center gap-1.5 pt-1">
-                          <span className="text-[11px] font-semibold text-slate-400 flex items-center gap-1 mr-1">
-                            <Tag className="w-3 h-3 text-cyan-400" /> Triggers:
+                          <span className="text-[11px] font-semibold text-[#5F5A72] flex items-center gap-1 mr-1">
+                            <Tag className="w-3 h-3 text-[#8E2D9D]" /> Triggers:
                           </span>
                           {item.keywords.map(kw => (
                             <span
                               key={kw}
-                              className="px-2 py-0.5 rounded-md bg-slate-800 text-slate-300 text-[10px] font-mono border border-slate-700/60"
+                              className="px-2 py-0.5 rounded-md bg-[#FAF8FF] text-[#1E1B2E] text-[10px] font-mono border border-[#E8E0F0]"
                             >
                               {kw}
                             </span>
@@ -520,18 +501,18 @@ export const ChatbotManager: React.FC = () => {
                       {/* Action Link & Follow Ups */}
                       <div className="flex flex-wrap items-center gap-3 pt-1 text-[11px]">
                         {item.actionLabel && item.actionLink && (
-                          <div className="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-lg bg-cyan-500/10 border border-cyan-500/25 text-cyan-300">
+                          <div className="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-lg bg-[#FAF5FF] border border-[#C084FC]/30 text-[#8E2D9D]">
                             <ExternalLink className="w-3 h-3" />
                             <span className="font-semibold">{item.actionLabel}</span>
-                            <span className="text-slate-400 font-mono text-[10px]">({item.actionLink})</span>
+                            <span className="text-[#5F5A72] font-mono text-[10px]">({item.actionLink})</span>
                           </div>
                         )}
 
                         {item.suggestedFollowUps && item.suggestedFollowUps.length > 0 && (
-                          <div className="flex items-center space-x-1 text-slate-400">
-                            <CornerDownRight className="w-3 h-3 text-blue-400" />
+                          <div className="flex items-center space-x-1 text-[#5F5A72]">
+                            <CornerDownRight className="w-3 h-3 text-[#8E2D9D]" />
                             <span>Follow-ups:</span>
-                            <span className="text-slate-300 font-medium">{item.suggestedFollowUps.join(' • ')}</span>
+                            <span className="text-[#1E1B2E] font-medium">{item.suggestedFollowUps.join(' • ')}</span>
                           </div>
                         )}
                       </div>
@@ -541,10 +522,10 @@ export const ChatbotManager: React.FC = () => {
                     <div className="flex items-center space-x-2 shrink-0 self-end lg:self-start pt-2 lg:pt-0">
                       <button
                         onClick={() => updateChatbotQA(item.id, { isActive: !item.isActive })}
-                        className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center space-x-1 border ${
+                        className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center space-x-1 border cursor-pointer ${
                           item.isActive
-                            ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30 hover:bg-emerald-500/20'
-                            : 'bg-slate-800 text-slate-400 border-slate-700 hover:bg-slate-700 text-white'
+                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100'
+                            : 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200'
                         }`}
                         title="Toggle Active/Inactive"
                       >
@@ -554,7 +535,7 @@ export const ChatbotManager: React.FC = () => {
 
                       <button
                         onClick={() => openEditModal(item)}
-                        className="p-2 rounded-xl bg-slate-800 hover:bg-blue-600/20 border border-slate-700 hover:border-blue-500/40 text-slate-300 hover:text-blue-400 transition-all"
+                        className="p-2 rounded-xl bg-[#FAF8FF] hover:bg-[#FAF5FF] border border-[#E8E0F0] text-[#5F5A72] hover:text-[#8E2D9D] transition-all cursor-pointer"
                         title="Edit Q&A"
                       >
                         <Edit3 className="w-4 h-4" />
@@ -566,7 +547,7 @@ export const ChatbotManager: React.FC = () => {
                             deleteChatbotQA(item.id);
                           }
                         }}
-                        className="p-2 rounded-xl bg-slate-800 hover:bg-rose-950/60 border border-slate-700 hover:border-rose-500/40 text-slate-400 hover:text-rose-400 transition-all"
+                        className="p-2 rounded-xl bg-red-50 hover:bg-red-100 border border-red-200 text-red-600 transition-all cursor-pointer"
                         title="Delete Q&A"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -584,19 +565,19 @@ export const ChatbotManager: React.FC = () => {
       {activeTab === 'simulator' && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Chat Window Mockup */}
-          <div className="lg:col-span-2 bg-gradient-to-b from-[#070e24] to-[#040817] border border-slate-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col h-[600px]">
+          <div className="lg:col-span-2 bg-white border border-[#E8E0F0] rounded-2xl shadow-sm overflow-hidden flex flex-col h-[600px]">
             {/* Simulator Header */}
-            <div className="p-4 bg-slate-900/90 border-b border-slate-800 flex items-center justify-between">
+            <div className="p-4 bg-[#FAF8FF] border-b border-[#E8E0F0] flex items-center justify-between">
               <div className="flex items-center space-x-3">
-                <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-600 to-cyan-500 flex items-center justify-center text-slate-950 shadow-md shadow-cyan-500/20 font-bold">
+                <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-[#8E2D9D] to-[#6F42C1] flex items-center justify-center text-white shadow-xs font-bold">
                   <Bot className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-white flex items-center gap-1.5">
+                  <h3 className="text-sm font-bold text-[#1E1B2E] flex items-center gap-1.5">
                     {chatbotSettings.botName}
-                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
                   </h3>
-                  <p className="text-[11px] text-cyan-400/80">{chatbotSettings.botSubtitle}</p>
+                  <p className="text-[11px] text-[#8E2D9D] font-semibold">{chatbotSettings.botSubtitle}</p>
                 </div>
               </div>
 
@@ -613,7 +594,7 @@ export const ChatbotManager: React.FC = () => {
                       }
                     ]);
                   }}
-                  className="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold flex items-center space-x-1"
+                  className="px-2.5 py-1.5 rounded-lg bg-white hover:bg-slate-100 text-[#5F5A72] border border-[#E8E0F0] text-xs font-semibold flex items-center space-x-1 cursor-pointer"
                 >
                   <RotateCcw className="w-3 h-3" />
                   <span>Reset Chat</span>
@@ -622,24 +603,24 @@ export const ChatbotManager: React.FC = () => {
             </div>
 
             {/* Messages Area */}
-            <div className="flex-1 p-4 overflow-y-auto space-y-4 text-xs">
+            <div className="flex-1 p-4 overflow-y-auto space-y-4 text-xs bg-[#FAF8FF]/40">
               {simMessages.map(msg => (
                 <div
                   key={msg.id}
                   className={`flex flex-col ${msg.sender === 'user' ? 'items-end' : 'items-start'}`}
                 >
                   <div
-                    className={`max-w-[85%] p-3.5 rounded-2xl leading-relaxed whitespace-pre-line shadow-md ${
+                    className={`max-w-[85%] p-3.5 rounded-2xl leading-relaxed whitespace-pre-line shadow-xs ${
                       msg.sender === 'user'
-                        ? 'bg-gradient-to-r from-blue-600 to-cyan-600 text-white font-medium rounded-tr-none'
-                        : 'bg-slate-800/90 text-slate-100 border border-slate-700/80 rounded-tl-none'
+                        ? 'bg-[#8E2D9D] text-white font-medium rounded-tr-none'
+                        : 'bg-white text-[#1E1B2E] border border-[#E8E0F0] rounded-tl-none'
                     }`}
                   >
                     {msg.text}
 
                     {msg.actionLink && msg.actionLabel && (
-                      <div className="mt-3 pt-2.5 border-t border-slate-700/60">
-                        <span className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-cyan-500 text-slate-950 font-bold text-xs shadow-md">
+                      <div className="mt-3 pt-2.5 border-t border-[#E8E0F0]">
+                        <span className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-[#FAF5FF] text-[#8E2D9D] border border-[#C084FC]/30 font-bold text-xs">
                           <span>{msg.actionLabel}</span>
                           <ArrowRight className="w-3 h-3" />
                         </span>
@@ -647,7 +628,7 @@ export const ChatbotManager: React.FC = () => {
                     )}
                   </div>
 
-                  <span className="text-[10px] text-slate-500 mt-1 px-1">{msg.timestamp}</span>
+                  <span className="text-[10px] text-[#817B91] mt-1 px-1">{msg.timestamp}</span>
 
                   {/* Follow-up suggestions */}
                   {msg.followUps && msg.followUps.length > 0 && (
@@ -656,7 +637,7 @@ export const ChatbotManager: React.FC = () => {
                         <button
                           key={fu}
                           onClick={() => handleSimSend(fu)}
-                          className="px-2.5 py-1 rounded-full bg-slate-800/80 hover:bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 hover:border-cyan-500/60 text-[11px] font-medium transition-all text-left"
+                          className="px-2.5 py-1 rounded-full bg-white hover:bg-[#FAF5FF] text-[#8E2D9D] border border-[#E8E0F0] hover:border-[#C084FC] text-[11px] font-medium transition-all text-left cursor-pointer"
                         >
                           {fu}
                         </button>
@@ -668,7 +649,7 @@ export const ChatbotManager: React.FC = () => {
             </div>
 
             {/* Input Bar */}
-            <div className="p-3 bg-slate-900/90 border-t border-slate-800 flex items-center space-x-2">
+            <div className="p-3 bg-white border-t border-[#E8E0F0] flex items-center space-x-2">
               <input
                 type="text"
                 placeholder="Ask anything (e.g. 'how much for web app', 'sac 998314', 'contact manoj')..."
@@ -680,12 +661,12 @@ export const ChatbotManager: React.FC = () => {
                     handleSimSend();
                   }
                 }}
-                className="flex-1 px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-cyan-400"
+                className="flex-1 px-4 py-2.5 rounded-xl bg-[#FAF8FF] border border-[#E8E0F0] text-xs text-[#1E1B2E] placeholder:text-[#817B91] focus:outline-none focus:border-[#8E2D9D]"
               />
               <button
                 onClick={() => handleSimSend()}
                 disabled={!simInput.trim()}
-                className="p-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 disabled:opacity-40 text-slate-950 font-bold transition-all shadow-md shadow-cyan-500/20"
+                className="p-2.5 rounded-xl bg-[#8E2D9D] hover:bg-[#732280] disabled:opacity-40 text-white font-bold transition-all shadow-xs cursor-pointer"
               >
                 <Send className="w-4 h-4" />
               </button>
@@ -694,24 +675,24 @@ export const ChatbotManager: React.FC = () => {
 
           {/* Simulator Guidance & Quick Trigger Tester */}
           <div className="space-y-4">
-            <div className="p-5 rounded-2xl bg-slate-900/70 border border-slate-800 space-y-3">
-              <h3 className="text-sm font-bold text-white flex items-center space-x-2">
-                <Info className="w-4 h-4 text-cyan-400" />
+            <div className="p-5 rounded-2xl bg-white border border-[#E8E0F0] space-y-3 shadow-sm">
+              <h3 className="text-sm font-bold text-[#1E1B2E] flex items-center space-x-2">
+                <Info className="w-4 h-4 text-[#8E2D9D]" />
                 <span>How Q&A Matching Works</span>
               </h3>
-              <p className="text-xs text-slate-400 leading-relaxed">
+              <p className="text-xs text-[#5F5A72] leading-relaxed">
                 The frontend virtual assistant parses queries using three levels of semantic matching:
               </p>
-              <ul className="text-xs text-slate-300 space-y-2 list-disc pl-4">
-                <li><strong className="text-cyan-300">Exact Question Match:</strong> Highest priority matching on direct intent.</li>
-                <li><strong className="text-cyan-300">Trigger Keywords:</strong> Fast token match against any configured keyword tags.</li>
-                <li><strong className="text-cyan-300">Contextual Tokens:</strong> Word intersection across answer text and follow-ups.</li>
-                <li><strong className="text-cyan-300">Fallback Handling:</strong> If no intent exceeds threshold, directs user to the Project Scope form and contact details.</li>
+              <ul className="text-xs text-[#5F5A72] space-y-2 list-disc pl-4">
+                <li><strong className="text-[#1E1B2E]">Exact Question Match:</strong> Highest priority matching on direct intent.</li>
+                <li><strong className="text-[#1E1B2E]">Trigger Keywords:</strong> Fast token match against any configured keyword tags.</li>
+                <li><strong className="text-[#1E1B2E]">Contextual Tokens:</strong> Word intersection across answer text and follow-ups.</li>
+                <li><strong className="text-[#1E1B2E]">Fallback Handling:</strong> If no intent exceeds threshold, directs user to the Project Scope form and contact details.</li>
               </ul>
             </div>
 
-            <div className="p-5 rounded-2xl bg-slate-900/70 border border-slate-800 space-y-3">
-              <h3 className="text-sm font-bold text-white">Test Sample Inquiries</h3>
+            <div className="p-5 rounded-2xl bg-white border border-[#E8E0F0] space-y-3 shadow-sm">
+              <h3 className="text-sm font-bold text-[#1E1B2E]">Test Sample Inquiries</h3>
               <div className="flex flex-col gap-2">
                 {[
                   'What services do you offer?',
@@ -724,7 +705,7 @@ export const ChatbotManager: React.FC = () => {
                   <button
                     key={sample}
                     onClick={() => handleSimSend(sample)}
-                    className="w-full text-left p-2.5 rounded-xl bg-slate-800/60 hover:bg-slate-800 text-xs text-slate-300 hover:text-cyan-300 border border-slate-700/60 transition-all flex items-center justify-between"
+                    className="w-full text-left p-2.5 rounded-xl bg-[#FAF8FF] hover:bg-[#FAF5FF] text-xs text-[#5F5A72] hover:text-[#8E2D9D] border border-[#E8E0F0] transition-all flex items-center justify-between cursor-pointer"
                   >
                     <span>{sample}</span>
                     <ArrowRight className="w-3 h-3 opacity-60" />
@@ -738,21 +719,21 @@ export const ChatbotManager: React.FC = () => {
 
       {/* TAB 3: Bot Configuration */}
       {activeTab === 'settings' && (
-        <div className="max-w-3xl bg-slate-900/80 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-6">
-          <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+        <div className="max-w-3xl bg-white border border-[#E8E0F0] rounded-2xl p-6 shadow-sm space-y-6">
+          <div className="flex items-center justify-between border-b border-[#E8E0F0] pb-4">
             <div>
-              <h2 className="text-lg font-bold text-white flex items-center space-x-2">
-                <Sliders className="w-5 h-5 text-cyan-400" />
+              <h2 className="text-lg font-bold text-[#1E1B2E] flex items-center space-x-2">
+                <Sliders className="w-5 h-5 text-[#8E2D9D]" />
                 <span>Virtual Assistant Configuration</span>
               </h2>
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-[#5F5A72]">
                 Customize the identity, greeting messages, quick starter prompt chips, and availability of the public website bot.
               </p>
             </div>
 
             {settingsSavedToast && (
-              <div className="px-3 py-1.5 rounded-lg bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-bold flex items-center space-x-1.5 animate-fade-in">
-                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+              <div className="px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold flex items-center space-x-1.5">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
                 <span>Settings Saved!</span>
               </div>
             )}
@@ -760,10 +741,10 @@ export const ChatbotManager: React.FC = () => {
 
           <form onSubmit={handleSaveSettings} className="space-y-5 text-xs">
             {/* Master Bot Switch */}
-            <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-between">
+            <div className="p-4 rounded-xl bg-[#FAF8FF] border border-[#E8E0F0] flex items-center justify-between">
               <div>
-                <h4 className="font-bold text-white text-sm">Enable Frontend Chatbot Widget</h4>
-                <p className="text-slate-400 text-xs">When enabled, the floating conversational assistant appears on the public agency website.</p>
+                <h4 className="font-bold text-[#1E1B2E] text-sm">Enable Frontend Chatbot Widget</h4>
+                <p className="text-[#5F5A72] text-xs">When enabled, the floating conversational assistant appears on the public agency website.</p>
               </div>
               <label className="relative inline-flex items-center cursor-pointer">
                 <input
@@ -772,69 +753,69 @@ export const ChatbotManager: React.FC = () => {
                   onChange={e => setSettingsForm(prev => ({ ...prev, enableBot: e.target.checked }))}
                   className="sr-only peer"
                 />
-                <div className="w-11 h-6 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-cyan-500"></div>
+                <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#8E2D9D]"></div>
               </label>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-slate-300 font-semibold mb-1">Bot Display Name</label>
+                <label className="block text-[#1E1B2E] font-semibold mb-1">Bot Display Name</label>
                 <input
                   type="text"
                   required
                   value={settingsForm.botName}
                   onChange={e => setSettingsForm(prev => ({ ...prev, botName: e.target.value }))}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-cyan-400"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-[#FAF8FF] border border-[#E8E0F0] text-[#1E1B2E] focus:outline-none focus:border-[#8E2D9D]"
                 />
               </div>
 
               <div>
-                <label className="block text-slate-300 font-semibold mb-1">Bot Subtitle / Agency Role</label>
+                <label className="block text-[#1E1B2E] font-semibold mb-1">Bot Subtitle / Agency Role</label>
                 <input
                   type="text"
                   value={settingsForm.botSubtitle}
                   onChange={e => setSettingsForm(prev => ({ ...prev, botSubtitle: e.target.value }))}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-cyan-400"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-[#FAF8FF] border border-[#E8E0F0] text-[#1E1B2E] focus:outline-none focus:border-[#8E2D9D]"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-slate-300 font-semibold mb-1">Welcome Greeting Message</label>
+              <label className="block text-[#1E1B2E] font-semibold mb-1">Welcome Greeting Message</label>
               <textarea
                 rows={3}
                 required
                 value={settingsForm.welcomeMessage}
                 onChange={e => setSettingsForm(prev => ({ ...prev, welcomeMessage: e.target.value }))}
-                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-cyan-400 leading-relaxed"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-[#FAF8FF] border border-[#E8E0F0] text-[#1E1B2E] focus:outline-none focus:border-[#8E2D9D] leading-relaxed"
               />
             </div>
 
             <div>
-              <label className="block text-slate-300 font-semibold mb-1">Fallback / Unrecognized Intent Message</label>
+              <label className="block text-[#1E1B2E] font-semibold mb-1">Fallback / Unrecognized Intent Message</label>
               <textarea
                 rows={3}
                 required
                 value={settingsForm.fallbackMessage}
                 onChange={e => setSettingsForm(prev => ({ ...prev, fallbackMessage: e.target.value }))}
-                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-cyan-400 leading-relaxed"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-[#FAF8FF] border border-[#E8E0F0] text-[#1E1B2E] focus:outline-none focus:border-[#8E2D9D] leading-relaxed"
               />
             </div>
 
             {/* Quick Starter Prompts */}
             <div className="space-y-2">
-              <label className="block text-slate-300 font-semibold">Quick Starter Prompt Chips (Welcome Screen)</label>
+              <label className="block text-[#1E1B2E] font-semibold">Quick Starter Prompt Chips (Welcome Screen)</label>
               <div className="flex flex-wrap gap-2 mb-2">
                 {(settingsForm.quickPrompts || []).map((prompt, idx) => (
                   <span
                     key={idx}
-                    className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-slate-800 text-cyan-300 border border-slate-700 text-xs"
+                    className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-[#FAF5FF] text-[#8E2D9D] border border-[#C084FC]/30 text-xs"
                   >
                     <span>{prompt}</span>
                     <button
                       type="button"
                       onClick={() => handleRemoveQuickPrompt(idx)}
-                      className="text-slate-400 hover:text-rose-400"
+                      className="text-[#5F5A72] hover:text-rose-600 cursor-pointer"
                     >
                       <X className="w-3.5 h-3.5" />
                     </button>
@@ -854,12 +835,12 @@ export const ChatbotManager: React.FC = () => {
                       handleAddQuickPrompt();
                     }
                   }}
-                  className="flex-1 px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-cyan-400"
+                  className="flex-1 px-3.5 py-2 rounded-xl bg-[#FAF8FF] border border-[#E8E0F0] text-[#1E1B2E] focus:outline-none focus:border-[#8E2D9D]"
                 />
                 <button
                   type="button"
                   onClick={handleAddQuickPrompt}
-                  className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold"
+                  className="px-4 py-2 rounded-xl bg-[#8E2D9D] hover:bg-[#732280] text-white font-bold cursor-pointer"
                 >
                   Add Prompt
                 </button>
@@ -868,30 +849,30 @@ export const ChatbotManager: React.FC = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-slate-300 font-semibold mb-1">Direct Contact Email</label>
+                <label className="block text-[#1E1B2E] font-semibold mb-1">Direct Contact Email</label>
                 <input
                   type="email"
                   value={settingsForm.contactEmail || ''}
                   onChange={e => setSettingsForm(prev => ({ ...prev, contactEmail: e.target.value }))}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-cyan-400"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-[#FAF8FF] border border-[#E8E0F0] text-[#1E1B2E] focus:outline-none focus:border-[#8E2D9D]"
                 />
               </div>
 
               <div>
-                <label className="block text-slate-300 font-semibold mb-1">Direct Contact Phone / WhatsApp</label>
+                <label className="block text-[#1E1B2E] font-semibold mb-1">Direct Contact Phone / WhatsApp</label>
                 <input
                   type="text"
                   value={settingsForm.contactPhone || ''}
                   onChange={e => setSettingsForm(prev => ({ ...prev, contactPhone: e.target.value }))}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-cyan-400"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-[#FAF8FF] border border-[#E8E0F0] text-[#1E1B2E] focus:outline-none focus:border-[#8E2D9D]"
                 />
               </div>
             </div>
 
-            <div className="pt-4 flex items-center justify-end border-t border-slate-800">
+            <div className="pt-4 flex items-center justify-end border-t border-[#E8E0F0]">
               <button
                 type="submit"
-                className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white font-bold text-xs shadow-lg shadow-cyan-600/30"
+                className="px-6 py-2.5 rounded-xl bg-[#8E2D9D] hover:bg-[#732280] text-white font-bold text-xs shadow-xs cursor-pointer"
               >
                 Save Configuration
               </button>
@@ -902,31 +883,31 @@ export const ChatbotManager: React.FC = () => {
 
       {/* CREATE / EDIT Q&A MODAL */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-          <div className="w-full max-w-2xl bg-[#09122b] border border-slate-700/80 rounded-2xl shadow-2xl p-6 relative max-h-[92vh] overflow-y-auto text-slate-100">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
+          <div className="w-full max-w-2xl bg-white border border-[#E8E0F0] rounded-2xl shadow-2xl p-6 relative max-h-[92vh] overflow-y-auto text-[#1E1B2E]">
             <button
               onClick={() => setIsModalOpen(false)}
-              className="absolute top-4 right-4 text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800"
+              className="absolute top-4 right-4 text-[#5F5A72] hover:text-[#1E1B2E] p-1 rounded-lg hover:bg-slate-100 cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
 
-            <h2 className="text-lg font-bold text-white mb-1 flex items-center gap-2">
-              <Bot className="w-5 h-5 text-cyan-400" />
+            <h2 className="text-lg font-bold text-[#1E1B2E] mb-1 flex items-center gap-2">
+              <Bot className="w-5 h-5 text-[#8E2D9D]" />
               {editingId ? 'Modify Chatbot Q&A Item' : 'Add New Chatbot Q&A Item'}
             </h2>
-            <p className="text-xs text-slate-400 mb-5">
+            <p className="text-xs text-[#5F5A72] mb-5">
               Specify user question intent, detailed answer, trigger keywords, and action call-to-action link.
             </p>
 
             <form onSubmit={handleSave} className="space-y-4 text-xs">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-slate-300 font-semibold mb-1">Category</label>
+                  <label className="block text-[#1E1B2E] font-semibold mb-1">Category</label>
                   <select
                     value={category}
                     onChange={e => setCategory(e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white outline-none focus:border-cyan-500"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#FAF8FF] border border-[#E8E0F0] text-[#1E1B2E] outline-none focus:border-[#8E2D9D]"
                   >
                     <option value="General">General</option>
                     <option value="Services">Services & Offerings</option>
@@ -938,24 +919,24 @@ export const ChatbotManager: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-slate-300 font-semibold mb-1">Status</label>
+                  <label className="block text-[#1E1B2E] font-semibold mb-1">Status</label>
                   <div className="pt-2">
                     <label className="flex items-center space-x-2 cursor-pointer">
                       <input
                         type="checkbox"
                         checked={isActive}
                         onChange={e => setIsActive(e.target.checked)}
-                        className="w-4 h-4 rounded bg-slate-900 border-slate-700 text-cyan-500 focus:ring-0"
+                        className="w-4 h-4 rounded bg-white border-[#E8E0F0] text-[#8E2D9D] focus:ring-0"
                       />
-                      <span className="text-slate-200 font-medium">Active (Visible to Bot)</span>
+                      <span className="text-[#1E1B2E] font-medium">Active (Visible to Bot)</span>
                     </label>
                   </div>
                 </div>
               </div>
 
               <div>
-                <label className="block text-slate-300 font-semibold mb-1">
-                  User Question / Primary Intent <span className="text-rose-400">*</span>
+                <label className="block text-[#1E1B2E] font-semibold mb-1">
+                  User Question / Primary Intent <span className="text-rose-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -963,13 +944,13 @@ export const ChatbotManager: React.FC = () => {
                   placeholder="e.g. How much does building a custom web application cost?"
                   value={question}
                   onChange={e => setQuestion(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white outline-none focus:border-cyan-500"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-[#FAF8FF] border border-[#E8E0F0] text-[#1E1B2E] outline-none focus:border-[#8E2D9D]"
                 />
               </div>
 
               <div>
-                <label className="block text-slate-300 font-semibold mb-1">
-                  Answer Content <span className="text-rose-400">*</span>
+                <label className="block text-[#1E1B2E] font-semibold mb-1">
+                  Answer Content <span className="text-rose-500">*</span>
                 </label>
                 <textarea
                   required
@@ -977,26 +958,26 @@ export const ChatbotManager: React.FC = () => {
                   placeholder="Provide precise details, pricing breakdowns, milestone expectations, or direct answers..."
                   value={answer}
                   onChange={e => setAnswer(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white outline-none focus:border-cyan-500 leading-relaxed font-mono text-xs"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-[#FAF8FF] border border-[#E8E0F0] text-[#1E1B2E] outline-none focus:border-[#8E2D9D] leading-relaxed font-mono text-xs"
                 />
               </div>
 
               {/* Keywords Tag Input */}
               <div className="space-y-1.5">
-                <label className="block text-slate-300 font-semibold">
+                <label className="block text-[#1E1B2E] font-semibold">
                   Trigger Keywords & Synonyms (hit Enter or Add)
                 </label>
-                <div className="flex flex-wrap gap-1.5 min-h-[36px] p-2 rounded-xl bg-slate-950 border border-slate-700">
+                <div className="flex flex-wrap gap-1.5 min-h-[36px] p-2 rounded-xl bg-[#FAF8FF] border border-[#E8E0F0]">
                   {keywords.map(kw => (
                     <span
                       key={kw}
-                      className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-lg bg-slate-800 text-cyan-300 text-[11px] font-mono border border-slate-700"
+                      className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-lg bg-[#FAF5FF] text-[#8E2D9D] text-[11px] font-mono border border-[#C084FC]/30"
                     >
                       <span>{kw}</span>
                       <button
                         type="button"
                         onClick={() => handleRemoveKeyword(kw)}
-                        className="text-slate-400 hover:text-rose-400"
+                        className="text-[#5F5A72] hover:text-rose-600 cursor-pointer"
                       >
                         <X className="w-3 h-3" />
                       </button>
@@ -1013,30 +994,30 @@ export const ChatbotManager: React.FC = () => {
                         handleAddKeyword();
                       }
                     }}
-                    className="flex-1 bg-transparent text-white placeholder:text-slate-600 text-xs focus:outline-none min-w-[150px]"
+                    className="flex-1 bg-transparent text-[#1E1B2E] placeholder:text-[#817B91] text-xs focus:outline-none min-w-[150px]"
                   />
                 </div>
-                <p className="text-[10px] text-slate-500">
+                <p className="text-[10px] text-[#5F5A72]">
                   Example keywords: <code>price</code>, <code>cost</code>, <code>budget</code>, <code>quote</code>, <code>estimate</code>
                 </p>
               </div>
 
               {/* Suggested Follow-ups */}
               <div className="space-y-1.5">
-                <label className="block text-slate-300 font-semibold">
+                <label className="block text-[#1E1B2E] font-semibold">
                   Suggested Follow-up Quick Reply Chips
                 </label>
-                <div className="flex flex-wrap gap-1.5 min-h-[36px] p-2 rounded-xl bg-slate-950 border border-slate-700">
+                <div className="flex flex-wrap gap-1.5 min-h-[36px] p-2 rounded-xl bg-[#FAF8FF] border border-[#E8E0F0]">
                   {suggestedFollowUps.map(fu => (
                     <span
                       key={fu}
-                      className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-lg bg-blue-950/60 text-blue-300 text-[11px] border border-blue-800/60"
+                      className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-lg bg-[#FAF5FF] text-[#8E2D9D] text-[11px] border border-[#C084FC]/30"
                     >
                       <span>{fu}</span>
                       <button
                         type="button"
                         onClick={() => handleRemoveFollowUp(fu)}
-                        className="text-slate-400 hover:text-rose-400"
+                        className="text-[#5F5A72] hover:text-rose-600 cursor-pointer"
                       >
                         <X className="w-3 h-3" />
                       </button>
@@ -1053,7 +1034,7 @@ export const ChatbotManager: React.FC = () => {
                         handleAddFollowUp();
                       }
                     }}
-                    className="flex-1 bg-transparent text-white placeholder:text-slate-600 text-xs focus:outline-none min-w-[180px]"
+                    className="flex-1 bg-transparent text-[#1E1B2E] placeholder:text-[#817B91] text-xs focus:outline-none min-w-[180px]"
                   />
                 </div>
               </div>
@@ -1061,7 +1042,7 @@ export const ChatbotManager: React.FC = () => {
               {/* Action Link & CTA */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-slate-300 font-semibold mb-1">
+                  <label className="block text-[#1E1B2E] font-semibold mb-1">
                     Action Link / Section Anchor
                   </label>
                   <input
@@ -1069,12 +1050,12 @@ export const ChatbotManager: React.FC = () => {
                     placeholder="e.g. #contact, #services, #tech-stack, #projects"
                     value={actionLink}
                     onChange={e => setActionLink(e.target.value)}
-                    className="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white outline-none focus:border-cyan-500 font-mono"
+                    className="w-full px-3.5 py-2 rounded-xl bg-[#FAF8FF] border border-[#E8E0F0] text-[#1E1B2E] outline-none focus:border-[#8E2D9D] font-mono"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-slate-300 font-semibold mb-1">
+                  <label className="block text-[#1E1B2E] font-semibold mb-1">
                     Action Button Label
                   </label>
                   <input
@@ -1082,22 +1063,22 @@ export const ChatbotManager: React.FC = () => {
                     placeholder="e.g. Get Instant Ballpark Quote"
                     value={actionLabel}
                     onChange={e => setActionLabel(e.target.value)}
-                    className="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white outline-none focus:border-cyan-500"
+                    className="w-full px-3.5 py-2 rounded-xl bg-[#FAF8FF] border border-[#E8E0F0] text-[#1E1B2E] outline-none focus:border-[#8E2D9D]"
                   />
                 </div>
               </div>
 
-              <div className="pt-4 flex items-center justify-end space-x-3 border-t border-slate-800">
+              <div className="pt-4 flex items-center justify-end space-x-3 border-t border-[#E8E0F0]">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold"
+                  className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-[#5F5A72] font-semibold cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white font-bold shadow-lg shadow-cyan-600/30"
+                  className="px-5 py-2 rounded-xl bg-[#8E2D9D] hover:bg-[#732280] text-white font-bold shadow-xs cursor-pointer"
                 >
                   {editingId ? 'Update Q&A Item' : 'Save Q&A Item'}
                 </button>

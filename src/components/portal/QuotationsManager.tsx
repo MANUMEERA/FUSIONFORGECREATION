@@ -396,24 +396,24 @@ export const QuotationsManager: React.FC = () => {
     <div className="space-y-6">
       {/* Toast Notification Banner */}
       {notificationMsg && (
-        <div className={`p-4 rounded-2xl border flex items-center justify-between shadow-lg transition-all animate-fadeIn ${
+        <div className={`p-4 rounded-2xl border flex items-center justify-between shadow-md transition-all animate-fadeIn ${
           notificationMsg.type === 'success'
-            ? 'bg-emerald-950/80 border-emerald-500/40 text-emerald-200'
+            ? 'bg-emerald-50 border-emerald-200 text-[#059669]'
             : notificationMsg.type === 'info'
-            ? 'bg-blue-950/80 border-blue-500/40 text-blue-200'
-            : 'bg-rose-950/80 border-rose-500/40 text-rose-200'
+            ? 'bg-purple-50 border-purple-200 text-[#8E2D9D]'
+            : 'bg-rose-50 border-rose-200 text-[#DC2626]'
         }`}>
-          <div className="flex items-center space-x-3 text-xs sm:text-sm font-semibold">
+          <div className="flex items-center space-x-3 text-xs sm:text-sm font-bold">
             {notificationMsg.type === 'success' ? (
-              <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+              <CheckCircle2 className="w-5 h-5 text-[#059669] shrink-0" />
             ) : (
-              <AlertCircle className="w-5 h-5 text-blue-400 shrink-0" />
+              <AlertCircle className="w-5 h-5 text-[#8E2D9D] shrink-0" />
             )}
             <span>{notificationMsg.text}</span>
           </div>
           <button 
             onClick={() => setNotificationMsg(null)}
-            className="p-1 rounded-lg hover:bg-white/10 text-slate-400 hover:text-white"
+            className="p-1 rounded-lg hover:bg-black/5 text-[#817B91] hover:text-[#1E1B2E] cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
@@ -421,22 +421,22 @@ export const QuotationsManager: React.FC = () => {
       )}
 
       {/* Header Bar */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-gradient-to-r from-[#111e47]/90 via-[#0d1b3e]/90 to-[#081430]/90 p-6 rounded-2xl border border-blue-500/20 shadow-lg">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-6 rounded-3xl border border-[#E8E0F0] shadow-xs">
         <div>
-          <div className="flex items-center space-x-2">
-            <div className="p-2 rounded-lg bg-blue-600/20 border border-blue-500/30 text-blue-400">
+          <div className="flex items-center space-x-2.5">
+            <div className="p-2.5 rounded-2xl bg-[#FAF5FF] border border-[#E8E0F0] text-[#8E2D9D]">
               <FileText className="w-5 h-5" />
             </div>
-            <h2 className="text-xl font-bold text-white tracking-tight">COMMERCIAL QUOTATIONS</h2>
+            <h2 className="text-xl font-bold text-[#1E1B2E] tracking-tight">COMMERCIAL QUOTATIONS</h2>
           </div>
-          <p className="text-xs text-slate-300 mt-1">
-            Enterprise commercial proposal workflow with GST/non-GST control, official email dispatch (<span className="text-blue-400 font-mono">admin@fusionforgecreation.com</span>), and structured SEND FOR INVOICE governance.
+          <p className="text-xs text-[#5F5A72] mt-1 font-medium">
+            Enterprise commercial proposal workflow with GST/non-GST control, official email dispatch (<span className="text-[#8E2D9D] font-mono font-bold">admin@fusionforgecreation.com</span>), and structured SEND FOR INVOICE governance.
           </p>
         </div>
         <button
           id="btn-create-quote-top"
           onClick={openCreateModal}
-          className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold flex items-center space-x-2 transition-all shadow-md shadow-blue-600/30 hover:scale-[1.02] cursor-pointer"
+          className="px-5 py-2.5 rounded-xl bg-[#8E2D9D] hover:bg-[#6F42C1] text-white text-xs font-bold flex items-center space-x-2 transition-all shadow-md shadow-[#8E2D9D]/25 hover:scale-[1.01] cursor-pointer"
         >
           <Plus className="w-4 h-4" />
           <span>New Commercial Quotation</span>
@@ -444,43 +444,43 @@ export const QuotationsManager: React.FC = () => {
       </div>
 
       {/* Quotations List */}
-      <div className="rounded-2xl border border-blue-500/20 bg-gradient-to-b from-[#111e47]/90 to-[#0a1330]/90 overflow-hidden shadow-xl">
-        <div className="px-5 py-4 border-b border-blue-500/20 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 bg-[#0d1b3e]/80">
-          <div className="text-xs font-bold uppercase tracking-wider text-slate-200 flex items-center gap-2">
+      <div className="rounded-3xl border border-[#E8E0F0] bg-white overflow-hidden shadow-xs">
+        <div className="px-5 py-4 border-b border-[#E8E0F0] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 bg-[#FAF8FF]">
+          <div className="text-xs font-bold uppercase tracking-wider text-[#1E1B2E] flex items-center gap-2">
             <span>Commercial Quotation Records ({quotations.length})</span>
-            <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30">
+            <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-[#FAF5FF] text-[#8E2D9D] border border-[#E8E0F0] font-bold">
               DD-MM-YYYY Dates
             </span>
           </div>
-          <div className="text-[11px] text-slate-400">
-            Order Status Rule: <span className="font-semibold text-emerald-400">"Received Order"</span> unlocks <span className="font-semibold text-blue-300">SEND FOR INVOICE</span>
+          <div className="text-[11px] text-[#5F5A72]">
+            Order Status Rule: <span className="font-bold text-[#059669]">"Received Order"</span> unlocks <span className="font-bold text-[#8E2D9D]">SEND FOR INVOICE</span>
           </div>
         </div>
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs text-slate-200">
-            <thead className="bg-[#09132c]/90 text-slate-400 uppercase text-[10px] tracking-wider border-b border-blue-500/20">
+          <table className="w-full text-left text-xs text-[#1E1B2E]">
+            <thead className="bg-[#FAF5FF] text-[#5F5A72] uppercase text-[10px] tracking-wider border-b border-[#E8E0F0]">
               <tr>
-                <th className="py-3.5 px-4 font-semibold">Quotation No</th>
-                <th className="py-3.5 px-4 font-semibold">Client & Scope</th>
-                <th className="py-3.5 px-4 font-semibold">Dates (DD-MM-YYYY)</th>
-                <th className="py-3.5 px-4 font-semibold text-right">Tax Mode & Total</th>
-                <th className="py-3.5 px-4 font-semibold text-center">Status</th>
-                <th className="py-3.5 px-4 font-semibold text-right">Actions / Workflow</th>
+                <th className="py-3.5 px-4 font-bold">Quotation No</th>
+                <th className="py-3.5 px-4 font-bold">Client & Scope</th>
+                <th className="py-3.5 px-4 font-bold">Dates (DD-MM-YYYY)</th>
+                <th className="py-3.5 px-4 font-bold text-right">Tax Mode & Total</th>
+                <th className="py-3.5 px-4 font-bold text-center">Status</th>
+                <th className="py-3.5 px-4 font-bold text-right">Actions / Workflow</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-blue-500/10">
+            <tbody className="divide-y divide-[#E8E0F0]">
               {quotations.map(q => {
                 const isConverted = q.status === 'converted' || q.status === 'Converted' || Boolean(q.convertedInvoiceId);
                 const isOrderReceived = q.status === 'Order Received' || q.status === 'order_received';
                 const isGstActive = q.gstApplicable !== false && q.gstType !== 'none';
                 
                 return (
-                  <tr key={q.id} className="hover:bg-blue-600/10 transition-colors">
+                  <tr key={q.id} className="hover:bg-[#FAF8FF] transition-colors">
                     {/* Quotation No */}
-                    <td className="py-4 px-4 font-mono font-bold text-blue-400">
+                    <td className="py-4 px-4 font-mono font-bold text-[#8E2D9D]">
                       <div>{q.quoteNumber}</div>
                       {q.emailSentAt && (
-                        <div className="text-[9px] text-cyan-300 flex items-center gap-1 font-sans mt-0.5" title={`Emailed via ${q.emailSentBy || 'admin@fusionforgecreation.com'}`}>
+                        <div className="text-[9px] text-[#059669] flex items-center gap-1 font-sans mt-0.5 font-bold" title={`Emailed via ${q.emailSentBy || 'admin@fusionforgecreation.com'}`}>
                           <Mail className="w-2.5 h-2.5" />
                           <span>Emailed</span>
                         </div>
@@ -489,27 +489,27 @@ export const QuotationsManager: React.FC = () => {
 
                     {/* Client & Scope */}
                     <td className="py-4 px-4">
-                      <div className="font-bold text-white text-sm">{q.clientCompany || q.clientName}</div>
-                      <div className="text-[11px] text-slate-300 truncate max-w-xs">{q.title}</div>
-                      <div className="text-[10px] text-slate-400">{q.items?.length || 0} line item(s)</div>
+                      <div className="font-bold text-[#1E1B2E] text-sm">{q.clientCompany || q.clientName}</div>
+                      <div className="text-[11px] text-[#5F5A72] truncate max-w-xs">{q.title}</div>
+                      <div className="text-[10px] text-[#817B91] font-semibold">{q.items?.length || 0} line item(s)</div>
                     </td>
 
                     {/* Dates */}
-                    <td className="py-4 px-4 text-slate-300 text-[11px] font-mono">
-                      <div>Issued: <span className="text-white font-medium">{formatDateDDMMYYYY(q.issueDate)}</span></div>
-                      <div className="text-slate-400">Valid: <span className="text-slate-200">{formatDateDDMMYYYY(q.validUntil)}</span></div>
+                    <td className="py-4 px-4 text-[#5F5A72] text-[11px] font-mono">
+                      <div>Issued: <span className="text-[#1E1B2E] font-bold">{formatDateDDMMYYYY(q.issueDate)}</span></div>
+                      <div className="text-[#817B91]">Valid: <span className="text-[#1E1B2E] font-semibold">{formatDateDDMMYYYY(q.validUntil)}</span></div>
                     </td>
 
                     {/* Tax Mode & Total */}
                     <td className="py-4 px-4 text-right">
-                      <div className="font-bold text-cyan-400 font-mono text-sm">
+                      <div className="font-bold text-[#1E1B2E] font-mono text-sm">
                         ₹ {q.totalAmount.toLocaleString('en-IN')}
                       </div>
-                      <div className="text-[10px] text-slate-400">
+                      <div className="text-[10px] text-[#5F5A72]">
                         {isGstActive ? (
-                          <span className="text-blue-300">GST ({q.gstRate || 18}%)</span>
+                          <span className="text-[#8E2D9D] font-bold">GST ({q.gstRate || 18}%)</span>
                         ) : (
-                          <span className="text-emerald-400 font-semibold">Non-GST / Zero Tax</span>
+                          <span className="text-[#059669] font-bold">Non-GST / Zero Tax</span>
                         )}
                       </div>
                     </td>
@@ -520,36 +520,36 @@ export const QuotationsManager: React.FC = () => {
                         id={`select-status-${q.id}`}
                         value={q.status}
                         onChange={(e) => updateQuotation(q.id, { status: e.target.value as any })}
-                        className={`text-[11px] font-bold uppercase tracking-wider px-2.5 py-1.5 rounded-lg border outline-none cursor-pointer ${
+                        className={`text-[11px] font-bold uppercase tracking-wider px-2.5 py-1.5 rounded-xl border outline-none cursor-pointer ${
                           isConverted
-                            ? 'bg-purple-500/20 text-purple-300 border-purple-500/30'
+                            ? 'bg-purple-50 text-[#6F42C1] border-purple-200'
                             : isOrderReceived
-                            ? 'bg-emerald-500/25 text-emerald-300 border-emerald-400 font-black shadow-xs shadow-emerald-500/20'
+                            ? 'bg-emerald-50 text-[#059669] border-emerald-300 font-black shadow-xs'
                             : q.status === 'Pending' || q.status === 'pending'
-                            ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'
+                            ? 'bg-amber-50 text-amber-700 border-amber-300'
                             : q.status === 'approved' || q.status === 'Approved'
-                            ? 'bg-teal-500/20 text-teal-300 border-teal-500/30'
+                            ? 'bg-teal-50 text-teal-700 border-teal-300'
                             : q.status === 'sent' || q.status === 'Sent'
-                            ? 'bg-blue-500/20 text-blue-300 border-blue-500/30'
+                            ? 'bg-blue-50 text-blue-700 border-blue-300'
                             : q.status === 'rejected' || q.status === 'Rejected'
-                            ? 'bg-rose-500/20 text-rose-300 border-rose-500/30'
+                            ? 'bg-rose-50 text-rose-700 border-rose-300'
                             : q.status === 'cancelled' || q.status === 'Cancelled'
-                            ? 'bg-red-500/20 text-red-300 border-red-500/30'
+                            ? 'bg-red-50 text-red-700 border-red-300'
                             : q.status === 'closed' || q.status === 'Closed'
-                            ? 'bg-slate-700/50 text-slate-400 border-slate-600'
-                            : 'bg-slate-800 text-slate-300 border-slate-700'
+                            ? 'bg-slate-100 text-slate-600 border-slate-300'
+                            : 'bg-[#FAF5FF] text-[#5F5A72] border-[#E8E0F0]'
                         }`}
                       >
                         {/* Required Prominent Ordering: Pending and Received Order */}
-                        <option value="Pending" className="bg-[#0b132c] text-amber-300 font-bold">1. Pending</option>
-                        <option value="Order Received" className="bg-[#0b132c] text-emerald-300 font-black">2. Received Order</option>
-                        <option value="draft" className="bg-[#0b132c] text-slate-200">Draft</option>
-                        <option value="sent" className="bg-[#0b132c] text-blue-300">Sent</option>
-                        <option value="approved" className="bg-[#0b132c] text-teal-300">Approved</option>
-                        <option value="converted" className="bg-[#0b132c] text-purple-300">Converted to Invoice</option>
-                        <option value="Rejected" className="bg-[#0b132c] text-rose-300">Rejected</option>
-                        <option value="Cancelled" className="bg-[#0b132c] text-red-300">Cancelled</option>
-                        <option value="Closed" className="bg-[#0b132c] text-slate-400">Closed</option>
+                        <option value="Pending" className="bg-white text-amber-800 font-bold">1. Pending</option>
+                        <option value="Order Received" className="bg-white text-emerald-800 font-black">2. Received Order</option>
+                        <option value="draft" className="bg-white text-slate-700">Draft</option>
+                        <option value="sent" className="bg-white text-blue-800">Sent</option>
+                        <option value="approved" className="bg-white text-teal-800">Approved</option>
+                        <option value="converted" className="bg-white text-purple-800">Converted to Invoice</option>
+                        <option value="Rejected" className="bg-white text-rose-800">Rejected</option>
+                        <option value="Cancelled" className="bg-white text-red-800">Cancelled</option>
+                        <option value="Closed" className="bg-white text-slate-600">Closed</option>
                       </select>
                     </td>
 
@@ -561,7 +561,7 @@ export const QuotationsManager: React.FC = () => {
                           id={`btn-view-${q.id}`}
                           onClick={() => setPreviewQuote(q)}
                           title="Preview Commercial Quotation"
-                          className="p-2 rounded-lg bg-[#142352] hover:bg-blue-600 text-slate-300 hover:text-white border border-blue-500/20 transition-colors"
+                          className="p-2 rounded-xl bg-[#FAF5FF] hover:bg-[#F3E8FF] text-[#5F5A72] hover:text-[#8E2D9D] border border-[#E8E0F0] transition-colors cursor-pointer"
                         >
                           <Eye className="w-3.5 h-3.5" />
                         </button>
@@ -571,7 +571,7 @@ export const QuotationsManager: React.FC = () => {
                           id={`btn-pdf-${q.id}`}
                           onClick={() => generateQuotationPDF(q, agencyConfig)}
                           title="Print / Export Commercial Quotation"
-                          className="p-2 rounded-lg bg-blue-600/20 hover:bg-blue-600 text-blue-400 hover:text-white border border-blue-500/30 transition-all cursor-pointer"
+                          className="p-2 rounded-xl bg-[#FAF5FF] hover:bg-[#F3E8FF] text-[#8E2D9D] hover:text-[#6F42C1] border border-[#E8E0F0] transition-all cursor-pointer"
                         >
                           <Download className="w-3.5 h-3.5" />
                         </button>
@@ -581,7 +581,7 @@ export const QuotationsManager: React.FC = () => {
                           id={`btn-email-${q.id}`}
                           onClick={() => openEmailModal(q)}
                           title="Email Quotation via admin@fusionforgecreation.com"
-                          className="p-2 rounded-lg bg-cyan-600/20 hover:bg-cyan-600 text-cyan-300 hover:text-white border border-cyan-500/30 transition-all cursor-pointer"
+                          className="p-2 rounded-xl bg-[#FAF5FF] hover:bg-emerald-50 text-[#5F5A72] hover:text-[#059669] border border-[#E8E0F0] transition-all cursor-pointer"
                         >
                           <Mail className="w-3.5 h-3.5" />
                         </button>
@@ -592,7 +592,7 @@ export const QuotationsManager: React.FC = () => {
                             id={`btn-edit-${q.id}`}
                             onClick={() => openEditModal(q)}
                             title="Edit Quotation"
-                            className="px-2.5 py-1.5 rounded-lg bg-[#142352] hover:bg-[#1d3275] text-slate-200 text-[11px] font-semibold border border-blue-500/20 transition-colors"
+                            className="px-2.5 py-1.5 rounded-xl bg-[#FAF5FF] hover:bg-[#F3E8FF] text-[#1E1B2E] text-[11px] font-bold border border-[#E8E0F0] transition-colors cursor-pointer"
                           >
                             Edit
                           </button>
@@ -601,17 +601,17 @@ export const QuotationsManager: React.FC = () => {
                         {/* SEND FOR INVOICE BUTTON (Phase 6 Core Workflow) */}
                         {isConverted ? (
                           <div 
-                            className="px-3 py-1.5 rounded-lg bg-purple-500/20 border border-purple-500/40 text-[11px] font-bold text-purple-300 flex items-center space-x-1"
+                            className="px-3 py-1.5 rounded-xl bg-purple-50 border border-purple-200 text-[11px] font-bold text-[#6F42C1] flex items-center space-x-1"
                             title="Quotation already converted to Invoice"
                           >
-                            <CheckCircle2 className="w-3 h-3 text-purple-400" />
+                            <CheckCircle2 className="w-3 h-3 text-[#6F42C1]" />
                             <span>Invoice Created</span>
                           </div>
                         ) : isOrderReceived ? (
                           <button
                             id={`btn-send-for-invoice-${q.id}`}
                             onClick={() => handleSendForInvoice(q)}
-                            className="px-3 py-1.5 rounded-lg bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white border border-emerald-400/50 text-[11px] font-black tracking-wide transition-all flex items-center space-x-1.5 shadow-md shadow-emerald-600/30 hover:scale-[1.02] cursor-pointer"
+                            className="px-3 py-1.5 rounded-xl bg-[#059669] hover:bg-emerald-700 text-white border border-emerald-600 text-[11px] font-black tracking-wide transition-all flex items-center space-x-1.5 shadow-sm hover:scale-[1.02] cursor-pointer"
                             title="Order received! Click to send for tax invoice generation"
                           >
                             <span>SEND FOR INVOICE</span>
@@ -621,10 +621,10 @@ export const QuotationsManager: React.FC = () => {
                           <button
                             id={`btn-send-for-invoice-disabled-${q.id}`}
                             disabled
-                            className="px-3 py-1.5 rounded-lg bg-slate-800/80 border border-slate-700 text-[11px] font-bold text-slate-500 cursor-not-allowed flex items-center space-x-1.5 opacity-60"
+                            className="px-3 py-1.5 rounded-xl bg-[#FAF5FF] border border-[#E8E0F0] text-[11px] font-bold text-[#817B91] cursor-not-allowed flex items-center space-x-1.5 opacity-60"
                             title="Disabled: Requires status to be 'Received Order'"
                           >
-                            <Lock className="w-3 h-3 text-slate-500" />
+                            <Lock className="w-3 h-3 text-[#817B91]" />
                             <span>SEND FOR INVOICE</span>
                           </button>
                         )}
@@ -640,22 +640,22 @@ export const QuotationsManager: React.FC = () => {
 
       {/* CREATE / EDIT COMMERCIAL QUOTATION MODAL */}
       {showCreateModal && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
-          <div className="bg-[#0b132c] border border-blue-500/30 rounded-3xl w-full max-w-4xl p-6 sm:p-8 shadow-2xl my-auto text-slate-200">
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+          <div className="bg-white border border-[#E8E0F0] rounded-3xl w-full max-w-4xl p-6 sm:p-8 shadow-2xl my-auto text-[#1E1B2E]">
             
             {/* Template Header Badge */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-blue-500/20 mb-6">
-              <BrandLogo size="md" variant="full" theme="dark" />
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-[#E8E0F0] mb-6">
+              <BrandLogo size="md" variant="full" theme="light" />
               <div className="flex items-center gap-3">
                 <div className="text-right hidden sm:block">
-                  <span className="text-[10px] font-bold tracking-widest text-cyan-400 uppercase bg-cyan-500/10 px-3 py-1 rounded-full border border-cyan-500/30">
+                  <span className="text-[10px] font-bold tracking-widest text-[#8E2D9D] uppercase bg-[#FAF5FF] px-3 py-1 rounded-full border border-[#E8E0F0]">
                     Commercial Quotation Builder
                   </span>
-                  <div className="font-mono text-xs text-slate-400 mt-1">{quoteNumber}</div>
+                  <div className="font-mono text-xs text-[#5F5A72] mt-1 font-bold">{quoteNumber}</div>
                 </div>
                 <button
                   onClick={() => setShowCreateModal(false)}
-                  className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition-colors"
+                  className="p-2 rounded-xl bg-[#FAF5FF] hover:bg-[#F3E8FF] text-[#817B91] hover:text-[#1E1B2E] transition-colors cursor-pointer"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -664,18 +664,18 @@ export const QuotationsManager: React.FC = () => {
 
             <div className="space-y-6">
               {/* GST vs. Non-GST Choice Selector (Phase 6 Mandate) */}
-              <div className="p-4 rounded-2xl bg-gradient-to-r from-[#142352] to-[#0d1c44] border-2 border-blue-500/30 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+              <div className="p-4 rounded-2xl bg-[#FAF8FF] border-2 border-[#E8E0F0] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
-                  <div className="text-xs font-black uppercase tracking-wider text-cyan-300 flex items-center gap-2">
-                    <ShieldCheck className="w-4 h-4 text-cyan-400" />
+                  <div className="text-xs font-bold uppercase tracking-wider text-[#1E1B2E] flex items-center gap-2">
+                    <ShieldCheck className="w-4 h-4 text-[#8E2D9D]" />
                     <span>Taxation Architecture (GST Mode)</span>
                   </div>
-                  <p className="text-[11px] text-slate-300 mt-0.5">
+                  <p className="text-[11px] text-[#5F5A72] mt-0.5">
                     Choose whether this commercial quotation is issued with standard GST taxation or as a Zero-Tax / Non-GST proposal.
                   </p>
                 </div>
 
-                <div className="flex items-center space-x-2 bg-slate-950 p-1 rounded-xl border border-slate-700 shrink-0">
+                <div className="flex items-center space-x-2 bg-white p-1 rounded-xl border border-[#E8E0F0] shrink-0">
                   <button
                     type="button"
                     onClick={() => {
@@ -684,8 +684,8 @@ export const QuotationsManager: React.FC = () => {
                     }}
                     className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                       isGstApplicable 
-                        ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30' 
-                        : 'text-slate-400 hover:text-white'
+                        ? 'bg-[#8E2D9D] text-white shadow-xs' 
+                        : 'text-[#5F5A72] hover:text-[#1E1B2E]'
                     }`}
                   >
                     Quote with GST
@@ -698,8 +698,8 @@ export const QuotationsManager: React.FC = () => {
                     }}
                     className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                       !isGstApplicable 
-                        ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/30' 
-                        : 'text-slate-400 hover:text-white'
+                        ? 'bg-[#059669] text-white shadow-xs' 
+                        : 'text-[#5F5A72] hover:text-[#1E1B2E]'
                     }`}
                   >
                     Quote without GST
@@ -708,10 +708,10 @@ export const QuotationsManager: React.FC = () => {
               </div>
 
               {/* Top Meta Fields */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-[#0e1938] p-4 rounded-2xl border border-blue-500/20">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-[#FAF5FF] p-4 rounded-2xl border border-[#E8E0F0]">
                 <div className="space-y-3">
                   <div>
-                    <label className="text-[11px] font-bold uppercase tracking-wider text-slate-300 block mb-1">
+                    <label className="text-[11px] font-bold uppercase tracking-wider text-[#1E1B2E] block mb-1">
                       Quotation No:
                     </label>
                     <input
@@ -720,19 +720,19 @@ export const QuotationsManager: React.FC = () => {
                       value={quoteNumber}
                       onChange={e => setQuoteNumber(e.target.value)}
                       placeholder="QTN-2026-0001"
-                      className="w-full px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700 text-sm font-mono font-bold text-blue-400 outline-none focus:border-blue-500"
+                      className="w-full px-3.5 py-2 rounded-xl bg-white border border-[#D9D2E3] text-sm font-mono font-bold text-[#8E2D9D] outline-none focus:border-[#8E2D9D]"
                     />
                   </div>
 
                   <div>
                     <div className="flex justify-between items-center mb-1">
-                      <label className="text-[11px] font-bold uppercase tracking-wider text-slate-300">
+                      <label className="text-[11px] font-bold uppercase tracking-wider text-[#1E1B2E]">
                         Client / Billed To:
                       </label>
                       <button
                         type="button"
                         onClick={() => setShowQuickClient(!showQuickClient)}
-                        className="text-[10px] text-blue-400 hover:text-blue-300 font-semibold underline cursor-pointer"
+                        className="text-[10px] text-[#8E2D9D] hover:text-[#6F42C1] font-bold underline cursor-pointer"
                       >
                         {showQuickClient ? 'Cancel New' : '+ Add New Client'}
                       </button>
@@ -743,7 +743,7 @@ export const QuotationsManager: React.FC = () => {
                         id="select-client"
                         value={clientId}
                         onChange={e => setClientId(e.target.value)}
-                        className="w-full px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs font-semibold text-white outline-none focus:border-blue-500"
+                        className="w-full px-3.5 py-2 rounded-xl bg-white border border-[#D9D2E3] text-xs font-semibold text-[#1E1B2E] outline-none focus:border-[#8E2D9D]"
                       >
                         {clients.map(c => (
                           <option key={c.id} value={c.id}>
@@ -752,33 +752,33 @@ export const QuotationsManager: React.FC = () => {
                         ))}
                       </select>
                     ) : (
-                      <div className="p-3 bg-slate-900 rounded-xl border border-blue-500/40 space-y-2 mt-1 shadow-lg">
-                        <div className="text-[10px] font-bold text-blue-400 uppercase">Quick Add New Client</div>
+                      <div className="p-3 bg-white rounded-xl border border-[#E8E0F0] space-y-2 mt-1 shadow-md">
+                        <div className="text-[10px] font-bold text-[#8E2D9D] uppercase">Quick Add New Client</div>
                         <input
                           type="text"
                           placeholder="Client / Representative Name *"
                           value={newClientName}
                           onChange={e => setNewClientName(e.target.value)}
-                          className="w-full px-2.5 py-1.5 rounded bg-slate-950 border border-slate-700 text-xs text-white outline-none focus:border-blue-500"
+                          className="w-full px-2.5 py-1.5 rounded-lg bg-white border border-[#D9D2E3] text-xs text-[#1E1B2E] outline-none focus:border-[#8E2D9D]"
                         />
                         <input
                           type="text"
                           placeholder="Company / Business Name"
                           value={newClientCompany}
                           onChange={e => setNewClientCompany(e.target.value)}
-                          className="w-full px-2.5 py-1.5 rounded bg-slate-950 border border-slate-700 text-xs text-white outline-none focus:border-blue-500"
+                          className="w-full px-2.5 py-1.5 rounded-lg bg-white border border-[#D9D2E3] text-xs text-[#1E1B2E] outline-none focus:border-[#8E2D9D]"
                         />
                         <input
                           type="email"
                           placeholder="Email Address *"
                           value={newClientEmail}
                           onChange={e => setNewClientEmail(e.target.value)}
-                          className="w-full px-2.5 py-1.5 rounded bg-slate-950 border border-slate-700 text-xs text-white outline-none focus:border-blue-500"
+                          className="w-full px-2.5 py-1.5 rounded-lg bg-white border border-[#D9D2E3] text-xs text-[#1E1B2E] outline-none focus:border-[#8E2D9D]"
                         />
                         <button
                           type="button"
                           onClick={handleQuickAddClient}
-                          className="w-full py-1.5 rounded-lg bg-blue-600 text-white text-xs font-bold hover:bg-blue-500"
+                          className="w-full py-1.5 rounded-lg bg-[#8E2D9D] text-white text-xs font-bold hover:bg-[#6F42C1] cursor-pointer"
                         >
                           Save & Select Client
                         </button>
@@ -790,7 +790,7 @@ export const QuotationsManager: React.FC = () => {
                 <div className="space-y-3">
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="text-[11px] font-bold uppercase tracking-wider text-slate-300 block mb-1">
+                      <label className="text-[11px] font-bold uppercase tracking-wider text-[#1E1B2E] block mb-1">
                         Issue Date (DD-MM-YYYY):
                       </label>
                       <input
@@ -798,11 +798,11 @@ export const QuotationsManager: React.FC = () => {
                         type="date"
                         value={issueDate}
                         onChange={e => setIssueDate(e.target.value)}
-                        className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs font-mono text-white outline-none focus:border-blue-500"
+                        className="w-full px-3 py-2 rounded-xl bg-white border border-[#D9D2E3] text-xs font-mono text-[#1E1B2E] outline-none focus:border-[#8E2D9D]"
                       />
                     </div>
                     <div>
-                      <label className="text-[11px] font-bold uppercase tracking-wider text-slate-300 block mb-1">
+                      <label className="text-[11px] font-bold uppercase tracking-wider text-[#1E1B2E] block mb-1">
                         Valid Until (DD-MM-YYYY):
                       </label>
                       <input
@@ -810,28 +810,28 @@ export const QuotationsManager: React.FC = () => {
                         type="date"
                         value={validUntil}
                         onChange={e => setValidUntil(e.target.value)}
-                        className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs font-mono text-white outline-none focus:border-blue-500"
+                        className="w-full px-3 py-2 rounded-xl bg-white border border-[#D9D2E3] text-xs font-mono text-[#1E1B2E] outline-none focus:border-[#8E2D9D]"
                       />
                     </div>
                   </div>
 
                   {isGstApplicable ? (
                     <div>
-                      <label className="text-[11px] font-bold uppercase tracking-wider text-slate-300 block mb-1">
+                      <label className="text-[11px] font-bold uppercase tracking-wider text-[#1E1B2E] block mb-1">
                         Tax Rate & State Tax Type:
                       </label>
                       <select
                         id="select-gst-mode"
                         value={gstType}
                         onChange={e => setGstType(e.target.value as any)}
-                        className="w-full px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white outline-none focus:border-blue-500"
+                        className="w-full px-3.5 py-2 rounded-xl bg-white border border-[#D9D2E3] text-xs text-[#1E1B2E] outline-none focus:border-[#8E2D9D]"
                       >
                         <option value="igst">Integrated GST (IGST 18%) - Standard Inter-State</option>
                         <option value="cgst_sgst">CGST (9%) + SGST (9%) - Intra-State Odisha</option>
                       </select>
                     </div>
                   ) : (
-                    <div className="p-2.5 rounded-xl bg-emerald-950/40 border border-emerald-500/30 text-[11px] text-emerald-300">
+                    <div className="p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-[11px] text-[#059669]">
                       <strong>Non-GST Commercial Proposal:</strong> Zero tax is computed. No IGST or CGST/SGST lines will appear on the document.
                     </div>
                   )}
@@ -841,7 +841,7 @@ export const QuotationsManager: React.FC = () => {
               {/* Title & Payment Terms */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-[11px] font-bold uppercase tracking-wider text-slate-300 block mb-1">
+                  <label className="text-[11px] font-bold uppercase tracking-wider text-[#1E1B2E] block mb-1">
                     Project Title / Scope:
                   </label>
                   <input
@@ -849,12 +849,12 @@ export const QuotationsManager: React.FC = () => {
                     value={title}
                     onChange={e => setTitle(e.target.value)}
                     placeholder="e.g. Website Design & Hosting Infrastructure"
-                    className="w-full px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white outline-none focus:border-blue-500"
+                    className="w-full px-3.5 py-2 rounded-xl bg-white border border-[#D9D2E3] text-xs text-[#1E1B2E] outline-none focus:border-[#8E2D9D]"
                   />
                 </div>
 
                 <div>
-                  <label className="text-[11px] font-bold uppercase tracking-wider text-slate-300 block mb-1">
+                  <label className="text-[11px] font-bold uppercase tracking-wider text-[#1E1B2E] block mb-1">
                     Payment Terms:
                   </label>
                   <input
@@ -862,7 +862,7 @@ export const QuotationsManager: React.FC = () => {
                     value={paymentTerms}
                     onChange={e => setPaymentTerms(e.target.value)}
                     placeholder="e.g. 50% Milestone Advance, 50% on Delivery"
-                    className="w-full px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white outline-none focus:border-blue-500"
+                    className="w-full px-3.5 py-2 rounded-xl bg-white border border-[#D9D2E3] text-xs text-[#1E1B2E] outline-none focus:border-[#8E2D9D]"
                   />
                 </div>
               </div>
@@ -870,11 +870,11 @@ export const QuotationsManager: React.FC = () => {
               {/* Quick Presets */}
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-                    <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
+                  <div className="text-[10px] font-bold text-[#5F5A72] uppercase tracking-wider flex items-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5 text-[#8E2D9D]" />
                     <span>Quick Add Service Presets (Supabase Master):</span>
                   </div>
-                  <span className="text-[10px] text-slate-500">Click to insert line item</span>
+                  <span className="text-[10px] text-[#817B91]">Click to insert line item</span>
                 </div>
 
                 <div className="flex flex-wrap gap-2">
@@ -883,27 +883,27 @@ export const QuotationsManager: React.FC = () => {
                       key={preset.id}
                       type="button"
                       onClick={() => addItem(preset.service_name, preset.default_price, preset.sac_code || '998314')}
-                      className="px-3 py-1.5 rounded-lg bg-blue-600/20 hover:bg-blue-600 border border-blue-500/30 text-[11px] font-semibold text-blue-300 hover:text-white transition-all cursor-pointer flex items-center space-x-1.5"
+                      className="px-3 py-1.5 rounded-xl bg-[#FAF5FF] hover:bg-[#F3E8FF] border border-[#E8E0F0] text-[11px] font-bold text-[#8E2D9D] transition-all cursor-pointer flex items-center space-x-1.5 shadow-xs"
                       title={preset.description ? `${preset.description} (SAC: ${preset.sac_code || '998314'})` : `SAC: ${preset.sac_code || '998314'}`}
                     >
-                      <Plus className="w-3 h-3 text-cyan-400" />
+                      <Plus className="w-3 h-3 text-[#8E2D9D]" />
                       <span>{preset.service_name}</span>
-                      <span className="font-mono text-cyan-300 font-bold">₹{preset.default_price.toLocaleString('en-IN')}</span>
+                      <span className="font-mono text-[#1E1B2E] font-bold">₹{preset.default_price.toLocaleString('en-IN')}</span>
                     </button>
                   ))}
                 </div>
               </div>
 
               {/* LINE ITEMS TABLE */}
-              <div className="border border-blue-500/20 rounded-2xl overflow-hidden bg-[#0e1938]">
-                <div className="p-3 bg-[#0a132c] border-b border-blue-500/20 flex justify-between items-center">
-                  <div className="text-xs font-bold text-white uppercase tracking-wider">
+              <div className="border border-[#E8E0F0] rounded-2xl overflow-hidden bg-white">
+                <div className="p-3 bg-[#FAF8FF] border-b border-[#E8E0F0] flex justify-between items-center">
+                  <div className="text-xs font-bold text-[#1E1B2E] uppercase tracking-wider">
                     Commercial Line Items
                   </div>
                   <button
                     type="button"
                     onClick={() => addItem('', 10000)}
-                    className="text-xs font-bold text-blue-400 hover:text-white flex items-center space-x-1 px-2.5 py-1 rounded-lg bg-blue-600/20 hover:bg-blue-600 border border-blue-500/30 cursor-pointer transition-all"
+                    className="text-xs font-bold text-[#8E2D9D] hover:text-white flex items-center space-x-1 px-2.5 py-1 rounded-xl bg-[#FAF5FF] hover:bg-[#8E2D9D] border border-[#E8E0F0] cursor-pointer transition-all"
                   >
                     <Plus className="w-3.5 h-3.5" />
                     <span>Add Item</span>
@@ -911,7 +911,7 @@ export const QuotationsManager: React.FC = () => {
                 </div>
 
                 <div className="p-3 space-y-2">
-                  <div className="grid grid-cols-12 gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider px-2">
+                  <div className="grid grid-cols-12 gap-2 text-[10px] font-bold text-[#5F5A72] uppercase tracking-wider px-2">
                     <div className="col-span-5">Description</div>
                     <div className="col-span-2 text-center">Qty</div>
                     <div className="col-span-2 text-right">Rate (₹)</div>
@@ -920,7 +920,7 @@ export const QuotationsManager: React.FC = () => {
                   </div>
 
                   {items.map((item, idx) => (
-                    <div key={item.id} className="grid grid-cols-12 gap-2 items-center bg-slate-900/90 p-2.5 rounded-xl border border-slate-800 hover:border-blue-500/40 transition-colors shadow-inner">
+                    <div key={item.id} className="grid grid-cols-12 gap-2 items-center bg-[#FAF8FF] p-2.5 rounded-xl border border-[#E8E0F0] hover:border-[#C084FC]/60 transition-colors">
                       <div className="col-span-5">
                         <input
                           required
@@ -928,7 +928,7 @@ export const QuotationsManager: React.FC = () => {
                           placeholder="e.g. Website Design"
                           value={item.description}
                           onChange={e => updateItem(idx, 'description', e.target.value)}
-                          className="w-full px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-xs font-semibold text-white outline-none focus:border-blue-500"
+                          className="w-full px-3 py-1.5 rounded-lg bg-white border border-[#D9D2E3] text-xs font-semibold text-[#1E1B2E] outline-none focus:border-[#8E2D9D]"
                         />
                       </div>
                       <div className="col-span-2">
@@ -938,7 +938,7 @@ export const QuotationsManager: React.FC = () => {
                           min="1"
                           value={item.quantity}
                           onChange={e => updateItem(idx, 'quantity', Number(e.target.value))}
-                          className="w-full px-2 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-xs font-mono text-center text-white outline-none focus:border-blue-500"
+                          className="w-full px-2 py-1.5 rounded-lg bg-white border border-[#D9D2E3] text-xs font-mono text-center text-[#1E1B2E] outline-none focus:border-[#8E2D9D]"
                         />
                       </div>
                       <div className="col-span-2">
@@ -949,17 +949,17 @@ export const QuotationsManager: React.FC = () => {
                           step="500"
                           value={item.rate}
                           onChange={e => updateItem(idx, 'rate', Number(e.target.value))}
-                          className="w-full px-2.5 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-xs font-mono text-right text-white outline-none focus:border-blue-500"
+                          className="w-full px-2.5 py-1.5 rounded-lg bg-white border border-[#D9D2E3] text-xs font-mono text-right text-[#1E1B2E] outline-none focus:border-[#8E2D9D]"
                         />
                       </div>
-                      <div className="col-span-2 text-right font-mono font-bold text-cyan-400 text-xs pr-1">
+                      <div className="col-span-2 text-right font-mono font-bold text-[#1E1B2E] text-xs pr-1">
                         ₹ {item.amount.toLocaleString('en-IN')}
                       </div>
                       <div className="col-span-1 text-center">
                         <button
                           type="button"
                           onClick={() => removeItem(idx)}
-                          className="p-1.5 text-slate-400 hover:text-rose-400 rounded-lg hover:bg-rose-500/10 transition-colors"
+                          className="p-1.5 text-[#817B91] hover:text-[#DC2626] rounded-lg hover:bg-rose-50 transition-colors cursor-pointer"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -970,30 +970,30 @@ export const QuotationsManager: React.FC = () => {
               </div>
 
               {/* FINANCIAL BREAKDOWN BOX */}
-              <div className="bg-[#0e1938] rounded-2xl border-2 border-blue-500/30 p-5 space-y-3">
+              <div className="bg-[#FAF5FF] rounded-2xl border-2 border-[#E8E0F0] p-5 space-y-3">
                 <div className="flex justify-between items-center text-sm">
-                  <span className="font-semibold text-slate-300">Subtotal</span>
-                  <span className="font-mono font-bold text-white text-base">
+                  <span className="font-bold text-[#5F5A72]">Subtotal</span>
+                  <span className="font-mono font-bold text-[#1E1B2E] text-base">
                     ₹ {subtotal.toLocaleString('en-IN')}
                   </span>
                 </div>
 
                 {/* Discount Row */}
-                <div className="flex justify-between items-center text-sm py-1 border-t border-slate-800">
+                <div className="flex justify-between items-center text-sm py-1 border-t border-[#E8E0F0]">
                   <div className="flex items-center space-x-2">
-                    <span className="font-semibold text-slate-300">Discount</span>
-                    <div className="flex items-center space-x-1 bg-slate-900 rounded-lg p-0.5 border border-slate-700">
+                    <span className="font-bold text-[#5F5A72]">Discount</span>
+                    <div className="flex items-center space-x-1 bg-white rounded-lg p-0.5 border border-[#E8E0F0]">
                       <button
                         type="button"
                         onClick={() => setDiscountType('fixed')}
-                        className={`px-2 py-0.5 text-[10px] font-bold rounded ${discountType === 'fixed' ? 'bg-blue-600 text-white' : 'text-slate-400'}`}
+                        className={`px-2 py-0.5 text-[10px] font-bold rounded cursor-pointer ${discountType === 'fixed' ? 'bg-[#8E2D9D] text-white' : 'text-[#5F5A72]'}`}
                       >
                         ₹ Fixed
                       </button>
                       <button
                         type="button"
                         onClick={() => setDiscountType('percentage')}
-                        className={`px-2 py-0.5 text-[10px] font-bold rounded ${discountType === 'percentage' ? 'bg-blue-600 text-white' : 'text-slate-400'}`}
+                        className={`px-2 py-0.5 text-[10px] font-bold rounded cursor-pointer ${discountType === 'percentage' ? 'bg-[#8E2D9D] text-white' : 'text-[#5F5A72]'}`}
                       >
                         % Percent
                       </button>
@@ -1004,59 +1004,59 @@ export const QuotationsManager: React.FC = () => {
                       value={discountValue}
                       onChange={e => setDiscountValue(Number(e.target.value))}
                       placeholder="5000"
-                      className="w-24 px-2 py-1 rounded bg-slate-900 border border-slate-700 text-xs font-mono text-white outline-none focus:border-blue-500"
+                      className="w-24 px-2 py-1 rounded-lg bg-white border border-[#D9D2E3] text-xs font-mono text-[#1E1B2E] outline-none focus:border-[#8E2D9D]"
                     />
                   </div>
-                  <span className="font-mono font-bold text-emerald-400">
+                  <span className="font-mono font-bold text-[#059669]">
                     - ₹ {discountAmount.toLocaleString('en-IN')}
                   </span>
                 </div>
 
                 {/* Taxable Amount Row */}
-                <div className="flex justify-between items-center text-sm py-1 border-t border-slate-800">
-                  <span className="font-bold text-slate-200">Taxable Amount</span>
-                  <span className="font-mono font-bold text-white text-base">
+                <div className="flex justify-between items-center text-sm py-1 border-t border-[#E8E0F0]">
+                  <span className="font-bold text-[#1E1B2E]">Taxable Amount</span>
+                  <span className="font-mono font-bold text-[#1E1B2E] text-base">
                     ₹ {taxableAmount.toLocaleString('en-IN')}
                   </span>
                 </div>
 
                 {/* GST Row (Only when GST is active) */}
                 {isGstApplicable ? (
-                  <div className="flex justify-between items-center text-sm py-1 border-t border-slate-800">
+                  <div className="flex justify-between items-center text-sm py-1 border-t border-[#E8E0F0]">
                     <div className="flex items-center space-x-2">
-                      <span className="font-semibold text-slate-300">
+                      <span className="font-bold text-[#5F5A72]">
                         GST ({effectiveGstRate}%)
                       </span>
-                      <span className="text-[11px] text-slate-400">
+                      <span className="text-[11px] text-[#817B91]">
                         {gstType === 'cgst_sgst' ? '(CGST 9% + SGST 9%)' : '(IGST 18%)'}
                       </span>
                     </div>
-                    <span className="font-mono font-bold text-blue-400">
+                    <span className="font-mono font-bold text-[#8E2D9D]">
                       ₹ {(cgstAmount + sgstAmount + igstAmount).toLocaleString('en-IN')}
                     </span>
                   </div>
                 ) : (
-                  <div className="flex justify-between items-center text-xs py-1 border-t border-slate-800 text-emerald-400">
+                  <div className="flex justify-between items-center text-xs py-1 border-t border-[#E8E0F0] text-[#059669]">
                     <span>Taxation Mode</span>
                     <span className="font-bold uppercase tracking-wider">Non-GST Commercial Proposal (₹ 0 Tax)</span>
                   </div>
                 )}
 
                 {/* Grand Total Row */}
-                <div className="flex justify-between items-center pt-3 border-t-2 border-slate-700 text-base">
-                  <span className="font-black text-white text-lg">Grand Total</span>
-                  <span className="font-mono font-black text-cyan-400 text-xl tracking-tight">
+                <div className="flex justify-between items-center pt-3 border-t-2 border-[#E8E0F0] text-base">
+                  <span className="font-black text-[#1E1B2E] text-lg">Grand Total</span>
+                  <span className="font-mono font-black text-[#8E2D9D] text-xl tracking-tight">
                     ₹ {totalAmount.toLocaleString('en-IN')}
                   </span>
                 </div>
               </div>
 
               {/* ACTION BUTTONS */}
-              <div className="flex flex-col sm:flex-row justify-between items-center gap-3 pt-4 border-t border-slate-800">
+              <div className="flex flex-col sm:flex-row justify-between items-center gap-3 pt-4 border-t border-[#E8E0F0]">
                 <button
                   type="button"
                   onClick={() => setShowCreateModal(false)}
-                  className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-300 transition-colors w-full sm:w-auto"
+                  className="px-4 py-2.5 rounded-xl bg-[#FAF5FF] hover:bg-[#F3E8FF] text-xs font-bold text-[#5F5A72] border border-[#E8E0F0] transition-colors w-full sm:w-auto cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -1067,9 +1067,9 @@ export const QuotationsManager: React.FC = () => {
                     id="btn-save-draft"
                     type="button"
                     onClick={() => handleSaveQuotation('draft')}
-                    className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-xs font-bold flex items-center space-x-1.5 transition-all shadow-xs cursor-pointer"
+                    className="px-4 py-2.5 rounded-xl bg-white hover:bg-[#FAF5FF] border border-[#E8E0F0] text-[#1E1B2E] text-xs font-bold flex items-center space-x-1.5 transition-all shadow-xs cursor-pointer"
                   >
-                    <Save className="w-4 h-4 text-slate-400" />
+                    <Save className="w-4 h-4 text-[#817B91]" />
                     <span>Save Draft</span>
                   </button>
 
@@ -1078,7 +1078,7 @@ export const QuotationsManager: React.FC = () => {
                     id="btn-generate-pdf"
                     type="button"
                     onClick={handleGeneratePDFFromModal}
-                    className="px-4 py-2.5 rounded-xl bg-cyan-500/20 hover:bg-cyan-600 text-cyan-300 hover:text-white border border-cyan-500/30 text-xs font-bold flex items-center space-x-1.5 transition-all shadow-xs cursor-pointer"
+                    className="px-4 py-2.5 rounded-xl bg-[#FAF5FF] hover:bg-[#F3E8FF] text-[#8E2D9D] border border-[#E8E0F0] text-xs font-bold flex items-center space-x-1.5 transition-all shadow-xs cursor-pointer"
                   >
                     <Download className="w-4 h-4" />
                     <span>Generate PDF</span>
@@ -1089,7 +1089,7 @@ export const QuotationsManager: React.FC = () => {
                     id="btn-save-pending"
                     type="button"
                     onClick={() => handleSaveQuotation('Pending')}
-                    className="px-5 py-2.5 rounded-xl bg-amber-600/20 hover:bg-amber-600 text-amber-300 hover:text-white border border-amber-500/40 text-xs font-bold flex items-center space-x-1.5 transition-all cursor-pointer"
+                    className="px-5 py-2.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 text-xs font-bold flex items-center space-x-1.5 transition-all cursor-pointer"
                   >
                     <Clock className="w-4 h-4" />
                     <span>Save Pending</span>
@@ -1100,7 +1100,7 @@ export const QuotationsManager: React.FC = () => {
                     id="btn-send-quote"
                     type="button"
                     onClick={() => handleSaveQuotation('sent')}
-                    className="px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-black flex items-center space-x-2 transition-all shadow-md shadow-blue-600/30 hover:scale-[1.02] cursor-pointer"
+                    className="px-6 py-2.5 rounded-xl bg-[#8E2D9D] hover:bg-[#6F42C1] text-white text-xs font-black flex items-center space-x-2 transition-all shadow-md shadow-[#8E2D9D]/25 hover:scale-[1.01] cursor-pointer"
                   >
                     <Send className="w-4 h-4" />
                     <span>Save & Send Quote</span>
@@ -1115,67 +1115,67 @@ export const QuotationsManager: React.FC = () => {
 
       {/* OFFICIAL EMAIL MODAL (Phase 6 Mandate) */}
       {emailModalQuote && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-[#0b132c] border border-cyan-500/30 rounded-3xl w-full max-w-2xl p-6 sm:p-8 shadow-2xl text-slate-200">
-            <div className="flex items-center justify-between pb-4 border-b border-slate-800 mb-6">
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white border border-[#E8E0F0] rounded-3xl w-full max-w-2xl p-6 sm:p-8 shadow-2xl text-[#1E1B2E]">
+            <div className="flex items-center justify-between pb-4 border-b border-[#E8E0F0] mb-6">
               <div className="flex items-center space-x-3">
-                <div className="p-2.5 rounded-xl bg-cyan-600/20 border border-cyan-500/30 text-cyan-400">
+                <div className="p-2.5 rounded-2xl bg-[#FAF5FF] border border-[#E8E0F0] text-[#8E2D9D]">
                   <Mail className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-white">Email Commercial Quotation</h3>
-                  <p className="text-xs text-slate-400">Sent via verified agency address: <span className="font-mono text-cyan-300 font-semibold">admin@fusionforgecreation.com</span></p>
+                  <h3 className="text-base font-bold text-[#1E1B2E]">Email Commercial Quotation</h3>
+                  <p className="text-xs text-[#5F5A72]">Sent via verified agency address: <span className="font-mono text-[#8E2D9D] font-bold">admin@fusionforgecreation.com</span></p>
                 </div>
               </div>
               <button
                 onClick={() => setEmailModalQuote(null)}
-                className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white"
+                className="p-2 rounded-xl bg-[#FAF5FF] hover:bg-[#F3E8FF] text-[#817B91] hover:text-[#1E1B2E] cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-3 text-xs bg-[#0e1938] p-3.5 rounded-xl border border-blue-500/20">
+              <div className="grid grid-cols-2 gap-3 text-xs bg-[#FAF8FF] p-3.5 rounded-2xl border border-[#E8E0F0]">
                 <div>
-                  <span className="text-slate-400 block text-[10px] uppercase font-bold">From (Official Sender):</span>
-                  <span className="font-mono text-cyan-300 font-bold">admin@fusionforgecreation.com</span>
+                  <span className="text-[#817B91] block text-[10px] uppercase font-bold">From (Official Sender):</span>
+                  <span className="font-mono text-[#8E2D9D] font-bold">admin@fusionforgecreation.com</span>
                 </div>
                 <div>
-                  <span className="text-slate-400 block text-[10px] uppercase font-bold">Recipient (Customer):</span>
-                  <span className="font-semibold text-white">{emailModalQuote.clientEmail}</span>
+                  <span className="text-[#817B91] block text-[10px] uppercase font-bold">Recipient (Customer):</span>
+                  <span className="font-bold text-[#1E1B2E]">{emailModalQuote.clientEmail}</span>
                 </div>
               </div>
 
               <div>
-                <label className="text-[11px] font-bold uppercase tracking-wider text-slate-300 block mb-1">
+                <label className="text-[11px] font-bold uppercase tracking-wider text-[#1E1B2E] block mb-1">
                   Subject Line:
                 </label>
                 <input
                   type="text"
                   value={emailSubject}
                   onChange={e => setEmailSubject(e.target.value)}
-                  className="w-full px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white outline-none focus:border-cyan-500"
+                  className="w-full px-3.5 py-2 rounded-xl bg-white border border-[#D9D2E3] text-xs text-[#1E1B2E] outline-none focus:border-[#8E2D9D]"
                 />
               </div>
 
               <div>
-                <label className="text-[11px] font-bold uppercase tracking-wider text-slate-300 block mb-1">
+                <label className="text-[11px] font-bold uppercase tracking-wider text-[#1E1B2E] block mb-1">
                   Email Message Body:
                 </label>
                 <textarea
                   rows={6}
                   value={emailNotes}
                   onChange={e => setEmailNotes(e.target.value)}
-                  className="w-full px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs font-sans text-slate-200 outline-none focus:border-cyan-500 leading-relaxed"
+                  className="w-full px-3.5 py-2 rounded-xl bg-white border border-[#D9D2E3] text-xs font-sans text-[#1E1B2E] outline-none focus:border-[#8E2D9D] leading-relaxed"
                 />
               </div>
 
-              <div className="flex justify-end space-x-3 pt-4 border-t border-slate-800">
+              <div className="flex justify-end space-x-3 pt-4 border-t border-[#E8E0F0]">
                 <button
                   type="button"
                   onClick={() => setEmailModalQuote(null)}
-                  className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-300"
+                  className="px-4 py-2 rounded-xl bg-[#FAF5FF] hover:bg-[#F3E8FF] text-xs font-bold text-[#5F5A72] border border-[#E8E0F0] cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -1183,7 +1183,7 @@ export const QuotationsManager: React.FC = () => {
                   type="button"
                   disabled={isSendingEmail}
                   onClick={handleSendEmailSubmit}
-                  className="px-6 py-2 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white text-xs font-black flex items-center space-x-2 transition-all shadow-md shadow-cyan-600/30 cursor-pointer disabled:opacity-50"
+                  className="px-6 py-2 rounded-xl bg-[#8E2D9D] hover:bg-[#6F42C1] text-white text-xs font-black flex items-center space-x-2 transition-all shadow-md shadow-[#8E2D9D]/25 cursor-pointer disabled:opacity-50"
                 >
                   <Send className="w-4 h-4" />
                   <span>{isSendingEmail ? 'Dispatching...' : 'Dispatch Email Now'}</span>
@@ -1196,20 +1196,20 @@ export const QuotationsManager: React.FC = () => {
 
       {/* COMMERCIAL QUOTATION PREVIEW MODAL */}
       {previewQuote && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-[#0b132c] border border-blue-500/30 rounded-3xl w-full max-w-2xl p-6 sm:p-8 shadow-2xl text-slate-200 max-h-[90vh] overflow-y-auto">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-800 mb-6">
-              <BrandLogo size="md" variant="full" theme="dark" />
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white border border-[#E8E0F0] rounded-3xl w-full max-w-2xl p-6 sm:p-8 shadow-2xl text-[#1E1B2E] max-h-[90vh] overflow-y-auto">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#E8E0F0] mb-6">
+              <BrandLogo size="md" variant="full" theme="light" />
               <div className="flex items-center gap-3">
                 <div className="text-right">
-                  <span className="text-[10px] font-black tracking-widest text-cyan-400 uppercase bg-cyan-500/10 px-3 py-1 rounded-full border border-cyan-500/30">
+                  <span className="text-[10px] font-black tracking-widest text-[#8E2D9D] uppercase bg-[#FAF5FF] px-3 py-1 rounded-full border border-[#E8E0F0]">
                     COMMERCIAL QUOTATION
                   </span>
-                  <div className="font-mono text-xs font-bold text-blue-400 mt-1">{previewQuote.quoteNumber}</div>
+                  <div className="font-mono text-xs font-bold text-[#8E2D9D] mt-1">{previewQuote.quoteNumber}</div>
                 </div>
                 <button
                   onClick={() => setPreviewQuote(null)}
-                  className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white"
+                  className="p-2 rounded-xl bg-[#FAF5FF] hover:bg-[#F3E8FF] text-[#817B91] hover:text-[#1E1B2E] cursor-pointer"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -1218,27 +1218,27 @@ export const QuotationsManager: React.FC = () => {
 
             <div className="space-y-5">
               {/* Seller & Client Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 rounded-xl bg-[#0e1938] border border-blue-500/20 text-xs">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 rounded-2xl bg-[#FAF8FF] border border-[#E8E0F0] text-xs">
                 <div>
-                  <div className="text-cyan-400 font-bold uppercase text-[10px] tracking-wider mb-1 flex items-center justify-between">
+                  <div className="text-[#8E2D9D] font-bold uppercase text-[10px] tracking-wider mb-1 flex items-center justify-between">
                     <span>Seller / Agency</span>
-                    <span className="font-mono text-[9px] text-slate-400">SAC: {agencyConfig.sacCode || '998314'}</span>
+                    <span className="font-mono text-[9px] text-[#817B91]">SAC: {agencyConfig.sacCode || '998314'}</span>
                   </div>
-                  <div className="text-white font-bold text-sm">{agencyConfig.company_name || agencyConfig.name || 'Fusion Forge Creation'}</div>
-                  <div className="text-slate-300 text-[11px] mt-0.5">{agencyConfig.address}</div>
-                  <div className="text-slate-400 text-[11px] font-mono mt-1">
+                  <div className="text-[#1E1B2E] font-bold text-sm">{agencyConfig.company_name || agencyConfig.name || 'Fusion Forge Creation'}</div>
+                  <div className="text-[#5F5A72] text-[11px] mt-0.5">{agencyConfig.address}</div>
+                  <div className="text-[#817B91] text-[11px] font-mono mt-1">
                     {agencyConfig.gstin ? `GSTIN: ${agencyConfig.gstin} | ` : ''}PAN: {agencyConfig.pan || 'AALFF1234F'}
                     {agencyConfig.msme_number ? ` | MSME: ${agencyConfig.msme_number}` : ''}
                   </div>
                 </div>
 
-                <div className="sm:border-l sm:border-slate-800 sm:pl-4">
-                  <div className="text-blue-400 font-bold uppercase text-[10px] tracking-wider mb-1">Client / Billed To:</div>
-                  <div className="text-white font-bold text-sm">{previewQuote.clientCompany || previewQuote.clientName}</div>
-                  <div className="text-slate-300 text-[11px]">Attn: {previewQuote.clientName}</div>
-                  <div className="text-slate-400 text-[11px]">{previewQuote.clientEmail}</div>
-                  <div className="text-slate-400 text-[10px] mt-1 font-mono">
-                    Issue: <span className="text-white font-bold">{formatDateDDMMYYYY(previewQuote.issueDate)}</span> • Valid: <span className="text-white font-bold">{formatDateDDMMYYYY(previewQuote.validUntil)}</span>
+                <div className="sm:border-l sm:border-[#E8E0F0] sm:pl-4">
+                  <div className="text-[#8E2D9D] font-bold uppercase text-[10px] tracking-wider mb-1">Client / Billed To:</div>
+                  <div className="text-[#1E1B2E] font-bold text-sm">{previewQuote.clientCompany || previewQuote.clientName}</div>
+                  <div className="text-[#5F5A72] text-[11px]">Attn: {previewQuote.clientName}</div>
+                  <div className="text-[#817B91] text-[11px]">{previewQuote.clientEmail}</div>
+                  <div className="text-[#817B91] text-[10px] mt-1 font-mono">
+                    Issue: <span className="text-[#1E1B2E] font-bold">{formatDateDDMMYYYY(previewQuote.issueDate)}</span> • Valid: <span className="text-[#1E1B2E] font-bold">{formatDateDDMMYYYY(previewQuote.validUntil)}</span>
                   </div>
                 </div>
               </div>
@@ -1246,33 +1246,33 @@ export const QuotationsManager: React.FC = () => {
               {/* Line Items Table */}
               <table className="w-full text-xs text-left border-collapse">
                 <thead>
-                  <tr className="border-b border-slate-800 text-slate-400 uppercase text-[10px]">
+                  <tr className="border-b border-[#E8E0F0] text-[#5F5A72] uppercase text-[10px]">
                     <th className="py-2.5 px-2">Description</th>
                     <th className="py-2.5 px-2 text-center">Qty</th>
                     <th className="py-2.5 px-2 text-right">Rate (₹)</th>
                     <th className="py-2.5 px-2 text-right">Amount (₹)</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800 font-mono">
+                <tbody className="divide-y divide-[#E8E0F0] font-mono">
                   {previewQuote.items.map((item, idx) => (
-                    <tr key={idx} className="hover:bg-slate-900/50">
-                      <td className="py-3 px-2 font-sans font-semibold text-slate-200">{item.description}</td>
-                      <td className="py-3 px-2 text-center text-slate-300">{item.quantity}</td>
-                      <td className="py-3 px-2 text-right text-slate-300">₹ {item.rate.toLocaleString('en-IN')}</td>
-                      <td className="py-3 px-2 text-right font-bold text-cyan-400">₹ {item.amount.toLocaleString('en-IN')}</td>
+                    <tr key={idx} className="hover:bg-[#FAF8FF]">
+                      <td className="py-3 px-2 font-sans font-bold text-[#1E1B2E]">{item.description}</td>
+                      <td className="py-3 px-2 text-center text-[#5F5A72]">{item.quantity}</td>
+                      <td className="py-3 px-2 text-right text-[#5F5A72]">₹ {item.rate.toLocaleString('en-IN')}</td>
+                      <td className="py-3 px-2 text-right font-bold text-[#1E1B2E]">₹ {item.amount.toLocaleString('en-IN')}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
 
               {/* Summary Card */}
-              <div className="p-4 rounded-xl bg-[#0e1938] border border-blue-500/20 space-y-2 text-xs">
+              <div className="p-4 rounded-2xl bg-[#FAF8FF] border border-[#E8E0F0] space-y-2 text-xs">
                 <div className="flex justify-between">
-                  <span className="text-slate-400">Subtotal:</span>
-                  <span className="font-mono font-bold text-white">₹ {previewQuote.subtotal.toLocaleString('en-IN')}</span>
+                  <span className="text-[#5F5A72] font-semibold">Subtotal:</span>
+                  <span className="font-mono font-bold text-[#1E1B2E]">₹ {previewQuote.subtotal.toLocaleString('en-IN')}</span>
                 </div>
                 {previewQuote.discountAmount > 0 && (
-                  <div className="flex justify-between text-emerald-400">
+                  <div className="flex justify-between text-[#059669] font-semibold">
                     <span>Discount:</span>
                     <span className="font-mono font-bold">- ₹ {previewQuote.discountAmount.toLocaleString('en-IN')}</span>
                   </div>
@@ -1280,36 +1280,36 @@ export const QuotationsManager: React.FC = () => {
                 
                 {previewQuote.gstApplicable !== false && previewQuote.gstType !== 'none' && (previewQuote.totalAmount > (previewQuote.taxableAmount || previewQuote.subtotal)) ? (
                   <>
-                    <div className="flex justify-between border-t border-slate-800 pt-1.5 font-bold">
-                      <span className="text-slate-300">Taxable Amount:</span>
-                      <span className="font-mono text-white">₹ {(previewQuote.taxableAmount || (previewQuote.subtotal - previewQuote.discountAmount)).toLocaleString('en-IN')}</span>
+                    <div className="flex justify-between border-t border-[#E8E0F0] pt-1.5 font-bold">
+                      <span className="text-[#5F5A72]">Taxable Amount:</span>
+                      <span className="font-mono text-[#1E1B2E]">₹ {(previewQuote.taxableAmount || (previewQuote.subtotal - previewQuote.discountAmount)).toLocaleString('en-IN')}</span>
                     </div>
-                    <div className="flex justify-between text-blue-400">
+                    <div className="flex justify-between text-[#8E2D9D] font-bold">
                       <span>GST ({previewQuote.gstRate || 18}%):</span>
                       <span className="font-mono font-bold">₹ {((previewQuote.cgstAmount || 0) + (previewQuote.sgstAmount || 0) + (previewQuote.igstAmount || 0)).toLocaleString('en-IN')}</span>
                     </div>
                   </>
                 ) : (
-                  <div className="flex justify-between border-t border-slate-800 pt-1.5 text-emerald-400 font-semibold">
+                  <div className="flex justify-between border-t border-[#E8E0F0] pt-1.5 text-[#059669] font-bold">
                     <span>Taxation:</span>
                     <span>Commercial Non-GST Quotation (₹ 0 Tax)</span>
                   </div>
                 )}
 
-                <div className="flex justify-between border-t-2 border-slate-700 pt-2 text-sm font-black">
-                  <span className="text-white">Grand Total:</span>
-                  <span className="font-mono text-cyan-400 text-base">₹ {previewQuote.totalAmount.toLocaleString('en-IN')}</span>
+                <div className="flex justify-between border-t-2 border-[#E8E0F0] pt-2 text-sm font-black">
+                  <span className="text-[#1E1B2E]">Grand Total:</span>
+                  <span className="font-mono text-[#8E2D9D] text-base font-black">₹ {previewQuote.totalAmount.toLocaleString('en-IN')}</span>
                 </div>
               </div>
 
               {/* Terms & Conditions */}
-              <div className="p-4 rounded-xl bg-[#0e1938] border border-blue-500/20 text-xs space-y-1.5">
-                <div className="text-slate-400 font-bold uppercase tracking-wider text-[10px]">Terms & Conditions:</div>
-                <div className="text-[11px] text-slate-300 space-y-1 leading-relaxed">
+              <div className="p-4 rounded-2xl bg-[#FAF8FF] border border-[#E8E0F0] text-xs space-y-1.5">
+                <div className="text-[#5F5A72] font-bold uppercase tracking-wider text-[10px]">Terms & Conditions:</div>
+                <div className="text-[11px] text-[#4F4960] space-y-1 leading-relaxed">
                   {(previewQuote.termsAndConditions && previewQuote.termsAndConditions.length > 0) ? (
                     previewQuote.termsAndConditions.map((t, idx) => (
                       <div key={idx} className="flex items-start gap-1.5">
-                        <span className="text-slate-500 font-bold">{idx + 1}.</span>
+                        <span className="text-[#817B91] font-bold">{idx + 1}.</span>
                         <span>{t}</span>
                       </div>
                     ))
@@ -1320,54 +1320,54 @@ export const QuotationsManager: React.FC = () => {
               </div>
 
               {/* Footer: Stamp & Signatures */}
-              <div className="p-4 rounded-xl bg-[#0e1938] border border-blue-500/20 flex flex-col sm:flex-row justify-between items-end gap-6 text-xs">
+              <div className="p-4 rounded-2xl bg-[#FAF8FF] border border-[#E8E0F0] flex flex-col sm:flex-row justify-between items-end gap-6 text-xs">
                 {/* Stamp on the left of Authorized Signatory area */}
                 <div>
                   {(agencyConfig.stamp_url || agencyConfig.stampUrl) ? (
                     <div className="flex flex-col items-center">
-                      <div className="w-20 h-20 rounded-2xl bg-white/95 border border-slate-300 p-1 flex items-center justify-center overflow-hidden shadow-inner">
+                      <div className="w-20 h-20 rounded-2xl bg-white border border-[#E8E0F0] p-1 flex items-center justify-center overflow-hidden shadow-xs">
                         <img 
                           src={agencyConfig.stamp_url || agencyConfig.stampUrl} 
                           alt="Company Stamp" 
                           className="max-h-full max-w-full object-contain mix-blend-multiply" 
                         />
                       </div>
-                      <span className="text-[9px] font-bold text-slate-400 mt-1 uppercase tracking-wider">Official Stamp</span>
+                      <span className="text-[9px] font-bold text-[#817B91] mt-1 uppercase tracking-wider">Official Stamp</span>
                     </div>
                   ) : (
-                    <div className="w-20 h-20 border-2 border-dashed border-slate-700 rounded-2xl flex flex-col items-center justify-center text-slate-500 text-[10px] text-center p-1 bg-slate-900/40">
-                      <div className="font-bold text-slate-400">OFFICIAL STAMP</div>
-                      <div className="text-[8px] text-slate-500 mt-0.5">{agencyConfig.company_name || agencyConfig.name || 'Fusion Forge Creation'}</div>
+                    <div className="w-20 h-20 border-2 border-dashed border-[#D9D2E3] rounded-2xl flex flex-col items-center justify-center text-[#817B91] text-[10px] text-center p-1 bg-white">
+                      <div className="font-bold text-[#5F5A72]">OFFICIAL STAMP</div>
+                      <div className="text-[8px] text-[#817B91] mt-0.5">{agencyConfig.company_name || agencyConfig.name || 'Fusion Forge Creation'}</div>
                     </div>
                   )}
                 </div>
 
                 <div className="text-center sm:text-right space-y-1.5">
-                  <div className="text-[11px] text-slate-400">For <strong>{agencyConfig.company_name || agencyConfig.name || 'Fusion Forge Creation'}</strong></div>
+                  <div className="text-[11px] text-[#5F5A72]">For <strong>{agencyConfig.company_name || agencyConfig.name || 'Fusion Forge Creation'}</strong></div>
                   <div className="h-12 flex items-center justify-center sm:justify-end">
                     {agencyConfig.signature_url ? (
                       <img 
                         src={agencyConfig.signature_url} 
                         alt="Authorized Signature" 
-                        className="max-h-12 max-w-[160px] object-contain"
+                        className="max-h-12 max-w-[160px] object-contain" 
                       />
                     ) : (
-                      <div className="font-serif italic text-cyan-400 font-bold text-base tracking-wider opacity-90">
+                      <div className="font-serif italic text-[#8E2D9D] font-bold text-base tracking-wider opacity-90">
                         Authorized Signature
                       </div>
                     )}
                   </div>
-                  <div className="text-[11px] font-bold text-white border-t border-slate-700 pt-1 uppercase tracking-wider">
+                  <div className="text-[11px] font-bold text-[#1E1B2E] border-t border-[#E8E0F0] pt-1 uppercase tracking-wider">
                     Authorised Signatory
                   </div>
                 </div>
               </div>
 
               {/* Actions in Preview */}
-              <div className="flex justify-between items-center pt-4 border-t border-slate-800">
+              <div className="flex justify-between items-center pt-4 border-t border-[#E8E0F0]">
                 <button
                   onClick={() => openEmailModal(previewQuote)}
-                  className="px-4 py-2 rounded-xl bg-cyan-600/20 hover:bg-cyan-600 text-cyan-300 hover:text-white text-xs font-bold flex items-center space-x-1.5 border border-cyan-500/30"
+                  className="px-4 py-2 rounded-xl bg-[#FAF5FF] hover:bg-[#F3E8FF] text-[#8E2D9D] text-xs font-bold flex items-center space-x-1.5 border border-[#E8E0F0] cursor-pointer"
                 >
                   <Mail className="w-4 h-4" />
                   <span>Email Quote</span>
@@ -1375,7 +1375,7 @@ export const QuotationsManager: React.FC = () => {
 
                 <button
                   onClick={() => generateQuotationPDF(previewQuote, agencyConfig)}
-                  className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold flex items-center space-x-2 transition-all shadow-sm cursor-pointer"
+                  className="px-5 py-2 rounded-xl bg-[#8E2D9D] hover:bg-[#6F42C1] text-white text-xs font-bold flex items-center space-x-2 transition-all shadow-md shadow-[#8E2D9D]/25 cursor-pointer"
                 >
                   <Download className="w-4 h-4" />
                   <span>Download COMMERCIAL QUOTATION PDF</span>

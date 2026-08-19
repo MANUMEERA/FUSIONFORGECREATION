@@ -239,17 +239,17 @@ export const PaymentsManager: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-white flex items-center gap-2.5">
-            <CreditCard className="w-6 h-6 text-blue-400" />
+          <h1 className="text-2xl font-bold text-[#1E1B2E] flex items-center gap-2.5">
+            <CreditCard className="w-6 h-6 text-[#8E2D9D]" />
             Payments & Receipts
           </h1>
-          <p className="text-sm text-slate-400">
+          <p className="text-sm text-[#5F5A72]">
             Track customer payments, reconcile against GST invoices, and issue digital receipts with print & official email dispatch.
           </p>
         </div>
         <button
           onClick={() => setIsModalOpen(true)}
-          className="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs flex items-center space-x-2 transition-all shadow-lg shadow-blue-600/30"
+          className="px-4 py-2.5 rounded-xl bg-[#8E2D9D] hover:bg-[#6F42C1] text-white font-semibold text-xs flex items-center space-x-2 transition-all shadow-xs cursor-pointer"
         >
           <Plus className="w-4 h-4" />
           <span>Record Payment</span>
@@ -258,26 +258,26 @@ export const PaymentsManager: React.FC = () => {
 
       {/* Summary KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="p-4 rounded-xl bg-slate-900/60 border border-slate-800/80">
-          <div className="text-xs text-slate-400 font-medium mb-1">Total Collections</div>
-          <div className="text-2xl font-black text-white">₹{totalCollected.toLocaleString('en-IN')}</div>
-          <div className="text-[11px] text-emerald-400 flex items-center gap-1 mt-1 font-medium">
+        <div className="p-4 rounded-xl bg-white border border-[#E8E0F0] shadow-xs">
+          <div className="text-xs text-[#5F5A72] font-semibold mb-1">Total Collections</div>
+          <div className="text-2xl font-black text-[#1E1B2E]">₹{totalCollected.toLocaleString('en-IN')}</div>
+          <div className="text-[11px] text-[#059669] flex items-center gap-1 mt-1 font-bold">
             <CheckCircle2 className="w-3.5 h-3.5" /> {payments.length} verified transactions
           </div>
         </div>
 
-        <div className="p-4 rounded-xl bg-slate-900/60 border border-slate-800/80">
-          <div className="text-xs text-slate-400 font-medium mb-1">NEFT / RTGS / IMPS</div>
-          <div className="text-2xl font-black text-cyan-400">₹{bankTransferTotal.toLocaleString('en-IN')}</div>
-          <div className="text-[11px] text-slate-400 mt-1 font-medium">
+        <div className="p-4 rounded-xl bg-white border border-[#E8E0F0] shadow-xs">
+          <div className="text-xs text-[#5F5A72] font-semibold mb-1">NEFT / RTGS / IMPS</div>
+          <div className="text-2xl font-black text-[#8E2D9D]">₹{bankTransferTotal.toLocaleString('en-IN')}</div>
+          <div className="text-[11px] text-[#5F5A72] mt-1 font-medium">
             Direct Corporate Settlements
           </div>
         </div>
 
-        <div className="p-4 rounded-xl bg-slate-900/60 border border-slate-800/80">
-          <div className="text-xs text-slate-400 font-medium mb-1">UPI & Instant Gateway</div>
-          <div className="text-2xl font-black text-purple-400">₹{upiTotal.toLocaleString('en-IN')}</div>
-          <div className="text-[11px] text-slate-400 mt-1 font-medium">
+        <div className="p-4 rounded-xl bg-white border border-[#E8E0F0] shadow-xs">
+          <div className="text-xs text-[#5F5A72] font-semibold mb-1">UPI & Instant Gateway</div>
+          <div className="text-2xl font-black text-[#6F42C1]">₹{upiTotal.toLocaleString('en-IN')}</div>
+          <div className="text-[11px] text-[#5F5A72] mt-1 font-medium">
             Virtual Payment Address (VPA)
           </div>
         </div>
@@ -286,19 +286,19 @@ export const PaymentsManager: React.FC = () => {
       {/* Search & Filter Bar */}
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
-          <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+          <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#817B91]" />
           <input
             type="text"
             placeholder="Search by receipt #, client, invoice #, transaction ref..."
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 rounded-xl bg-slate-900/80 border border-slate-800 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-blue-500"
+            className="w-full pl-9 pr-4 py-2 rounded-xl bg-white border border-[#E8E0F0] text-xs text-[#1E1B2E] placeholder:text-[#817B91] focus:outline-none focus:border-[#8E2D9D]"
           />
         </div>
         <select
           value={methodFilter}
           onChange={e => setMethodFilter(e.target.value)}
-          className="px-3 py-2 rounded-xl bg-slate-900/80 border border-slate-800 text-xs text-slate-300 focus:outline-none focus:border-blue-500"
+          className="px-3 py-2 rounded-xl bg-white border border-[#E8E0F0] text-xs text-[#1E1B2E] focus:outline-none focus:border-[#8E2D9D]"
         >
           <option value="all">All Payment Methods</option>
           <option value="bank_transfer">Bank Transfer (NEFT/RTGS)</option>
@@ -310,10 +310,10 @@ export const PaymentsManager: React.FC = () => {
       </div>
 
       {/* Payments Table */}
-      <div className="rounded-xl border border-slate-800/80 bg-slate-900/40 overflow-hidden">
+      <div className="rounded-xl border border-[#E8E0F0] bg-white overflow-hidden shadow-xs">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-slate-800/50 text-slate-400 font-semibold border-b border-slate-800">
+            <thead className="bg-[#FAF8FF] text-[#5F5A72] font-semibold border-b border-[#E8E0F0]">
               <tr>
                 <th className="p-3.5">Receipt #</th>
                 <th className="p-3.5">Date</th>
@@ -325,10 +325,10 @@ export const PaymentsManager: React.FC = () => {
                 <th className="p-3.5 text-center">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/60">
+            <tbody className="divide-y divide-[#E8E0F0]">
               {filteredPayments.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="p-8 text-center text-slate-500">
+                  <td colSpan={8} className="p-8 text-center text-[#817B91]">
                     No payment records found. Record a payment above to populate the ledger.
                   </td>
                 </tr>
@@ -338,53 +338,53 @@ export const PaymentsManager: React.FC = () => {
                   const emailRecipient = payment.emailStatus?.recipient || payment.email_recipient;
 
                   return (
-                    <tr key={payment.id} className="hover:bg-slate-800/30 transition-colors">
+                    <tr key={payment.id} className="hover:bg-[#FAF8FF] transition-colors">
                       <td className="p-3.5">
-                        <div className="font-bold text-white font-mono">{payment.receiptNumber}</div>
-                        <div className="text-[10px] text-slate-400">{payment.recordedBy || 'Accounts'}</div>
+                        <div className="font-bold text-[#1E1B2E] font-mono">{payment.receiptNumber}</div>
+                        <div className="text-[10px] text-[#817B91]">{payment.recordedBy || 'Accounts'}</div>
                       </td>
-                      <td className="p-3.5 text-slate-300">{payment.paymentDate}</td>
+                      <td className="p-3.5 text-[#5F5A72]">{payment.paymentDate}</td>
                       <td className="p-3.5">
-                        <div className="font-semibold text-white">{payment.clientName}</div>
-                        <div className="text-[11px] text-blue-400 font-mono">{payment.invoiceNumber}</div>
+                        <div className="font-semibold text-[#1E1B2E]">{payment.clientName}</div>
+                        <div className="text-[11px] text-[#8E2D9D] font-mono font-bold">{payment.invoiceNumber}</div>
                       </td>
                       <td className="p-3.5">
                         <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${
                           payment.paymentMethod === 'bank_transfer'
-                            ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20'
+                            ? 'bg-[#FAF5FF] text-[#8E2D9D] border border-[#C084FC]'
                             : payment.paymentMethod === 'upi'
-                            ? 'bg-purple-500/10 text-purple-400 border border-purple-500/20'
+                            ? 'bg-purple-50 text-purple-700 border border-purple-200'
                             : payment.paymentMethod === 'cash'
-                            ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                            ? 'bg-amber-50 text-amber-700 border border-amber-200'
                             : payment.paymentMethod === 'cheque'
-                            ? 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/20'
+                            ? 'bg-cyan-50 text-cyan-700 border border-cyan-200'
                             : payment.paymentMethod === 'credit_card'
-                            ? 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20'
-                            : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                            ? 'bg-indigo-50 text-indigo-700 border border-indigo-200'
+                            : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                         }`}>
                           {payment.paymentMethod.replace('_', ' ').toUpperCase()}
                         </span>
                       </td>
-                      <td className="p-3.5 text-slate-300 font-mono text-[11px]">
+                      <td className="p-3.5 text-[#5F5A72] font-mono text-[11px]">
                         {payment.transactionReference || payment.transactionRef || 'DIRECT'}
                       </td>
-                      <td className="p-3.5 text-right font-bold text-emerald-400 text-sm">
+                      <td className="p-3.5 text-right font-bold text-[#059669] text-sm">
                         ₹{payment.amount.toLocaleString('en-IN')}
                       </td>
                       <td className="p-3.5 text-center">
                         {isEmailed ? (
                           <span 
                             title={`Sent to ${emailRecipient || 'Client'}`}
-                            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-medium"
+                            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-[#059669] text-[10px] font-medium"
                           >
                             <CheckCheck className="w-3 h-3" /> Emailed
                           </span>
                         ) : payment.emailStatus?.status === 'failed' || payment.email_status === 'failed' ? (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-rose-500/10 border border-rose-500/20 text-rose-400 text-[10px] font-medium">
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-rose-50 border border-rose-200 text-rose-600 text-[10px] font-medium">
                             <AlertCircle className="w-3 h-3" /> Failed
                           </span>
                         ) : (
-                          <span className="text-slate-500 text-[10px]">Unsent</span>
+                          <span className="text-[#817B91] text-[10px]">Unsent</span>
                         )}
                       </td>
                       <td className="p-3.5 text-center">
@@ -393,31 +393,31 @@ export const PaymentsManager: React.FC = () => {
                           <button
                             onClick={() => setSelectedReceipt(payment)}
                             title="View Receipt"
-                            className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors"
+                            className="p-1.5 rounded-lg bg-[#FAF5FF] hover:bg-[#F3E8FF] text-[#8E2D9D] border border-[#E8E0F0] transition-colors cursor-pointer"
                           >
-                            <FileText className="w-3.5 h-3.5 text-blue-400" />
+                            <FileText className="w-3.5 h-3.5 text-[#8E2D9D]" />
                           </button>
 
                           {/* Print PDF Trigger */}
                           <button
                             onClick={() => handlePrintReceipt(payment)}
                             title="Print Official PDF Receipt"
-                            className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors"
+                            className="p-1.5 rounded-lg bg-[#FAF5FF] hover:bg-[#F3E8FF] text-[#6F42C1] border border-[#E8E0F0] transition-colors cursor-pointer"
                           >
-                            <Printer className="w-3.5 h-3.5 text-cyan-400" />
+                            <Printer className="w-3.5 h-3.5 text-[#6F42C1]" />
                           </button>
 
                           {/* Email Receipt Trigger */}
                           <button
                             onClick={() => handleOpenEmailModal(payment)}
                             title="Email Receipt to Client"
-                            className={`p-1.5 rounded-lg transition-colors ${
+                            className={`p-1.5 rounded-lg transition-colors cursor-pointer border ${
                               isEmailed 
-                                ? 'bg-emerald-950/40 text-emerald-400 hover:bg-emerald-900/60 border border-emerald-500/30' 
-                                : 'bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white'
+                                ? 'bg-emerald-50 text-[#059669] hover:bg-emerald-100 border-emerald-200' 
+                                : 'bg-[#FAF5FF] hover:bg-[#F3E8FF] text-[#8E2D9D] border-[#E8E0F0]'
                             }`}
                           >
-                            <Mail className="w-3.5 h-3.5 text-purple-400" />
+                            <Mail className="w-3.5 h-3.5 text-[#8E2D9D]" />
                           </button>
                         </div>
                       </td>
@@ -432,31 +432,31 @@ export const PaymentsManager: React.FC = () => {
 
       {/* Record Payment Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-          <div className="w-full max-w-lg bg-[#0d1527] border border-slate-700 rounded-2xl shadow-2xl p-6 relative max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
+          <div className="w-full max-w-lg bg-white border border-[#E8E0F0] rounded-2xl shadow-2xl p-6 relative max-h-[90vh] overflow-y-auto">
             <button
               onClick={() => setIsModalOpen(false)}
-              className="absolute top-4 right-4 text-slate-400 hover:text-white"
+              className="absolute top-4 right-4 text-[#817B91] hover:text-[#1E1B2E] cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
 
-            <h2 className="text-lg font-bold text-white mb-1 flex items-center gap-2">
-              <Receipt className="w-5 h-5 text-blue-400" />
+            <h2 className="text-lg font-bold text-[#1E1B2E] mb-1 flex items-center gap-2">
+              <Receipt className="w-5 h-5 text-[#8E2D9D]" />
               Record Client Payment
             </h2>
-            <p className="text-xs text-slate-400 mb-5">
+            <p className="text-xs text-[#5F5A72] mb-5">
               Enter received funds to automatically reconcile invoice balances.
             </p>
 
             <form onSubmit={handleCreatePayment} className="space-y-4 text-xs">
               <div>
-                <label className="block text-slate-300 font-semibold mb-1">Select Invoice</label>
+                <label className="block text-[#1E1B2E] font-semibold mb-1">Select Invoice</label>
                 <select
                   required
                   value={selectedInvoiceId}
                   onChange={e => handleInvoiceSelect(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white outline-none focus:border-blue-500"
+                  className="w-full px-3 py-2 rounded-xl bg-[#FAF8FF] border border-[#E8E0F0] text-[#1E1B2E] outline-none focus:border-[#8E2D9D] focus:bg-white"
                 >
                   <option value="">-- Choose Pending Invoice --</option>
                   {invoices.map(inv => (
@@ -469,36 +469,36 @@ export const PaymentsManager: React.FC = () => {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-slate-300 font-semibold mb-1">Amount Received (₹)</label>
+                  <label className="block text-[#1E1B2E] font-semibold mb-1">Amount Received (₹)</label>
                   <input
                     type="number"
                     required
                     min="1"
                     value={amount || ''}
                     onChange={e => setAmount(Number(e.target.value))}
-                    className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white outline-none focus:border-blue-500 font-mono"
+                    className="w-full px-3 py-2 rounded-xl bg-[#FAF8FF] border border-[#E8E0F0] text-[#1E1B2E] outline-none focus:border-[#8E2D9D] focus:bg-white font-mono font-bold"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-slate-300 font-semibold mb-1">Payment Date</label>
+                  <label className="block text-[#1E1B2E] font-semibold mb-1">Payment Date</label>
                   <input
                     type="date"
                     required
                     value={paymentDate}
                     onChange={e => setPaymentDate(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white outline-none focus:border-blue-500"
+                    className="w-full px-3 py-2 rounded-xl bg-[#FAF8FF] border border-[#E8E0F0] text-[#1E1B2E] outline-none focus:border-[#8E2D9D] focus:bg-white"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-slate-300 font-semibold mb-1">Payment Method</label>
+                  <label className="block text-[#1E1B2E] font-semibold mb-1">Payment Method</label>
                   <select
                     value={paymentMethod}
                     onChange={e => setPaymentMethod(e.target.value as PaymentMethod)}
-                    className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white outline-none focus:border-blue-500"
+                    className="w-full px-3 py-2 rounded-xl bg-[#FAF8FF] border border-[#E8E0F0] text-[#1E1B2E] outline-none focus:border-[#8E2D9D] focus:bg-white"
                   >
                     <option value="bank_transfer">Bank Transfer (NEFT / RTGS / IMPS)</option>
                     <option value="upi">UPI (GPay / PhonePe / QR)</option>
@@ -510,40 +510,40 @@ export const PaymentsManager: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-slate-300 font-semibold mb-1">Transaction Ref / UTR</label>
+                  <label className="block text-[#1E1B2E] font-semibold mb-1">Transaction Ref / UTR</label>
                   <input
                     type="text"
                     required
                     placeholder="e.g. UTR192837465"
                     value={transactionRef}
                     onChange={e => setTransactionRef(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white outline-none focus:border-blue-500 font-mono"
+                    className="w-full px-3 py-2 rounded-xl bg-[#FAF8FF] border border-[#E8E0F0] text-[#1E1B2E] outline-none focus:border-[#8E2D9D] focus:bg-white font-mono"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-slate-300 font-semibold mb-1">Notes / Remarks</label>
+                <label className="block text-[#1E1B2E] font-semibold mb-1">Notes / Remarks</label>
                 <input
                   type="text"
                   placeholder="e.g. Milestone 1 settlement"
                   value={notes}
                   onChange={e => setNotes(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white outline-none focus:border-blue-500"
+                  className="w-full px-3 py-2 rounded-xl bg-[#FAF8FF] border border-[#E8E0F0] text-[#1E1B2E] outline-none focus:border-[#8E2D9D] focus:bg-white"
                 />
               </div>
 
-              <div className="pt-3 flex items-center justify-end space-x-3 border-t border-slate-800">
+              <div className="pt-3 flex items-center justify-end space-x-3 border-t border-[#E8E0F0]">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold"
+                  className="px-4 py-2 rounded-xl bg-[#FAF5FF] hover:bg-[#F3E8FF] text-[#5F5A72] font-semibold border border-[#E8E0F0] cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold shadow-lg shadow-blue-600/30"
+                  className="px-5 py-2 rounded-xl bg-[#8E2D9D] hover:bg-[#6F42C1] text-white font-semibold shadow-xs cursor-pointer"
                 >
                   Save & Issue Receipt
                 </button>
@@ -555,61 +555,61 @@ export const PaymentsManager: React.FC = () => {
 
       {/* View Digital Receipt Modal */}
       {selectedReceipt && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-          <div className="w-full max-w-lg bg-[#0b1220] border border-slate-700 rounded-2xl shadow-2xl p-6 relative text-slate-100 max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
+          <div className="w-full max-w-lg bg-white border border-[#E8E0F0] rounded-2xl shadow-2xl p-6 relative text-[#1E1B2E] max-h-[90vh] overflow-y-auto">
             <button
               onClick={() => setSelectedReceipt(null)}
-              className="absolute top-4 right-4 text-slate-400 hover:text-white"
+              className="absolute top-4 right-4 text-[#817B91] hover:text-[#1E1B2E] cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
 
             {/* Receipt Document Header */}
-            <div className="text-center pb-4 border-b border-slate-800">
-              <div className="font-black text-sm uppercase tracking-wider text-blue-400">
+            <div className="text-center pb-4 border-b border-[#E8E0F0]">
+              <div className="font-black text-sm uppercase tracking-wider text-[#8E2D9D]">
                 {agencyConfig.name}
               </div>
-              <div className="text-[11px] text-slate-400">{agencyConfig.legalName}</div>
-              <div className="text-[10px] text-slate-400">GSTIN: {agencyConfig.gstin} • SAC: {agencyConfig.sacCode}</div>
-              <div className="mt-3 inline-block px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-bold text-xs">
+              <div className="text-[11px] text-[#5F5A72]">{agencyConfig.legalName}</div>
+              <div className="text-[10px] text-[#817B91]">GSTIN: {agencyConfig.gstin} • SAC: {agencyConfig.sacCode}</div>
+              <div className="mt-3 inline-block px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-[#059669] font-bold text-xs">
                 OFFICIAL PAYMENT RECEIPT
               </div>
             </div>
 
-            <div className="py-4 space-y-3 text-xs border-b border-slate-800">
+            <div className="py-4 space-y-3 text-xs border-b border-[#E8E0F0]">
               <div className="flex justify-between">
-                <span className="text-slate-400">Receipt Number:</span>
-                <span className="font-mono font-bold text-white">{selectedReceipt.receiptNumber}</span>
+                <span className="text-[#5F5A72]">Receipt Number:</span>
+                <span className="font-mono font-bold text-[#1E1B2E]">{selectedReceipt.receiptNumber}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-400">Date of Payment:</span>
-                <span className="text-white">{selectedReceipt.paymentDate}</span>
+                <span className="text-[#5F5A72]">Date of Payment:</span>
+                <span className="text-[#1E1B2E] font-medium">{selectedReceipt.paymentDate}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-400">Received From:</span>
-                <span className="font-semibold text-white">{selectedReceipt.clientName}</span>
+                <span className="text-[#5F5A72]">Received From:</span>
+                <span className="font-semibold text-[#1E1B2E]">{selectedReceipt.clientName}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-400">Settled Invoice:</span>
-                <span className="font-mono text-blue-400">{selectedReceipt.invoiceNumber}</span>
+                <span className="text-[#5F5A72]">Settled Invoice:</span>
+                <span className="font-mono font-bold text-[#8E2D9D]">{selectedReceipt.invoiceNumber}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-400">Payment Mode:</span>
-                <span className="text-white capitalize">{selectedReceipt.paymentMethod.replace('_', ' ')}</span>
+                <span className="text-[#5F5A72]">Payment Mode:</span>
+                <span className="text-[#1E1B2E] capitalize font-medium">{selectedReceipt.paymentMethod.replace('_', ' ')}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-400">Transaction Reference:</span>
-                <span className="font-mono text-slate-300">{selectedReceipt.transactionReference || selectedReceipt.transactionRef || 'DIRECT'}</span>
+                <span className="text-[#5F5A72]">Transaction Reference:</span>
+                <span className="font-mono text-[#1E1B2E]">{selectedReceipt.transactionReference || selectedReceipt.transactionRef || 'DIRECT'}</span>
               </div>
               {selectedReceipt.notes && (
                 <div className="flex justify-between">
-                  <span className="text-slate-400">Remarks:</span>
-                  <span className="text-slate-300 text-right">{selectedReceipt.notes}</span>
+                  <span className="text-[#5F5A72]">Remarks:</span>
+                  <span className="text-[#1E1B2E] text-right">{selectedReceipt.notes}</span>
                 </div>
               )}
-              <div className="flex justify-between pt-2 border-t border-slate-800/80 items-center">
-                <span className="text-sm font-bold text-white">Amount Received:</span>
-                <span className="text-lg font-black text-emerald-400">
+              <div className="flex justify-between pt-2 border-t border-[#E8E0F0] items-center">
+                <span className="text-sm font-bold text-[#1E1B2E]">Amount Received:</span>
+                <span className="text-lg font-black text-[#059669]">
                   ₹{selectedReceipt.amount.toLocaleString('en-IN')}
                 </span>
               </div>
@@ -617,23 +617,23 @@ export const PaymentsManager: React.FC = () => {
 
             {/* Email Dispatch Audit Info if dispatched */}
             {(selectedReceipt.emailStatus?.status === 'sent' || selectedReceipt.email_status === 'sent') && (
-              <div className="mt-3 p-3 rounded-xl bg-emerald-950/30 border border-emerald-500/20 text-xs">
-                <div className="flex items-center gap-1.5 text-emerald-400 font-semibold mb-1">
+              <div className="mt-3 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs">
+                <div className="flex items-center gap-1.5 text-[#059669] font-semibold mb-1">
                   <ShieldCheck className="w-4 h-4" />
                   <span>Email Dispatched & Logged</span>
                 </div>
-                <div className="text-[11px] text-slate-300 space-y-0.5">
-                  <div>Recipient: <strong>{selectedReceipt.emailStatus?.recipient || selectedReceipt.email_recipient}</strong></div>
-                  <div>Timestamp: <strong>{selectedReceipt.emailStatus?.sent_at || selectedReceipt.email_sent_at}</strong></div>
+                <div className="text-[11px] text-[#5F5A72] space-y-0.5">
+                  <div>Recipient: <strong className="text-[#1E1B2E]">{selectedReceipt.emailStatus?.recipient || selectedReceipt.email_recipient}</strong></div>
+                  <div>Timestamp: <strong className="text-[#1E1B2E]">{selectedReceipt.emailStatus?.sent_at || selectedReceipt.email_sent_at}</strong></div>
                   {(selectedReceipt.emailStatus?.messageId || selectedReceipt.email_message_id) && (
-                    <div className="font-mono text-[10px] text-slate-400">ID: {selectedReceipt.emailStatus?.messageId || selectedReceipt.email_message_id}</div>
+                    <div className="font-mono text-[10px] text-[#817B91]">ID: {selectedReceipt.emailStatus?.messageId || selectedReceipt.email_message_id}</div>
                   )}
                 </div>
               </div>
             )}
 
             <div className="pt-4 flex items-center justify-between gap-3 text-[11px]">
-              <span className="text-slate-500 hidden sm:inline">Authorized Signatory • Accounts</span>
+              <span className="text-[#817B91] hidden sm:inline">Authorized Signatory • Accounts</span>
               
               <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
                 {/* Email Receipt Button */}
@@ -641,7 +641,7 @@ export const PaymentsManager: React.FC = () => {
                   onClick={() => {
                     handleOpenEmailModal(selectedReceipt);
                   }}
-                  className="px-3 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-medium flex items-center gap-1.5 transition-all shadow-md shadow-purple-600/20"
+                  className="px-3 py-2 rounded-xl bg-[#FAF5FF] hover:bg-[#F3E8FF] text-[#8E2D9D] border border-[#E8E0F0] font-semibold flex items-center gap-1.5 transition-all cursor-pointer"
                 >
                   <Mail className="w-3.5 h-3.5" /> Email Receipt
                 </button>
@@ -649,7 +649,7 @@ export const PaymentsManager: React.FC = () => {
                 {/* Print Receipt Button */}
                 <button
                   onClick={() => handlePrintReceipt(selectedReceipt)}
-                  className="px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-medium flex items-center gap-1.5 transition-all shadow-md shadow-blue-600/20"
+                  className="px-3.5 py-2 rounded-xl bg-[#8E2D9D] hover:bg-[#6F42C1] text-white font-semibold flex items-center gap-1.5 transition-all shadow-xs cursor-pointer"
                 >
                   <Printer className="w-3.5 h-3.5" /> Print Receipt
                 </button>
@@ -661,63 +661,63 @@ export const PaymentsManager: React.FC = () => {
 
       {/* Email Receipt Modal */}
       {emailModalReceipt && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-          <div className="w-full max-w-lg bg-[#0d1527] border border-slate-700 rounded-2xl shadow-2xl p-6 relative max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
+          <div className="w-full max-w-lg bg-white border border-[#E8E0F0] rounded-2xl shadow-2xl p-6 relative max-h-[90vh] overflow-y-auto">
             <button
               onClick={() => setEmailModalReceipt(null)}
-              className="absolute top-4 right-4 text-slate-400 hover:text-white"
+              className="absolute top-4 right-4 text-[#817B91] hover:text-[#1E1B2E] cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
 
             <div className="flex items-center gap-2.5 mb-1">
-              <div className="w-8 h-8 rounded-lg bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400">
+              <div className="w-8 h-8 rounded-lg bg-[#FAF5FF] border border-[#E8E0F0] flex items-center justify-center text-[#8E2D9D]">
                 <Mail className="w-4 h-4" />
               </div>
               <div>
-                <h2 className="text-base font-bold text-white">Email Payment Receipt</h2>
-                <p className="text-xs text-slate-400">Dispatch official verified PDF receipt via official agency email.</p>
+                <h2 className="text-base font-bold text-[#1E1B2E]">Email Payment Receipt</h2>
+                <p className="text-xs text-[#5F5A72]">Dispatch official verified PDF receipt via official agency email.</p>
               </div>
             </div>
 
             {/* Official Sender & Verification Info */}
-            <div className="mt-4 p-3 rounded-xl bg-slate-900 border border-slate-800 text-xs space-y-1.5">
-              <div className="flex justify-between items-center text-slate-300">
+            <div className="mt-4 p-3 rounded-xl bg-[#FAF8FF] border border-[#E8E0F0] text-xs space-y-1.5">
+              <div className="flex justify-between items-center text-[#5F5A72]">
                 <span>Official Sender:</span>
-                <span className="font-semibold text-blue-400 flex items-center gap-1 font-mono">
-                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+                <span className="font-semibold text-[#8E2D9D] flex items-center gap-1 font-mono">
+                  <ShieldCheck className="w-3.5 h-3.5 text-[#059669]" />
                   {agencyConfig.email || 'admin@fusionforgecreation.com'}
                 </span>
               </div>
-              <div className="flex justify-between items-center text-slate-300">
+              <div className="flex justify-between items-center text-[#5F5A72]">
                 <span>Receipt Number:</span>
-                <span className="font-mono font-bold text-white">{emailModalReceipt.receiptNumber}</span>
+                <span className="font-mono font-bold text-[#1E1B2E]">{emailModalReceipt.receiptNumber}</span>
               </div>
-              <div className="flex justify-between items-center text-slate-300">
+              <div className="flex justify-between items-center text-[#5F5A72]">
                 <span>Amount Acknowledged:</span>
-                <span className="font-bold text-emerald-400">₹{emailModalReceipt.amount.toLocaleString('en-IN')}</span>
+                <span className="font-bold text-[#059669]">₹{emailModalReceipt.amount.toLocaleString('en-IN')}</span>
               </div>
             </div>
 
             {/* Duplicate Accidental Send Warning Banner */}
             {(emailModalReceipt.emailStatus?.status === 'sent' || emailModalReceipt.email_status === 'sent') && (
-              <div className="mt-4 p-3 rounded-xl bg-amber-950/40 border border-amber-500/30 text-amber-200 text-xs">
+              <div className="mt-4 p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs">
                 <div className="flex items-start gap-2">
-                  <AlertCircle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                  <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
                   <div>
-                    <div className="font-semibold text-amber-300">Receipt Already Emailed</div>
-                    <div className="text-[11px] text-amber-200/80 mt-0.5">
+                    <div className="font-semibold text-amber-800">Receipt Already Emailed</div>
+                    <div className="text-[11px] text-amber-700 mt-0.5">
                       This receipt was dispatched to <strong>{emailModalReceipt.emailStatus?.recipient || emailModalReceipt.email_recipient}</strong> on {emailModalReceipt.emailStatus?.sent_at || emailModalReceipt.email_sent_at}.
                     </div>
                   </div>
                 </div>
 
-                <label className="mt-3 flex items-center gap-2 pt-2 border-t border-amber-500/20 text-xs cursor-pointer select-none text-white">
+                <label className="mt-3 flex items-center gap-2 pt-2 border-t border-amber-200 text-xs cursor-pointer select-none text-amber-900 font-medium">
                   <input
                     type="checkbox"
                     checked={confirmDuplicateSend}
                     onChange={e => setConfirmDuplicateSend(e.target.checked)}
-                    className="rounded bg-slate-900 border-amber-500/50 text-purple-600 focus:ring-purple-500 w-4 h-4"
+                    className="rounded border-amber-400 text-[#8E2D9D] focus:ring-[#8E2D9D] w-4 h-4"
                   />
                   <span>Confirm: I want to send another copy to this client.</span>
                 </label>
@@ -726,24 +726,24 @@ export const PaymentsManager: React.FC = () => {
 
             {/* Success Message Banner */}
             {emailSendSuccess && (
-              <div className="mt-4 p-3 rounded-xl bg-emerald-950/40 border border-emerald-500/30 text-emerald-200 text-xs flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+              <div className="mt-4 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs flex items-center gap-2 font-medium">
+                <CheckCircle2 className="w-4 h-4 text-[#059669] shrink-0" />
                 <span>{emailSendSuccess}</span>
               </div>
             )}
 
             {/* Error Message Banner */}
             {emailSendError && (
-              <div className="mt-4 p-3 rounded-xl bg-rose-950/40 border border-rose-500/30 text-rose-200 text-xs flex items-center gap-2">
-                <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
+              <div className="mt-4 p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center gap-2 font-medium">
+                <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
                 <span>{emailSendError}</span>
               </div>
             )}
 
             <form onSubmit={handleSendEmail} className="mt-4 space-y-3.5 text-xs">
               <div>
-                <label className="block text-slate-300 font-semibold mb-1">
-                  Recipient Email Address <span className="text-red-400">*</span>
+                <label className="block text-[#1E1B2E] font-semibold mb-1">
+                  Recipient Email Address <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="email"
@@ -751,46 +751,46 @@ export const PaymentsManager: React.FC = () => {
                   placeholder="e.g. client@company.com"
                   value={recipientEmail}
                   onChange={e => setRecipientEmail(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white outline-none focus:border-purple-500 font-mono"
+                  className="w-full px-3 py-2 rounded-xl bg-[#FAF8FF] border border-[#E8E0F0] text-[#1E1B2E] outline-none focus:border-[#8E2D9D] focus:bg-white font-mono"
                 />
               </div>
 
               <div>
-                <label className="block text-slate-300 font-semibold mb-1">Email Subject</label>
+                <label className="block text-[#1E1B2E] font-semibold mb-1">Email Subject</label>
                 <input
                   type="text"
                   required
                   value={emailSubject}
                   onChange={e => setEmailSubject(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white outline-none focus:border-purple-500"
+                  className="w-full px-3 py-2 rounded-xl bg-[#FAF8FF] border border-[#E8E0F0] text-[#1E1B2E] outline-none focus:border-[#8E2D9D] focus:bg-white"
                 />
               </div>
 
               <div>
-                <label className="block text-slate-300 font-semibold mb-1">Custom Message / Notes</label>
+                <label className="block text-[#1E1B2E] font-semibold mb-1">Custom Message / Notes</label>
                 <textarea
                   rows={2}
                   value={emailNotes}
                   onChange={e => setEmailNotes(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white outline-none focus:border-purple-500 resize-none"
+                  className="w-full px-3 py-2 rounded-xl bg-[#FAF8FF] border border-[#E8E0F0] text-[#1E1B2E] outline-none focus:border-[#8E2D9D] focus:bg-white resize-none"
                 />
               </div>
 
-              <div className="pt-3 flex items-center justify-end space-x-3 border-t border-slate-800">
+              <div className="pt-3 flex items-center justify-end space-x-3 border-t border-[#E8E0F0]">
                 <button
                   type="button"
                   onClick={() => setEmailModalReceipt(null)}
-                  className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold"
+                  className="px-4 py-2 rounded-xl bg-[#FAF5FF] hover:bg-[#F3E8FF] text-[#5F5A72] font-semibold border border-[#E8E0F0] cursor-pointer"
                 >
                   Close
                 </button>
                 <button
                   type="submit"
                   disabled={isSendingEmail || ((emailModalReceipt.emailStatus?.status === 'sent' || emailModalReceipt.email_status === 'sent') && !confirmDuplicateSend)}
-                  className={`px-5 py-2 rounded-xl font-semibold flex items-center space-x-2 transition-all ${
+                  className={`px-5 py-2 rounded-xl font-semibold flex items-center space-x-2 transition-all cursor-pointer ${
                     isSendingEmail || ((emailModalReceipt.emailStatus?.status === 'sent' || emailModalReceipt.email_status === 'sent') && !confirmDuplicateSend)
-                      ? 'bg-purple-800/50 text-slate-400 cursor-not-allowed'
-                      : 'bg-purple-600 hover:bg-purple-500 text-white shadow-lg shadow-purple-600/30'
+                      ? 'bg-[#FAF5FF] text-[#817B91] border border-[#E8E0F0] cursor-not-allowed'
+                      : 'bg-[#8E2D9D] hover:bg-[#6F42C1] text-white shadow-xs'
                   }`}
                 >
                   {isSendingEmail ? (

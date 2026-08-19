@@ -94,14 +94,14 @@ export const PaymentTermsSettings: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Quotation Validity Period Setting */}
-      <div className="p-4 rounded-xl bg-slate-900/80 border border-slate-800 space-y-3">
+      <div className="p-4 rounded-2xl bg-white border border-[#E8E0F0] space-y-3 shadow-sm">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div>
-            <h4 className="text-xs font-bold uppercase tracking-wider text-cyan-300 flex items-center gap-1.5">
-              <Clock className="w-3.5 h-3.5 text-cyan-400" />
+            <h4 className="text-xs font-bold uppercase tracking-wider text-[#8E2D9D] flex items-center gap-1.5">
+              <Clock className="w-3.5 h-3.5 text-[#8E2D9D]" />
               <span>Default Quotation Validity Period</span>
             </h4>
-            <p className="text-[11px] text-slate-400 mt-0.5">
+            <p className="text-[11px] text-[#5F5A72] mt-0.5">
               Automatically sets the default "Valid Until" date when new quotations are generated. Can still be manually adjusted per quotation.
             </p>
           </div>
@@ -114,15 +114,15 @@ export const PaymentTermsSettings: React.FC = () => {
                 max="365"
                 value={validityDays}
                 onChange={e => setValidityDays(parseInt(e.target.value) || 30)}
-                className="w-24 px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-xs text-white font-mono text-center outline-none focus:border-cyan-400"
+                className="w-24 px-3 py-1.5 rounded-xl bg-[#FAF5FF] border border-[#E8E0F0] text-xs text-[#1E1B2E] font-mono text-center outline-none focus:border-[#8E2D9D] focus:ring-2 focus:ring-[#8E2D9D]/15"
               />
-              <span className="absolute right-2.5 top-1.5 text-slate-500 text-xs">days</span>
+              <span className="absolute right-2.5 top-1.5 text-[#817B91] text-xs">days</span>
             </div>
 
             <button
               type="button"
               onClick={handleSaveValidity}
-              className="px-3 py-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-bold flex items-center gap-1 shadow cursor-pointer"
+              className="px-3 py-1.5 rounded-xl bg-[#8E2D9D] hover:bg-[#6F42C1] text-white text-xs font-bold flex items-center gap-1 shadow-md shadow-[#8E2D9D]/20 cursor-pointer"
             >
               {validitySaved ? <Check className="w-3.5 h-3.5" /> : <Calendar className="w-3.5 h-3.5" />}
               <span>{validitySaved ? 'Updated' : 'Set Default'}</span>
@@ -133,13 +133,13 @@ export const PaymentTermsSettings: React.FC = () => {
 
       {/* Payment Terms Management */}
       <div className="space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-900/60 p-4 rounded-xl border border-slate-800">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-[#E8E0F0] shadow-sm">
           <div>
-            <h3 className="text-sm font-bold text-white flex items-center gap-2">
-              <CreditCard className="w-4 h-4 text-cyan-400" />
+            <h3 className="text-sm font-bold text-[#1E1B2E] flex items-center gap-2">
+              <CreditCard className="w-4 h-4 text-[#8E2D9D]" />
               <span>Payment Terms & Milestone Schedules</span>
             </h3>
-            <p className="text-xs text-slate-400 mt-0.5">
+            <p className="text-xs text-[#5F5A72] mt-0.5">
               Configured milestone terms available in dropdowns for invoices and quotations.
             </p>
           </div>
@@ -148,7 +148,7 @@ export const PaymentTermsSettings: React.FC = () => {
             <button
               type="button"
               onClick={() => { resetForm(); setIsAdding(true); }}
-              className="px-3.5 py-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-bold flex items-center gap-1.5 shadow transition-all cursor-pointer self-start sm:self-auto"
+              className="px-3.5 py-1.5 rounded-xl bg-[#8E2D9D] hover:bg-[#6F42C1] text-white text-xs font-bold flex items-center gap-1.5 shadow-md shadow-[#8E2D9D]/20 transition-all cursor-pointer self-start sm:self-auto"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>Add Payment Term</span>
@@ -158,16 +158,16 @@ export const PaymentTermsSettings: React.FC = () => {
 
         {/* Add / Edit Term Form */}
         {isAdding && (
-          <form onSubmit={handleSave} className="p-4 rounded-xl bg-slate-950 border border-cyan-500/30 space-y-3 shadow-xl">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-cyan-300 flex items-center gap-2">
-                {editingId ? <Edit3 className="w-3.5 h-3.5 text-cyan-400" /> : <Plus className="w-3.5 h-3.5 text-cyan-400" />}
+          <form onSubmit={handleSave} className="p-5 rounded-2xl bg-white border border-[#C084FC]/50 space-y-3 shadow-md">
+            <div className="flex items-center justify-between border-b border-[#E8E0F0] pb-2">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-[#8E2D9D] flex items-center gap-2">
+                {editingId ? <Edit3 className="w-3.5 h-3.5 text-[#8E2D9D]" /> : <Plus className="w-3.5 h-3.5 text-[#8E2D9D]" />}
                 <span>{editingId ? 'Edit Payment Term' : 'Add New Payment Term'}</span>
               </h4>
               <button
                 type="button"
                 onClick={resetForm}
-                className="p-1 text-slate-400 hover:text-white"
+                className="p-1 text-[#817B91] hover:text-[#1E1B2E]"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -175,21 +175,21 @@ export const PaymentTermsSettings: React.FC = () => {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
               <div>
-                <label className="text-[11px] font-semibold text-slate-300 block mb-1">
-                  Term Name / Label <span className="text-red-400">*</span>
+                <label className="text-[11px] font-semibold text-[#5F5A72] block mb-1">
+                  Term Name / Label <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
                   value={form.name}
                   onChange={e => setForm({ ...form, name: e.target.value })}
                   placeholder="e.g. 50% Advance / 50% on UAT Delivery"
-                  className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white focus:border-cyan-400 outline-none"
+                  className="w-full px-3 py-2 rounded-xl bg-[#FAF5FF] border border-[#E8E0F0] text-xs text-[#1E1B2E] focus:border-[#8E2D9D] focus:ring-2 focus:ring-[#8E2D9D]/15 outline-none"
                   required
                 />
               </div>
 
               <div>
-                <label className="text-[11px] font-semibold text-slate-300 block mb-1">
+                <label className="text-[11px] font-semibold text-[#5F5A72] block mb-1">
                   Description / Milestone Breakdown
                 </label>
                 <input
@@ -197,7 +197,7 @@ export const PaymentTermsSettings: React.FC = () => {
                   value={form.description}
                   onChange={e => setForm({ ...form, description: e.target.value })}
                   placeholder="e.g. 50% on initiation, 50% on final production rollout"
-                  className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white focus:border-cyan-400 outline-none"
+                  className="w-full px-3 py-2 rounded-xl bg-[#FAF5FF] border border-[#E8E0F0] text-xs text-[#1E1B2E] focus:border-[#8E2D9D] focus:ring-2 focus:ring-[#8E2D9D]/15 outline-none"
                 />
               </div>
 
@@ -207,24 +207,24 @@ export const PaymentTermsSettings: React.FC = () => {
                     type="checkbox"
                     checked={form.is_default}
                     onChange={e => setForm({ ...form, is_default: e.target.checked })}
-                    className="w-4 h-4 rounded bg-slate-900 border-slate-700 text-cyan-500 focus:ring-0"
+                    className="w-4 h-4 rounded text-[#8E2D9D] focus:ring-0"
                   />
-                  <span className="text-xs text-slate-300 font-medium">Set as System Default Term</span>
+                  <span className="text-xs text-[#1E1B2E] font-semibold">Set as System Default Term</span>
                 </label>
               </div>
             </div>
 
-            <div className="flex justify-end gap-2 pt-2 border-t border-slate-800">
+            <div className="flex justify-end gap-2 pt-2 border-t border-[#E8E0F0]">
               <button
                 type="button"
                 onClick={resetForm}
-                className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium cursor-pointer"
+                className="px-3 py-1.5 rounded-lg bg-white hover:bg-[#FAF5FF] border border-[#E8E0F0] text-[#5F5A72] text-xs font-medium cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="px-4 py-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-bold flex items-center gap-1.5 shadow cursor-pointer"
+                className="px-4 py-1.5 rounded-lg bg-[#8E2D9D] hover:bg-[#6F42C1] text-white text-xs font-bold flex items-center gap-1.5 shadow-md shadow-[#8E2D9D]/20 cursor-pointer"
               >
                 <Check className="w-3.5 h-3.5" />
                 <span>{editingId ? 'Update Term' : 'Save Term'}</span>
@@ -238,28 +238,28 @@ export const PaymentTermsSettings: React.FC = () => {
           {paymentTerms.map(term => (
             <div
               key={term.id}
-              className={`p-3.5 rounded-xl border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
+              className={`p-4 rounded-2xl border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm ${
                 term.is_default
-                  ? 'bg-cyan-950/20 border-cyan-500/40 shadow-sm'
-                  : 'bg-slate-900/80 border-slate-800 hover:border-slate-700'
+                  ? 'bg-white border-[#C084FC] ring-1 ring-[#C084FC]/30'
+                  : 'bg-white border-[#E8E0F0] hover:border-[#C084FC]'
               }`}
             >
               <div className="flex items-start gap-3">
-                <div className={`p-2 rounded-lg shrink-0 ${term.is_default ? 'bg-cyan-500/20 text-cyan-300' : 'bg-slate-800 text-slate-400'}`}>
+                <div className={`p-2 rounded-xl shrink-0 ${term.is_default ? 'bg-[#F3E8FF] text-[#8E2D9D]' : 'bg-[#FAF5FF] text-[#817B91]'}`}>
                   <CreditCard className="w-4 h-4" />
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-white">{term.name}</span>
+                    <span className="text-xs font-bold text-[#1E1B2E]">{term.name}</span>
                     {term.is_default && (
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-cyan-500/20 border border-cyan-500/40 text-cyan-300 flex items-center gap-1">
-                        <Star className="w-2.5 h-2.5 fill-cyan-400 text-cyan-400" />
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-[#F3E8FF] border border-[#C084FC]/50 text-[#8E2D9D] flex items-center gap-1">
+                        <Star className="w-2.5 h-2.5 fill-[#8E2D9D] text-[#8E2D9D]" />
                         <span>Default</span>
                       </span>
                     )}
                   </div>
                   {term.description && (
-                    <p className="text-[11px] text-slate-400 mt-0.5">{term.description}</p>
+                    <p className="text-[11px] text-[#5F5A72] mt-0.5">{term.description}</p>
                   )}
                 </div>
               </div>
@@ -269,7 +269,7 @@ export const PaymentTermsSettings: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setDefaultPaymentTerm(term.id)}
-                    className="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] font-semibold flex items-center gap-1 cursor-pointer transition-colors border border-slate-700"
+                    className="px-2.5 py-1 rounded-lg bg-white hover:bg-[#FAF5FF] text-[#5F5A72] text-[11px] font-semibold flex items-center gap-1 cursor-pointer transition-colors border border-[#E8E0F0]"
                   >
                     <Star className="w-3 h-3" />
                     <span>Set Default</span>
@@ -281,7 +281,7 @@ export const PaymentTermsSettings: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => handleStartEdit(term)}
-                      className="p-1.5 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-cyan-300 transition-colors cursor-pointer"
+                      className="p-1.5 rounded-lg hover:bg-[#F3E8FF] text-[#817B91] hover:text-[#8E2D9D] transition-colors cursor-pointer"
                       title="Edit Term"
                     >
                       <Edit3 className="w-3.5 h-3.5" />
@@ -289,7 +289,7 @@ export const PaymentTermsSettings: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => deletePaymentTerm(term.id)}
-                      className="p-1.5 rounded-lg hover:bg-red-500/20 text-slate-500 hover:text-red-400 transition-colors cursor-pointer"
+                      className="p-1.5 rounded-lg hover:bg-red-50 text-[#817B91] hover:text-red-600 transition-colors cursor-pointer"
                       title="Delete Term"
                     >
                       <Trash2 className="w-3.5 h-3.5" />

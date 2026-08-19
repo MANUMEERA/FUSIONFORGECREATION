@@ -379,23 +379,23 @@ export const SettingsManager: React.FC = () => {
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h2 className="text-xl font-bold text-white flex items-center gap-2">
-            <Building2 className="w-5 h-5 text-cyan-400" />
+          <h2 className="text-xl font-bold text-[#1E1B2E] flex items-center gap-2">
+            <Building2 className="w-5 h-5 text-[#8E2D9D]" />
             Agency Settings & Governance
           </h2>
-          <p className="text-xs text-slate-400 mt-0.5">
+          <p className="text-xs text-[#5F5A72] mt-0.5">
             Admin configuration for GSTIN, PAN, office address, service presets, payment terms, document numbering, and legal master records.
           </p>
         </div>
 
-        <div className="flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/30 px-3 py-1.5 rounded-xl text-emerald-300 text-xs">
-          <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-400" />
+        <div className="flex items-center gap-2 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-xl text-emerald-700 text-xs font-semibold">
+          <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600" />
           <span>Live Synchronized with Database & Invoices</span>
         </div>
       </div>
 
       {/* Navigation Tabs */}
-      <div className="flex flex-wrap gap-2 p-1.5 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-inner">
+      <div className="flex flex-wrap gap-1.5 p-1.5 rounded-2xl bg-white border border-[#E8E0F0] shadow-sm">
         {settingsTabs.map(tab => {
           const Icon = tab.icon;
           const isActive = activeSettingsTab === tab.id;
@@ -406,11 +406,11 @@ export const SettingsManager: React.FC = () => {
               onClick={() => setActiveSettingsTab(tab.id)}
               className={`flex items-center space-x-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                 isActive
-                  ? 'bg-gradient-to-r from-blue-600 to-cyan-500 text-slate-950 shadow-md shadow-cyan-500/20 font-extrabold'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/80'
+                  ? 'bg-[#8E2D9D] text-white shadow-md shadow-[#8E2D9D]/20 font-bold'
+                  : 'text-[#5F5A72] hover:text-[#1E1B2E] hover:bg-[#F3E8FF]'
               }`}
             >
-              <Icon className={`w-4 h-4 ${isActive ? 'text-slate-950' : 'text-slate-400'}`} />
+              <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-[#817B91]'}`} />
               <span>{tab.label}</span>
             </button>
           );
@@ -433,11 +433,11 @@ export const SettingsManager: React.FC = () => {
       {activeSettingsTab === 'profile' && (
         <div className="space-y-6">
           {/* Live Compliance & Office Preview Card */}
-          <div className="p-5 rounded-2xl bg-gradient-to-r from-[#071126] via-[#091838] to-[#050e24] border border-cyan-500/30 shadow-xl space-y-4">
+          <div className="p-5 rounded-2xl bg-white border border-[#E8E0F0] shadow-sm space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div className="flex items-center space-x-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-pulse"></span>
-                <span className="text-xs font-black uppercase tracking-wider text-cyan-300">
+                <span className="w-2.5 h-2.5 rounded-full bg-[#8E2D9D] animate-pulse"></span>
+                <span className="text-xs font-black uppercase tracking-wider text-[#8E2D9D]">
                   Live Compliance Preview (Public Website & Invoices)
                 </span>
               </div>
@@ -446,7 +446,7 @@ export const SettingsManager: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setIsEditingCompliance(true)}
-                    className="px-3 py-1.5 rounded-lg bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/40 text-xs font-bold flex items-center space-x-1.5 transition-all cursor-pointer shadow-sm"
+                    className="px-3 py-1.5 rounded-lg bg-[#F3E8FF] hover:bg-[#E9D5FF] text-[#8E2D9D] border border-[#C084FC]/50 text-xs font-bold flex items-center space-x-1.5 transition-all cursor-pointer shadow-xs"
                   >
                     <Edit3 className="w-3.5 h-3.5" />
                     <span>Quick Edit Compliance</span>
@@ -456,7 +456,7 @@ export const SettingsManager: React.FC = () => {
                     <button
                       type="button"
                       onClick={handleSaveQuickCompliance}
-                      className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center space-x-1 transition-all cursor-pointer shadow"
+                      className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center space-x-1 transition-all cursor-pointer shadow-xs"
                     >
                       <Check className="w-3.5 h-3.5" />
                       <span>Save & Apply</span>
@@ -464,7 +464,7 @@ export const SettingsManager: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => setIsEditingCompliance(false)}
-                      className="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium transition-colors cursor-pointer"
+                      className="px-2.5 py-1.5 rounded-lg bg-[#FAF5FF] hover:bg-[#F3E8FF] border border-[#E8E0F0] text-[#5F5A72] text-xs font-medium transition-colors cursor-pointer"
                     >
                       <X className="w-3.5 h-3.5" />
                     </button>
@@ -475,102 +475,102 @@ export const SettingsManager: React.FC = () => {
 
         {isEditingCompliance ? (
           /* Inline Compliance Editor */
-          <div className="p-4 rounded-xl bg-slate-950/90 border border-cyan-500/40 space-y-3">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-              <span className="text-xs font-bold text-cyan-300 flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
+          <div className="p-4 rounded-xl bg-[#FAF8FF] border border-[#C084FC]/50 space-y-3">
+            <div className="flex items-center justify-between border-b border-[#E8E0F0] pb-2">
+              <span className="text-xs font-bold text-[#8E2D9D] flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-[#8E2D9D]" />
                 Editing Live Legal & Tax Compliance (Direct Sync)
               </span>
-              <span className="text-[10px] text-slate-400 font-mono">Instant application across all modules</span>
+              <span className="text-[10px] text-[#5F5A72] font-mono">Instant application across all modules</span>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-xs">
               <div className="sm:col-span-2">
-                <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Company / Legal Name</label>
+                <label className="text-[10px] font-bold text-[#5F5A72] uppercase block mb-1">Company / Legal Name</label>
                 <input
                   type="text"
                   value={quickCompliance.company_name}
                   onChange={e => setQuickCompliance({ ...quickCompliance, company_name: e.target.value })}
-                  className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white focus:border-cyan-400 outline-none"
+                  className="w-full px-2.5 py-1.5 rounded-lg bg-white border border-[#E8E0F0] text-xs text-[#1E1B2E] focus:border-[#8E2D9D] focus:ring-2 focus:ring-[#8E2D9D]/15 outline-none"
                   placeholder="Fusion Forge Creation"
                 />
               </div>
               <div>
-                <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">GSTIN (15 Digits)</label>
+                <label className="text-[10px] font-bold text-[#5F5A72] uppercase block mb-1">GSTIN (15 Digits)</label>
                 <input
                   type="text"
                   maxLength={15}
                   value={quickCompliance.gstin}
                   onChange={e => handleQuickGstinChange(e.target.value)}
-                  className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white font-mono font-bold focus:border-cyan-400 outline-none uppercase"
+                  className="w-full px-2.5 py-1.5 rounded-lg bg-white border border-[#E8E0F0] text-xs text-[#1E1B2E] font-mono font-bold focus:border-[#8E2D9D] focus:ring-2 focus:ring-[#8E2D9D]/15 outline-none uppercase"
                   placeholder="26AALFF1234F1Z5"
                 />
               </div>
               <div>
-                <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">PAN (10 Digits)</label>
+                <label className="text-[10px] font-bold text-[#5F5A72] uppercase block mb-1">PAN (10 Digits)</label>
                 <input
                   type="text"
                   maxLength={10}
                   value={quickCompliance.pan}
                   onChange={e => setQuickCompliance({ ...quickCompliance, pan: e.target.value.toUpperCase().trim() })}
-                  className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white font-mono font-bold focus:border-cyan-400 outline-none uppercase"
+                  className="w-full px-2.5 py-1.5 rounded-lg bg-white border border-[#E8E0F0] text-xs text-[#1E1B2E] font-mono font-bold focus:border-[#8E2D9D] focus:ring-2 focus:ring-[#8E2D9D]/15 outline-none uppercase"
                   placeholder="AALFF1234F"
                 />
               </div>
 
               <div className="sm:col-span-2">
-                <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Office Street Address</label>
+                <label className="text-[10px] font-bold text-[#5F5A72] uppercase block mb-1">Office Street Address</label>
                 <input
                   type="text"
                   value={quickCompliance.address}
                   onChange={e => setQuickCompliance({ ...quickCompliance, address: e.target.value })}
-                  className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white focus:border-cyan-400 outline-none"
+                  className="w-full px-2.5 py-1.5 rounded-lg bg-white border border-[#E8E0F0] text-xs text-[#1E1B2E] focus:border-[#8E2D9D] focus:ring-2 focus:ring-[#8E2D9D]/15 outline-none"
                   placeholder="H2/203, Yogi Milan, Near Ring Road, Silvassa"
                 />
               </div>
               <div>
-                <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">City</label>
+                <label className="text-[10px] font-bold text-[#5F5A72] uppercase block mb-1">City</label>
                 <input
                   type="text"
                   value={quickCompliance.city}
                   onChange={e => setQuickCompliance({ ...quickCompliance, city: e.target.value })}
-                  className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white focus:border-cyan-400 outline-none"
+                  className="w-full px-2.5 py-1.5 rounded-lg bg-white border border-[#E8E0F0] text-xs text-[#1E1B2E] focus:border-[#8E2D9D] focus:ring-2 focus:ring-[#8E2D9D]/15 outline-none"
                   placeholder="Silvassa"
                 />
               </div>
               <div>
-                <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">State & Pincode</label>
+                <label className="text-[10px] font-bold text-[#5F5A72] uppercase block mb-1">State & Pincode</label>
                 <div className="flex gap-1.5">
                   <input
                     type="text"
                     value={quickCompliance.state}
                     onChange={e => setQuickCompliance({ ...quickCompliance, state: e.target.value })}
-                    className="w-2/3 px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white focus:border-cyan-400 outline-none"
+                    className="w-2/3 px-2.5 py-1.5 rounded-lg bg-white border border-[#E8E0F0] text-xs text-[#1E1B2E] focus:border-[#8E2D9D] focus:ring-2 focus:ring-[#8E2D9D]/15 outline-none"
                     placeholder="Dadra & Nagar Haveli"
                   />
                   <input
                     type="text"
                     value={quickCompliance.postalCode}
                     onChange={e => setQuickCompliance({ ...quickCompliance, postalCode: e.target.value })}
-                    className="w-1/3 px-2 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white font-mono focus:border-cyan-400 outline-none"
+                    className="w-1/3 px-2 py-1.5 rounded-lg bg-white border border-[#E8E0F0] text-xs text-[#1E1B2E] font-mono focus:border-[#8E2D9D] focus:ring-2 focus:ring-[#8E2D9D]/15 outline-none"
                     placeholder="396230"
                   />
                 </div>
               </div>
             </div>
 
-            <div className="flex justify-end gap-2 pt-2 border-t border-slate-800">
+            <div className="flex justify-end gap-2 pt-2 border-t border-[#E8E0F0]">
               <button
                 type="button"
                 onClick={() => setIsEditingCompliance(false)}
-                className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold cursor-pointer"
+                className="px-3 py-1.5 rounded-lg bg-white hover:bg-[#FAF5FF] border border-[#E8E0F0] text-[#5F5A72] text-xs font-semibold cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={handleSaveQuickCompliance}
-                className="px-4 py-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-bold flex items-center space-x-1.5 cursor-pointer shadow"
+                className="px-4 py-1.5 rounded-lg bg-[#8E2D9D] hover:bg-[#6F42C1] text-white text-xs font-bold flex items-center space-x-1.5 cursor-pointer shadow-xs"
               >
                 <Check className="w-3.5 h-3.5" />
                 <span>Save & Apply Everywhere</span>
@@ -579,69 +579,69 @@ export const SettingsManager: React.FC = () => {
           </div>
         ) : (
           /* Live Compliance Details Display */
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 border-t border-cyan-500/20">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 border-t border-[#E8E0F0]">
             {/* Compliance & Office Box */}
-            <div className="p-4 rounded-xl bg-slate-950/80 border border-slate-800 space-y-2 text-xs">
-              <div className="font-bold text-white text-xs uppercase tracking-wider flex items-center justify-between">
+            <div className="p-4 rounded-xl bg-[#FAF8FF] border border-[#E8E0F0] space-y-2 text-xs">
+              <div className="font-bold text-[#1E1B2E] text-xs uppercase tracking-wider flex items-center justify-between">
                 <span>COMPLIANCE & OFFICE</span>
-                <span className="text-[10px] text-cyan-400 lowercase font-mono">SAC: {form.sacCode}</span>
+                <span className="text-[10px] text-[#8E2D9D] lowercase font-mono font-bold">SAC: {form.sacCode}</span>
               </div>
-              <div className="space-y-1 text-slate-300">
+              <div className="space-y-1 text-[#5F5A72]">
                 <div className="flex items-center justify-between">
-                  <span>GSTIN:</span>
+                  <span className="font-semibold">GSTIN:</span>
                   <div className="flex items-center space-x-1.5">
-                    <span className="font-mono font-bold text-white bg-slate-900 px-2 py-0.5 rounded border border-slate-700">
+                    <span className="font-mono font-bold text-[#1E1B2E] bg-white px-2 py-0.5 rounded border border-[#E8E0F0]">
                       {form.gstin || '—'}
                     </span>
                     <button
                       type="button"
                       onClick={() => handleCopy(form.gstin, 'gstin')}
-                      className="p-1 hover:text-cyan-400 text-slate-500 cursor-pointer"
+                      className="p-1 hover:text-[#8E2D9D] text-[#817B91] cursor-pointer"
                       title="Copy GSTIN"
                     >
-                      {copiedKey === 'gstin' ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                      {copiedKey === 'gstin' ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
                     </button>
                   </div>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span>PAN:</span>
+                  <span className="font-semibold">PAN:</span>
                   <div className="flex items-center space-x-1.5">
-                    <span className="font-mono font-bold text-white bg-slate-900 px-2 py-0.5 rounded border border-slate-700">
+                    <span className="font-mono font-bold text-[#1E1B2E] bg-white px-2 py-0.5 rounded border border-[#E8E0F0]">
                       {form.pan || '—'}
                     </span>
                     <button
                       type="button"
                       onClick={() => handleCopy(form.pan, 'pan')}
-                      className="p-1 hover:text-cyan-400 text-slate-500 cursor-pointer"
+                      className="p-1 hover:text-[#8E2D9D] text-[#817B91] cursor-pointer"
                       title="Copy PAN"
                     >
-                      {copiedKey === 'pan' ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                      {copiedKey === 'pan' ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
                     </button>
                   </div>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span>SAC Code:</span>
-                  <span className="font-mono text-slate-200">{form.sacCode} (IT Software)</span>
+                  <span className="font-semibold">SAC Code:</span>
+                  <span className="font-mono font-bold text-[#1E1B2E]">{form.sacCode} (IT Software)</span>
                 </div>
-                <div className="flex items-start justify-between gap-2 pt-1 border-t border-slate-800">
-                  <span className="shrink-0">Office:</span>
-                  <span className="text-right text-slate-200 text-[11px] font-medium">{form.address}</span>
+                <div className="flex items-start justify-between gap-2 pt-1 border-t border-[#E8E0F0]">
+                  <span className="shrink-0 font-semibold">Office:</span>
+                  <span className="text-right text-[#1E1B2E] text-[11px] font-medium">{form.address}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span>City & State:</span>
-                  <span className="text-slate-200 font-semibold">{form.city}, {form.state} - {form.postalCode}</span>
+                  <span className="font-semibold">City & State:</span>
+                  <span className="text-[#1E1B2E] font-semibold">{form.city}, {form.state} - {form.postalCode}</span>
                 </div>
               </div>
             </div>
 
             {/* Connected Social Channels Preview & Management */}
-            <div className="p-4 rounded-xl bg-slate-950/80 border border-slate-800 space-y-2.5 text-xs">
-              <div className="font-bold text-white text-xs uppercase tracking-wider flex items-center justify-between">
+            <div className="p-4 rounded-xl bg-[#FAF8FF] border border-[#E8E0F0] space-y-2.5 text-xs">
+              <div className="font-bold text-[#1E1B2E] text-xs uppercase tracking-wider flex items-center justify-between">
                 <span className="flex items-center gap-1.5">
-                  <Share2 className="w-3.5 h-3.5 text-cyan-400" />
+                  <Share2 className="w-3.5 h-3.5 text-[#8E2D9D]" />
                   CONNECTED SOCIAL CHANNELS
                 </span>
-                <span className="text-[10px] text-cyan-400 font-mono">
+                <span className="text-[10px] text-[#8E2D9D] font-mono font-bold">
                   {socialChannels.filter(c => c.active).length} Active Channels
                 </span>
               </div>
@@ -652,21 +652,21 @@ export const SettingsManager: React.FC = () => {
                     key={channel.id}
                     className={`p-2.5 rounded-lg border transition-all flex items-center justify-between gap-2 ${
                       channel.active 
-                        ? 'bg-slate-900/90 border-slate-800 hover:border-slate-700' 
-                        : 'bg-slate-950/50 border-slate-900 opacity-60'
+                        ? 'bg-white border-[#E8E0F0] hover:border-[#C084FC]' 
+                        : 'bg-[#FAF8FF] border-[#E8E0F0] opacity-60'
                     }`}
                   >
                     <div className="flex items-center space-x-2 min-w-0 flex-1">
                       <span 
                         className="w-2.5 h-2.5 rounded-full shrink-0"
-                        style={{ backgroundColor: channel.active ? (channel.color || '#06b6d4') : '#64748b' }}
+                        style={{ backgroundColor: channel.active ? (channel.color || '#8E2D9D') : '#817B91' }}
                       />
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-1">
-                          <SocialIcon platform={channel.platform} className="w-3 h-3 text-slate-300" />
-                          <span className="text-slate-200 font-semibold truncate text-xs">{channel.name}</span>
+                          <SocialIcon platform={channel.platform} className="w-3 h-3 text-[#5F5A72]" />
+                          <span className="text-[#1E1B2E] font-semibold truncate text-xs">{channel.name}</span>
                         </div>
-                        <p className="text-[10px] text-slate-500 truncate">{channel.url || 'No URL configured'}</p>
+                        <p className="text-[10px] text-[#817B91] truncate">{channel.url || 'No URL configured'}</p>
                       </div>
                     </div>
 
@@ -677,8 +677,8 @@ export const SettingsManager: React.FC = () => {
                         onClick={() => handleToggleChannelActive(channel.id)}
                         className={`px-2 py-0.5 rounded text-[10px] font-bold flex items-center gap-1 cursor-pointer transition-all ${
                           channel.active
-                            ? 'bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30 border border-emerald-500/30'
-                            : 'bg-slate-800 text-slate-400 hover:bg-slate-700 border border-slate-700'
+                            ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200'
+                            : 'bg-slate-100 text-[#5F5A72] hover:bg-slate-200 border border-slate-200'
                         }`}
                         title={channel.active ? 'Click to Deactivate' : 'Click to Activate'}
                       >
@@ -699,7 +699,7 @@ export const SettingsManager: React.FC = () => {
                       <button
                         type="button"
                         onClick={() => handleDeleteChannel(channel.id)}
-                        className="p-1 rounded hover:bg-red-500/20 text-slate-500 hover:text-red-400 transition-colors cursor-pointer"
+                        className="p-1 rounded hover:bg-red-50 text-[#817B91] hover:text-red-600 transition-colors cursor-pointer"
                         title="Delete Channel"
                       >
                         <Trash2 className="w-3 h-3" />
@@ -710,7 +710,7 @@ export const SettingsManager: React.FC = () => {
               </div>
 
               {socialChannels.length === 0 && (
-                <div className="p-3 text-center text-slate-500 text-xs italic bg-slate-900/50 rounded-lg">
+                <div className="p-3 text-center text-[#817B91] text-xs italic bg-white rounded-lg border border-[#E8E0F0]">
                   No social channels configured. Add links below in Section 4.
                 </div>
               )}
@@ -719,13 +719,13 @@ export const SettingsManager: React.FC = () => {
         )}
 
         {/* Direct Links Row - Reflected Destinations */}
-        <div className="p-3.5 rounded-xl bg-[#061026] border border-cyan-500/20 text-xs">
-          <div className="text-[10px] font-bold text-cyan-300 uppercase tracking-wider mb-2 flex items-center justify-between">
+        <div className="p-3.5 rounded-xl bg-[#FAF8FF] border border-[#E8E0F0] text-xs">
+          <div className="text-[10px] font-bold text-[#8E2D9D] uppercase tracking-wider mb-2 flex items-center justify-between">
             <span className="flex items-center gap-1.5">
-              <Globe className="w-3.5 h-3.5 text-cyan-400" />
+              <Globe className="w-3.5 h-3.5 text-[#8E2D9D]" />
               Direct Links Where Edits Are Reflected Live:
             </span>
-            <span className="text-slate-400 font-mono text-[9px]">Click to inspect live output</span>
+            <span className="text-[#5F5A72] font-mono text-[9px]">Click to inspect live output</span>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
@@ -733,17 +733,17 @@ export const SettingsManager: React.FC = () => {
             <button
               type="button"
               onClick={() => setCurrentView('public')}
-              className="p-2.5 rounded-xl bg-gradient-to-r from-blue-950/60 to-slate-900/90 border border-blue-500/30 hover:border-blue-400 text-left transition-all group cursor-pointer hover:shadow-md"
+              className="p-2.5 rounded-xl bg-white border border-[#E8E0F0] hover:border-[#8E2D9D] text-left transition-all group cursor-pointer hover:shadow-sm"
             >
               <div className="flex items-center justify-between mb-1">
-                <span className="font-bold text-white text-xs flex items-center gap-1.5 group-hover:text-cyan-300">
-                  <Globe className="w-3.5 h-3.5 text-cyan-400" />
+                <span className="font-bold text-[#1E1B2E] text-xs flex items-center gap-1.5 group-hover:text-[#8E2D9D]">
+                  <Globe className="w-3.5 h-3.5 text-[#8E2D9D]" />
                   Frontend Website
                 </span>
-                <ArrowRight className="w-3.5 h-3.5 text-slate-400 group-hover:translate-x-0.5 group-hover:text-cyan-400 transition-all" />
+                <ArrowRight className="w-3.5 h-3.5 text-[#817B91] group-hover:translate-x-0.5 group-hover:text-[#8E2D9D] transition-all" />
               </div>
-              <p className="text-[11px] text-slate-400 line-clamp-1">
-                Footer, Contact & FAQ: <strong className="text-slate-300">{form.gstin}</strong>
+              <p className="text-[11px] text-[#5F5A72] line-clamp-1">
+                Footer, Contact & FAQ: <strong className="text-[#1E1B2E]">{form.gstin}</strong>
               </p>
             </button>
 
@@ -751,17 +751,17 @@ export const SettingsManager: React.FC = () => {
             <button
               type="button"
               onClick={() => setActiveTab('invoices')}
-              className="p-2.5 rounded-xl bg-gradient-to-r from-blue-950/60 to-slate-900/90 border border-blue-500/30 hover:border-blue-400 text-left transition-all group cursor-pointer hover:shadow-md"
+              className="p-2.5 rounded-xl bg-white border border-[#E8E0F0] hover:border-[#8E2D9D] text-left transition-all group cursor-pointer hover:shadow-sm"
             >
               <div className="flex items-center justify-between mb-1">
-                <span className="font-bold text-white text-xs flex items-center gap-1.5 group-hover:text-cyan-300">
-                  <FileText className="w-3.5 h-3.5 text-blue-400" />
+                <span className="font-bold text-[#1E1B2E] text-xs flex items-center gap-1.5 group-hover:text-[#8E2D9D]">
+                  <FileText className="w-3.5 h-3.5 text-[#8E2D9D]" />
                   Tax Invoices
                 </span>
-                <ArrowRight className="w-3.5 h-3.5 text-slate-400 group-hover:translate-x-0.5 group-hover:text-cyan-400 transition-all" />
+                <ArrowRight className="w-3.5 h-3.5 text-[#817B91] group-hover:translate-x-0.5 group-hover:text-[#8E2D9D] transition-all" />
               </div>
-              <p className="text-[11px] text-slate-400 line-clamp-1">
-                Seller GSTIN & PDF: <strong className="text-slate-300">{form.gstin}</strong>
+              <p className="text-[11px] text-[#5F5A72] line-clamp-1">
+                Seller GSTIN & PDF: <strong className="text-[#1E1B2E]">{form.gstin}</strong>
               </p>
             </button>
 
@@ -769,17 +769,17 @@ export const SettingsManager: React.FC = () => {
             <button
               type="button"
               onClick={() => setActiveTab('quotations')}
-              className="p-2.5 rounded-xl bg-gradient-to-r from-blue-950/60 to-slate-900/90 border border-blue-500/30 hover:border-blue-400 text-left transition-all group cursor-pointer hover:shadow-md"
+              className="p-2.5 rounded-xl bg-white border border-[#E8E0F0] hover:border-[#8E2D9D] text-left transition-all group cursor-pointer hover:shadow-sm"
             >
               <div className="flex items-center justify-between mb-1">
-                <span className="font-bold text-white text-xs flex items-center gap-1.5 group-hover:text-cyan-300">
-                  <FileSignature className="w-3.5 h-3.5 text-emerald-400" />
+                <span className="font-bold text-[#1E1B2E] text-xs flex items-center gap-1.5 group-hover:text-[#8E2D9D]">
+                  <FileSignature className="w-3.5 h-3.5 text-emerald-600" />
                   Quotations
                 </span>
-                <ArrowRight className="w-3.5 h-3.5 text-slate-400 group-hover:translate-x-0.5 group-hover:text-cyan-400 transition-all" />
+                <ArrowRight className="w-3.5 h-3.5 text-[#817B91] group-hover:translate-x-0.5 group-hover:text-[#8E2D9D] transition-all" />
               </div>
-              <p className="text-[11px] text-slate-400 line-clamp-1">
-                Estimates & Proposals: <strong className="text-slate-300">SAC {form.sacCode}</strong>
+              <p className="text-[11px] text-[#5F5A72] line-clamp-1">
+                Estimates & Proposals: <strong className="text-[#1E1B2E]">SAC {form.sacCode}</strong>
               </p>
             </button>
           </div>
@@ -787,54 +787,54 @@ export const SettingsManager: React.FC = () => {
       </div>
 
       {/* Main Settings Form */}
-      <form onSubmit={handleSubmit} className="p-6 rounded-2xl bg-gradient-to-b from-[#0d1a3b]/95 via-[#09132e]/95 to-[#060c1f]/95 border border-blue-500/25 space-y-6 shadow-2xl backdrop-blur-md">
+      <form onSubmit={handleSubmit} className="p-6 rounded-2xl bg-white border border-[#E8E0F0] space-y-6 shadow-sm">
         
         {/* 1. Core Company Identity */}
         <div>
-          <div className="flex items-center gap-2 text-xs font-bold uppercase text-cyan-400 tracking-wider mb-3">
+          <div className="flex items-center gap-2 text-xs font-bold uppercase text-[#8E2D9D] tracking-wider mb-3">
             <Building2 className="w-4 h-4" />
             <span>1. Business Identity & Public Contacts</span>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="text-[11px] font-semibold text-slate-300 block mb-1">Company / Brand Name</label>
+              <label className="text-[11px] font-semibold text-[#5F5A72] block mb-1">Company / Brand Name</label>
               <input
                 type="text"
                 value={form.company_name}
                 onChange={e => setForm({ ...form, company_name: e.target.value })}
-                className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white outline-none focus:border-cyan-400"
+                className="w-full px-3 py-2 rounded-xl bg-[#FAF5FF] border border-[#E8E0F0] text-xs text-[#1E1B2E] outline-none focus:border-[#8E2D9D] focus:ring-2 focus:ring-[#8E2D9D]/15"
                 placeholder="Fusion Forge Creation"
                 required
               />
             </div>
             <div>
-              <label className="text-[11px] font-semibold text-slate-300 block mb-1">Tagline / Mission</label>
+              <label className="text-[11px] font-semibold text-[#5F5A72] block mb-1">Tagline / Mission</label>
               <input
                 type="text"
                 value={form.tagline}
                 onChange={e => setForm({ ...form, tagline: e.target.value })}
-                className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white outline-none focus:border-cyan-400"
+                className="w-full px-3 py-2 rounded-xl bg-[#FAF5FF] border border-[#E8E0F0] text-xs text-[#1E1B2E] outline-none focus:border-[#8E2D9D] focus:ring-2 focus:ring-[#8E2D9D]/15"
                 placeholder="Where Ideas Fuse With Technology"
               />
             </div>
             <div>
-              <label className="text-[11px] font-semibold text-slate-300 block mb-1">Official Email</label>
+              <label className="text-[11px] font-semibold text-[#5F5A72] block mb-1">Official Email</label>
               <input
                 type="email"
                 value={form.email}
                 onChange={e => setForm({ ...form, email: e.target.value })}
-                className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white outline-none focus:border-cyan-400"
+                className="w-full px-3 py-2 rounded-xl bg-[#FAF5FF] border border-[#E8E0F0] text-xs text-[#1E1B2E] outline-none focus:border-[#8E2D9D] focus:ring-2 focus:ring-[#8E2D9D]/15"
                 placeholder="contact@fusionforge.io"
                 required
               />
             </div>
             <div>
-              <label className="text-[11px] font-semibold text-slate-300 block mb-1">Contact Phone / WhatsApp</label>
+              <label className="text-[11px] font-semibold text-[#5F5A72] block mb-1">Contact Phone / WhatsApp</label>
               <input
                 type="text"
                 value={form.phone}
                 onChange={e => setForm({ ...form, phone: e.target.value })}
-                className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white outline-none focus:border-cyan-400"
+                className="w-full px-3 py-2 rounded-xl bg-[#FAF5FF] border border-[#E8E0F0] text-xs text-[#1E1B2E] outline-none focus:border-[#8E2D9D] focus:ring-2 focus:ring-[#8E2D9D]/15"
                 placeholder="+91 90040 77126"
                 required
               />
@@ -843,54 +843,54 @@ export const SettingsManager: React.FC = () => {
         </div>
 
         {/* 2. Official Address & Location Controls */}
-        <div className="pt-4 border-t border-slate-800">
-          <div className="flex items-center gap-2 text-xs font-bold uppercase text-cyan-400 tracking-wider mb-3">
+        <div className="pt-4 border-t border-[#E8E0F0]">
+          <div className="flex items-center gap-2 text-xs font-bold uppercase text-[#8E2D9D] tracking-wider mb-3">
             <MapPin className="w-4 h-4" />
             <span>2. Official Office Address & Postal Details</span>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="sm:col-span-3">
-              <label className="text-[11px] font-semibold text-slate-300 block mb-1">
+              <label className="text-[11px] font-semibold text-[#5F5A72] block mb-1">
                 Full Registered Office Address
               </label>
               <input
                 type="text"
                 value={form.address}
                 onChange={e => setForm({ ...form, address: e.target.value })}
-                className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white outline-none focus:border-cyan-400 font-medium"
+                className="w-full px-3 py-2 rounded-xl bg-[#FAF5FF] border border-[#E8E0F0] text-xs text-[#1E1B2E] outline-none focus:border-[#8E2D9D] focus:ring-2 focus:ring-[#8E2D9D]/15 font-medium"
                 placeholder="H2/203, Yogi Milan, Near Ring Road, Silvassa, Dadra & Nagar Haveli - 396230"
                 required
               />
             </div>
             <div>
-              <label className="text-[11px] font-semibold text-slate-300 block mb-1">City</label>
+              <label className="text-[11px] font-semibold text-[#5F5A72] block mb-1">City</label>
               <input
                 type="text"
                 value={form.city}
                 onChange={e => setForm({ ...form, city: e.target.value })}
-                className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white outline-none focus:border-cyan-400"
+                className="w-full px-3 py-2 rounded-xl bg-[#FAF5FF] border border-[#E8E0F0] text-xs text-[#1E1B2E] outline-none focus:border-[#8E2D9D] focus:ring-2 focus:ring-[#8E2D9D]/15"
                 placeholder="Silvassa"
                 required
               />
             </div>
             <div>
-              <label className="text-[11px] font-semibold text-slate-300 block mb-1">State / Union Territory</label>
+              <label className="text-[11px] font-semibold text-[#5F5A72] block mb-1">State / Union Territory</label>
               <input
                 type="text"
                 value={form.state}
                 onChange={e => setForm({ ...form, state: e.target.value })}
-                className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white outline-none focus:border-cyan-400"
+                className="w-full px-3 py-2 rounded-xl bg-[#FAF5FF] border border-[#E8E0F0] text-xs text-[#1E1B2E] outline-none focus:border-[#8E2D9D] focus:ring-2 focus:ring-[#8E2D9D]/15"
                 placeholder="Dadra & Nagar Haveli"
                 required
               />
             </div>
             <div>
-              <label className="text-[11px] font-semibold text-slate-300 block mb-1">Postal / PIN Code</label>
+              <label className="text-[11px] font-semibold text-[#5F5A72] block mb-1">Postal / PIN Code</label>
               <input
                 type="text"
                 value={form.postalCode}
                 onChange={e => setForm({ ...form, postalCode: e.target.value })}
-                className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white font-mono outline-none focus:border-cyan-400"
+                className="w-full px-3 py-2 rounded-xl bg-[#FAF5FF] border border-[#E8E0F0] text-xs text-[#1E1B2E] font-mono outline-none focus:border-[#8E2D9D] focus:ring-2 focus:ring-[#8E2D9D]/15"
                 placeholder="396230"
                 required
               />
@@ -899,23 +899,23 @@ export const SettingsManager: React.FC = () => {
         </div>
 
         {/* 3. GSTIN, PAN & Tax Jurisdiction Controls */}
-        <div className="pt-4 border-t border-slate-800">
+        <div className="pt-4 border-t border-[#E8E0F0]">
           <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2 text-xs font-bold uppercase text-cyan-400 tracking-wider">
+            <div className="flex items-center gap-2 text-xs font-bold uppercase text-[#8E2D9D] tracking-wider">
               <ShieldCheck className="w-4 h-4" />
               <span>3. GSTIN, PAN & Tax Compliance Control</span>
             </div>
-            <div className="text-[10px] text-slate-400">
+            <div className="text-[10px] text-[#5F5A72]">
               PAN is auto-extracted from 3rd-12th chars of GSTIN or can be edited directly
             </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
             <div className="sm:col-span-2">
-              <label className="text-[11px] font-semibold text-slate-300 block mb-1 flex items-center justify-between">
+              <label className="text-[11px] font-semibold text-[#5F5A72] block mb-1 flex items-center justify-between">
                 <span>GSTIN Number (15 Digits)</span>
                 {form.gstin && (
-                  <span className={`text-[10px] font-mono ${isGstinValid ? 'text-emerald-400' : 'text-amber-400'}`}>
+                  <span className={`text-[10px] font-mono font-bold ${isGstinValid ? 'text-emerald-600' : 'text-amber-600'}`}>
                     {isGstinValid ? '✓ Valid Format' : '⚠️ Check Format'}
                   </span>
                 )}
@@ -924,7 +924,7 @@ export const SettingsManager: React.FC = () => {
                 type="text"
                 value={form.gstin}
                 onChange={e => handleGstinChange(e.target.value)}
-                className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white font-mono uppercase outline-none focus:border-cyan-400"
+                className="w-full px-3 py-2 rounded-xl bg-[#FAF5FF] border border-[#E8E0F0] text-xs text-[#1E1B2E] font-mono uppercase outline-none focus:border-[#8E2D9D] focus:ring-2 focus:ring-[#8E2D9D]/15"
                 placeholder="26AALFF1234F1Z5"
                 maxLength={15}
                 required
@@ -932,10 +932,10 @@ export const SettingsManager: React.FC = () => {
             </div>
 
             <div>
-              <label className="text-[11px] font-semibold text-slate-300 block mb-1 flex items-center justify-between">
+              <label className="text-[11px] font-semibold text-[#5F5A72] block mb-1 flex items-center justify-between">
                 <span>PAN Number (10 Digits)</span>
                 {form.pan && (
-                  <span className={`text-[10px] font-mono ${isPanValid ? 'text-emerald-400' : 'text-amber-400'}`}>
+                  <span className={`text-[10px] font-mono font-bold ${isPanValid ? 'text-emerald-600' : 'text-amber-600'}`}>
                     {isPanValid ? '✓ Valid' : '⚠️ Format'}
                   </span>
                 )}
@@ -944,7 +944,7 @@ export const SettingsManager: React.FC = () => {
                 type="text"
                 value={form.pan}
                 onChange={e => setForm({ ...form, pan: e.target.value.toUpperCase().trim() })}
-                className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white font-mono uppercase outline-none focus:border-cyan-400"
+                className="w-full px-3 py-2 rounded-xl bg-[#FAF5FF] border border-[#E8E0F0] text-xs text-[#1E1B2E] font-mono uppercase outline-none focus:border-[#8E2D9D] focus:ring-2 focus:ring-[#8E2D9D]/15"
                 placeholder="AALFF1234F"
                 maxLength={10}
                 required
@@ -952,24 +952,24 @@ export const SettingsManager: React.FC = () => {
             </div>
 
             <div>
-              <label className="text-[11px] font-semibold text-slate-300 block mb-1">SAC Code (IT Software)</label>
+              <label className="text-[11px] font-semibold text-[#5F5A72] block mb-1">SAC Code (IT Software)</label>
               <input
                 type="text"
                 value={form.sacCode}
                 onChange={e => setForm({ ...form, sacCode: e.target.value })}
-                className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white font-mono outline-none focus:border-cyan-400"
+                className="w-full px-3 py-2 rounded-xl bg-[#FAF5FF] border border-[#E8E0F0] text-xs text-[#1E1B2E] font-mono outline-none focus:border-[#8E2D9D] focus:ring-2 focus:ring-[#8E2D9D]/15"
                 placeholder="998314"
                 required
               />
             </div>
 
             <div>
-              <label className="text-[11px] font-semibold text-slate-300 block mb-1">State Code (GST Master)</label>
+              <label className="text-[11px] font-semibold text-[#5F5A72] block mb-1">State Code (GST Master)</label>
               <input
                 type="text"
                 value={form.state_code}
                 onChange={e => setForm({ ...form, state_code: e.target.value })}
-                className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white font-mono outline-none focus:border-cyan-400"
+                className="w-full px-3 py-2 rounded-xl bg-[#FAF5FF] border border-[#E8E0F0] text-xs text-[#1E1B2E] font-mono outline-none focus:border-[#8E2D9D] focus:ring-2 focus:ring-[#8E2D9D]/15"
                 placeholder="26"
                 maxLength={2}
                 required
@@ -977,23 +977,23 @@ export const SettingsManager: React.FC = () => {
             </div>
 
             <div>
-              <label className="text-[11px] font-semibold text-slate-300 block mb-1">MSME / Udyam Reg. No.</label>
+              <label className="text-[11px] font-semibold text-[#5F5A72] block mb-1">MSME / Udyam Reg. No.</label>
               <input
                 type="text"
                 value={form.msme_number}
                 onChange={e => setForm({ ...form, msme_number: e.target.value.toUpperCase() })}
-                className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white font-mono outline-none focus:border-cyan-400"
+                className="w-full px-3 py-2 rounded-xl bg-[#FAF5FF] border border-[#E8E0F0] text-xs text-[#1E1B2E] font-mono outline-none focus:border-[#8E2D9D] focus:ring-2 focus:ring-[#8E2D9D]/15"
                 placeholder="UDYAM-DN-01-0012345"
               />
             </div>
 
             <div className="sm:col-span-2">
-              <label className="text-[11px] font-semibold text-slate-300 block mb-1">Legal Arbitration Jurisdiction</label>
+              <label className="text-[11px] font-semibold text-[#5F5A72] block mb-1">Legal Arbitration Jurisdiction</label>
               <input
                 type="text"
                 value={form.jurisdiction}
                 onChange={e => setForm({ ...form, jurisdiction: e.target.value })}
-                className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white outline-none focus:border-cyan-400"
+                className="w-full px-3 py-2 rounded-xl bg-[#FAF5FF] border border-[#E8E0F0] text-xs text-[#1E1B2E] outline-none focus:border-[#8E2D9D] focus:ring-2 focus:ring-[#8E2D9D]/15"
                 placeholder="Silvassa, Dadra & Nagar Haveli"
                 required
               />
@@ -1002,9 +1002,9 @@ export const SettingsManager: React.FC = () => {
         </div>
 
         {/* 4. Social Media Channels & Links */}
-        <div className="pt-4 border-t border-slate-800 space-y-4">
+        <div className="pt-4 border-t border-[#E8E0F0] space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-            <div className="flex items-center gap-2 text-xs font-bold uppercase text-cyan-400 tracking-wider">
+            <div className="flex items-center gap-2 text-xs font-bold uppercase text-[#8E2D9D] tracking-wider">
               <Share2 className="w-4 h-4" />
               <span>4. Social Media Channels & Interactive Links</span>
             </div>
@@ -1012,7 +1012,7 @@ export const SettingsManager: React.FC = () => {
             <button
               type="button"
               onClick={() => setIsAddingChannel(!isAddingChannel)}
-              className="px-3 py-1.5 rounded-lg bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/40 text-xs font-bold flex items-center space-x-1.5 transition-all self-start sm:self-auto cursor-pointer"
+              className="px-3 py-1.5 rounded-xl bg-[#F3E8FF] hover:bg-[#E9D5FF] text-[#8E2D9D] border border-[#C084FC]/50 text-xs font-bold flex items-center space-x-1.5 transition-all self-start sm:self-auto cursor-pointer"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>Add Social Channel</span>
@@ -1021,16 +1021,16 @@ export const SettingsManager: React.FC = () => {
 
           {/* Add Channel Modal / Inline Form */}
           {isAddingChannel && (
-            <div className="p-4 rounded-xl bg-slate-950 border border-cyan-500/40 space-y-3">
-              <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-                <span className="text-xs font-bold text-cyan-300 flex items-center gap-1.5">
-                  <Plus className="w-3.5 h-3.5 text-cyan-400" />
+            <div className="p-4 rounded-xl bg-[#FAF8FF] border border-[#C084FC]/50 space-y-3">
+              <div className="flex items-center justify-between border-b border-[#E8E0F0] pb-2">
+                <span className="text-xs font-bold text-[#8E2D9D] flex items-center gap-1.5">
+                  <Plus className="w-3.5 h-3.5 text-[#8E2D9D]" />
                   Connect New Social Media Channel
                 </span>
                 <button
                   type="button"
                   onClick={() => setIsAddingChannel(false)}
-                  className="p-1 text-slate-400 hover:text-white"
+                  className="p-1 text-[#817B91] hover:text-[#1E1B2E]"
                 >
                   <X className="w-3.5 h-3.5" />
                 </button>
@@ -1038,7 +1038,7 @@ export const SettingsManager: React.FC = () => {
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
                 <div>
-                  <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Platform</label>
+                  <label className="text-[10px] font-bold text-[#5F5A72] uppercase block mb-1">Platform</label>
                   <select
                     value={newChannelPlatform}
                     onChange={e => {
@@ -1049,7 +1049,7 @@ export const SettingsManager: React.FC = () => {
                         setNewChannelName(preset.name);
                       }
                     }}
-                    className="w-full px-2.5 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white focus:border-cyan-400 outline-none"
+                    className="w-full px-2.5 py-2 rounded-xl bg-white border border-[#E8E0F0] text-xs text-[#1E1B2E] focus:border-[#8E2D9D] focus:ring-2 focus:ring-[#8E2D9D]/15 outline-none"
                   >
                     {PLATFORM_PRESETS.map(p => (
                       <option key={p.id} value={p.id}>{p.name}</option>
@@ -1058,24 +1058,24 @@ export const SettingsManager: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Display Label / Name</label>
+                  <label className="text-[10px] font-bold text-[#5F5A72] uppercase block mb-1">Display Label / Name</label>
                   <input
                     type="text"
                     value={newChannelName}
                     onChange={e => setNewChannelName(e.target.value)}
                     placeholder="e.g. LinkedIn Profile, Discord Server"
-                    className="w-full px-2.5 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white focus:border-cyan-400 outline-none"
+                    className="w-full px-2.5 py-2 rounded-xl bg-white border border-[#E8E0F0] text-xs text-[#1E1B2E] focus:border-[#8E2D9D] focus:ring-2 focus:ring-[#8E2D9D]/15 outline-none"
                   />
                 </div>
 
                 <div>
-                  <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Destination URL / Link</label>
+                  <label className="text-[10px] font-bold text-[#5F5A72] uppercase block mb-1">Destination URL / Link</label>
                   <input
                     type="text"
                     value={newChannelUrl}
                     onChange={e => setNewChannelUrl(e.target.value)}
                     placeholder={PLATFORM_PRESETS.find(p => p.id === newChannelPlatform)?.placeholder || 'https://...'}
-                    className="w-full px-2.5 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white focus:border-cyan-400 outline-none"
+                    className="w-full px-2.5 py-2 rounded-xl bg-white border border-[#E8E0F0] text-xs text-[#1E1B2E] focus:border-[#8E2D9D] focus:ring-2 focus:ring-[#8E2D9D]/15 outline-none"
                   />
                 </div>
               </div>
@@ -1084,7 +1084,7 @@ export const SettingsManager: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setIsAddingChannel(false)}
-                  className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold cursor-pointer"
+                  className="px-3 py-1.5 rounded-lg bg-white hover:bg-[#FAF5FF] border border-[#E8E0F0] text-[#5F5A72] text-xs font-semibold cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -1092,7 +1092,7 @@ export const SettingsManager: React.FC = () => {
                   type="button"
                   onClick={handleAddSocialChannel}
                   disabled={!newChannelUrl.trim()}
-                  className="px-4 py-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 disabled:opacity-50 text-white text-xs font-bold flex items-center space-x-1.5 cursor-pointer shadow"
+                  className="px-4 py-1.5 rounded-lg bg-[#8E2D9D] hover:bg-[#6F42C1] disabled:opacity-50 text-white text-xs font-bold flex items-center space-x-1.5 cursor-pointer shadow-xs"
                 >
                   <Check className="w-3.5 h-3.5" />
                   <span>Add Channel</span>
@@ -1108,18 +1108,18 @@ export const SettingsManager: React.FC = () => {
                 key={channel.id}
                 className={`p-3 rounded-xl border transition-all space-y-2 ${
                   channel.active 
-                    ? 'bg-slate-900/90 border-slate-700 hover:border-slate-600' 
-                    : 'bg-slate-950/60 border-slate-900 opacity-60'
+                    ? 'bg-white border-[#E8E0F0] hover:border-[#C084FC]' 
+                    : 'bg-[#FAF8FF] border-[#E8E0F0] opacity-60'
                 }`}
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
-                    <div className="p-1.5 rounded-lg bg-slate-800 text-slate-300">
+                    <div className="p-1.5 rounded-lg bg-[#F3E8FF] text-[#8E2D9D]">
                       <SocialIcon platform={channel.platform} className="w-3.5 h-3.5" />
                     </div>
                     <div>
-                      <span className="text-xs font-bold text-white block">{channel.name}</span>
-                      <span className="text-[10px] text-slate-400 capitalize">{channel.platform}</span>
+                      <span className="text-xs font-bold text-[#1E1B2E] block">{channel.name}</span>
+                      <span className="text-[10px] text-[#817B91] capitalize">{channel.platform}</span>
                     </div>
                   </div>
 
@@ -1130,8 +1130,8 @@ export const SettingsManager: React.FC = () => {
                       onClick={() => handleToggleChannelActive(channel.id)}
                       className={`px-2 py-0.5 rounded text-[10px] font-bold flex items-center gap-1 cursor-pointer transition-all ${
                         channel.active
-                          ? 'bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30 border border-emerald-500/30'
-                          : 'bg-slate-800 text-slate-400 hover:bg-slate-700 border border-slate-700'
+                          ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200'
+                          : 'bg-slate-100 text-[#5F5A72] hover:bg-slate-200 border border-slate-200'
                       }`}
                       title={channel.active ? 'Click to Deactivate' : 'Click to Activate'}
                     >
@@ -1152,22 +1152,22 @@ export const SettingsManager: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => handleDeleteChannel(channel.id)}
-                      className="p-1 rounded hover:bg-red-500/20 text-slate-500 hover:text-red-400 transition-colors cursor-pointer"
+                      className="p-1 rounded hover:bg-red-50 text-[#817B91] hover:text-red-600 transition-colors cursor-pointer"
                       title="Delete Channel"
                     >
-                      <Trash2 className="w-3.5 h-3.5" />
+                      <Trash2 className="w-3 h-3" />
                     </button>
                   </div>
                 </div>
 
                 <div>
-                  <label className="text-[10px] font-medium text-slate-400 block mb-1">Target URL / Account</label>
+                  <label className="text-[10px] font-medium text-[#5F5A72] block mb-1">Target URL / Account</label>
                   <div className="relative flex items-center">
                     <input
                       type="text"
                       value={channel.url}
                       onChange={e => handleUpdateChannelUrl(channel.id, e.target.value)}
-                      className="w-full px-2.5 py-1.5 pr-7 rounded-lg bg-slate-950 border border-slate-700 text-xs text-white outline-none focus:border-cyan-400"
+                      className="w-full px-2.5 py-1.5 pr-7 rounded-xl bg-[#FAF5FF] border border-[#E8E0F0] text-xs text-[#1E1B2E] outline-none focus:border-[#8E2D9D] focus:ring-2 focus:ring-[#8E2D9D]/15"
                       placeholder="https://..."
                     />
                     {channel.url && (
@@ -1175,7 +1175,7 @@ export const SettingsManager: React.FC = () => {
                         href={formatSocialUrl(channel.url, channel.platform)}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="absolute right-2 text-slate-400 hover:text-cyan-300"
+                        className="absolute right-2 text-[#817B91] hover:text-[#8E2D9D]"
                         title="Test Link in New Tab"
                       >
                         <ExternalLink className="w-3.5 h-3.5" />
@@ -1188,14 +1188,14 @@ export const SettingsManager: React.FC = () => {
           </div>
 
           {socialChannels.length === 0 && (
-            <div className="p-6 text-center text-slate-400 border border-dashed border-slate-800 rounded-xl">
-              <Share2 className="w-6 h-6 mx-auto mb-2 text-slate-500 opacity-50" />
-              <p className="text-xs font-semibold">No Social Media Channels</p>
-              <p className="text-[11px] text-slate-500 mb-3">Click "Add Social Channel" to configure your links.</p>
+            <div className="p-6 text-center text-[#5F5A72] border border-dashed border-[#E8E0F0] rounded-xl bg-[#FAF8FF]">
+              <Share2 className="w-6 h-6 mx-auto mb-2 text-[#817B91] opacity-50" />
+              <p className="text-xs font-semibold text-[#1E1B2E]">No Social Media Channels</p>
+              <p className="text-[11px] text-[#5F5A72] mb-3">Click "Add Social Channel" to configure your links.</p>
               <button
                 type="button"
                 onClick={() => setIsAddingChannel(true)}
-                className="px-3 py-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-bold inline-flex items-center gap-1.5"
+                className="px-3 py-1.5 rounded-lg bg-[#8E2D9D] hover:bg-[#6F42C1] text-white text-xs font-bold inline-flex items-center gap-1.5"
               >
                 <Plus className="w-3.5 h-3.5" />
                 <span>Add Channel</span>
@@ -1205,16 +1205,16 @@ export const SettingsManager: React.FC = () => {
         </div>
 
         {/* 5. Branding & Signatures */}
-        <div className="pt-4 border-t border-slate-800">
+        <div className="pt-4 border-t border-[#E8E0F0]">
           <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2 text-xs font-bold uppercase text-cyan-400 tracking-wider">
+            <div className="flex items-center gap-2 text-xs font-bold uppercase text-[#8E2D9D] tracking-wider">
               <FileSignature className="w-4 h-4" />
               <span>5. Brand Logo, Company Stamp & Authorized Signature</span>
             </div>
             <button
               type="button"
               onClick={() => setActiveSettingsTab('assets')}
-              className="text-xs text-cyan-400 hover:text-cyan-300 font-semibold flex items-center gap-1 cursor-pointer"
+              className="text-xs text-[#8E2D9D] hover:text-[#6F42C1] font-semibold flex items-center gap-1 cursor-pointer"
             >
               <span>Manage Seals & Signatures Tab</span>
               <ArrowRight className="w-3.5 h-3.5" />
@@ -1223,33 +1223,33 @@ export const SettingsManager: React.FC = () => {
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {/* Logo Preview Card */}
-            <div className="p-3.5 rounded-xl bg-slate-900/80 border border-slate-800 flex flex-col justify-between gap-3">
+            <div className="p-3.5 rounded-xl bg-[#FAF8FF] border border-[#E8E0F0] flex flex-col justify-between gap-3">
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-[11px] font-bold text-white uppercase tracking-wider">Brand Logo</span>
-                  <span className="text-[9px] text-emerald-400 font-mono">SVG / PNG</span>
+                  <span className="text-[11px] font-bold text-[#1E1B2E] uppercase tracking-wider">Brand Logo</span>
+                  <span className="text-[9px] text-emerald-600 font-mono font-bold">SVG / PNG</span>
                 </div>
-                <div className="h-20 rounded-lg bg-slate-950 flex items-center justify-center p-2 border border-slate-800">
-                  <BrandLogo size="sm" variant="full" theme="dark" />
+                <div className="h-20 rounded-lg bg-white flex items-center justify-center p-2 border border-[#E8E0F0]">
+                  <BrandLogo size="sm" variant="full" theme="light" />
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => setActiveSettingsTab('assets')}
-                className="w-full py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-cyan-300 text-[11px] font-bold text-center transition-colors cursor-pointer"
+                className="w-full py-1.5 rounded-lg bg-white hover:bg-[#F3E8FF] border border-[#E8E0F0] text-[#8E2D9D] text-[11px] font-bold text-center transition-colors cursor-pointer"
               >
                 Upload / Change Logo
               </button>
             </div>
 
             {/* Stamp Preview Card */}
-            <div className="p-3.5 rounded-xl bg-slate-900/80 border border-slate-800 flex flex-col justify-between gap-3">
+            <div className="p-3.5 rounded-xl bg-[#FAF8FF] border border-[#E8E0F0] flex flex-col justify-between gap-3">
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-[11px] font-bold text-white uppercase tracking-wider">Company Stamp</span>
-                  <span className="text-[9px] text-cyan-400 font-mono">Seal Asset</span>
+                  <span className="text-[11px] font-bold text-[#1E1B2E] uppercase tracking-wider">Company Stamp</span>
+                  <span className="text-[9px] text-[#8E2D9D] font-mono font-bold">Seal Asset</span>
                 </div>
-                <div className="h-20 rounded-lg bg-white/95 flex items-center justify-center p-2 border border-slate-300">
+                <div className="h-20 rounded-lg bg-white flex items-center justify-center p-2 border border-[#E8E0F0]">
                   {(agencyConfig.stamp_url || agencyConfig.stampUrl) ? (
                     <img
                       src={agencyConfig.stamp_url || agencyConfig.stampUrl}
@@ -1257,8 +1257,8 @@ export const SettingsManager: React.FC = () => {
                       className="max-h-full max-w-full object-contain mix-blend-multiply"
                     />
                   ) : (
-                    <div className="text-center text-slate-400 text-[10px]">
-                      <Stamp className="w-5 h-5 mx-auto mb-1 opacity-50 text-slate-500" />
+                    <div className="text-center text-[#817B91] text-[10px]">
+                      <Stamp className="w-5 h-5 mx-auto mb-1 opacity-50 text-[#817B91]" />
                       <span>No Stamp Uploaded</span>
                     </div>
                   )}
@@ -1267,20 +1267,20 @@ export const SettingsManager: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setActiveSettingsTab('assets')}
-                className="w-full py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-cyan-300 text-[11px] font-bold text-center transition-colors cursor-pointer"
+                className="w-full py-1.5 rounded-lg bg-white hover:bg-[#F3E8FF] border border-[#E8E0F0] text-[#8E2D9D] text-[11px] font-bold text-center transition-colors cursor-pointer"
               >
                 Upload Company Stamp
               </button>
             </div>
 
             {/* Signature Preview Card */}
-            <div className="p-3.5 rounded-xl bg-slate-900/80 border border-slate-800 flex flex-col justify-between gap-3">
+            <div className="p-3.5 rounded-xl bg-[#FAF8FF] border border-[#E8E0F0] flex flex-col justify-between gap-3">
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-[11px] font-bold text-white uppercase tracking-wider">Authorized Signatory</span>
-                  <span className="text-[9px] text-blue-400 font-mono">Signature</span>
+                  <span className="text-[11px] font-bold text-[#1E1B2E] uppercase tracking-wider">Authorized Signatory</span>
+                  <span className="text-[9px] text-[#8E2D9D] font-mono font-bold">Signature</span>
                 </div>
-                <div className="h-20 rounded-lg bg-white/95 flex items-center justify-center p-2 border border-slate-300">
+                <div className="h-20 rounded-lg bg-white flex items-center justify-center p-2 border border-[#E8E0F0]">
                   {agencyConfig.signature_url ? (
                     <img
                       src={agencyConfig.signature_url}
@@ -1288,7 +1288,7 @@ export const SettingsManager: React.FC = () => {
                       className="max-h-full max-w-full object-contain mix-blend-multiply"
                     />
                   ) : (
-                    <div className="font-serif italic text-blue-900 font-bold text-sm">
+                    <div className="font-serif italic text-[#8E2D9D] font-bold text-sm">
                       Authorized Signature
                     </div>
                   )}
@@ -1297,7 +1297,7 @@ export const SettingsManager: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setActiveSettingsTab('assets')}
-                className="w-full py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-cyan-300 text-[11px] font-bold text-center transition-colors cursor-pointer"
+                className="w-full py-1.5 rounded-lg bg-white hover:bg-[#F3E8FF] border border-[#E8E0F0] text-[#8E2D9D] text-[11px] font-bold text-center transition-colors cursor-pointer"
               >
                 Upload Signature
               </button>
@@ -1306,74 +1306,74 @@ export const SettingsManager: React.FC = () => {
         </div>
 
         {/* 6. Settlement Bank Details */}
-        <div className="pt-4 border-t border-slate-800">
-          <div className="flex items-center gap-2 text-xs font-bold uppercase text-cyan-400 tracking-wider mb-3">
+        <div className="pt-4 border-t border-[#E8E0F0]">
+          <div className="flex items-center gap-2 text-xs font-bold uppercase text-[#8E2D9D] tracking-wider mb-3">
             <Landmark className="w-4 h-4" />
             <span>6. Settlement Bank Account Details</span>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
-              <label className="text-[11px] font-semibold text-slate-300 block mb-1">Bank Name</label>
+              <label className="text-[11px] font-semibold text-[#5F5A72] block mb-1">Bank Name</label>
               <input
                 type="text"
                 value={form.bank_name}
                 onChange={e => setForm({ ...form, bank_name: e.target.value })}
-                className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white outline-none focus:border-cyan-400"
+                className="w-full px-3 py-2 rounded-xl bg-[#FAF5FF] border border-[#E8E0F0] text-xs text-[#1E1B2E] outline-none focus:border-[#8E2D9D] focus:ring-2 focus:ring-[#8E2D9D]/15"
                 placeholder="HDFC Bank Ltd"
                 required
               />
             </div>
             <div>
-              <label className="text-[11px] font-semibold text-slate-300 block mb-1">Account Holder Name</label>
+              <label className="text-[11px] font-semibold text-[#5F5A72] block mb-1">Account Holder Name</label>
               <input
                 type="text"
                 value={form.account_name}
                 onChange={e => setForm({ ...form, account_name: e.target.value })}
-                className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white outline-none focus:border-cyan-400"
+                className="w-full px-3 py-2 rounded-xl bg-[#FAF5FF] border border-[#E8E0F0] text-xs text-[#1E1B2E] outline-none focus:border-[#8E2D9D] focus:ring-2 focus:ring-[#8E2D9D]/15"
                 placeholder="Fusion Forge Creation"
                 required
               />
             </div>
             <div>
-              <label className="text-[11px] font-semibold text-slate-300 block mb-1">Account Number</label>
+              <label className="text-[11px] font-semibold text-[#5F5A72] block mb-1">Account Number</label>
               <input
                 type="text"
                 value={form.account_number}
                 onChange={e => setForm({ ...form, account_number: e.target.value })}
-                className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white font-mono outline-none focus:border-cyan-400"
+                className="w-full px-3 py-2 rounded-xl bg-[#FAF5FF] border border-[#E8E0F0] text-xs text-[#1E1B2E] font-mono outline-none focus:border-[#8E2D9D] focus:ring-2 focus:ring-[#8E2D9D]/15"
                 placeholder="50200012345678"
                 required
               />
             </div>
             <div>
-              <label className="text-[11px] font-semibold text-slate-300 block mb-1">IFSC Code</label>
+              <label className="text-[11px] font-semibold text-[#5F5A72] block mb-1">IFSC Code</label>
               <input
                 type="text"
                 value={form.ifsc_code}
                 onChange={e => setForm({ ...form, ifsc_code: e.target.value.toUpperCase() })}
-                className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white font-mono uppercase outline-none focus:border-cyan-400"
+                className="w-full px-3 py-2 rounded-xl bg-[#FAF5FF] border border-[#E8E0F0] text-xs text-[#1E1B2E] font-mono uppercase outline-none focus:border-[#8E2D9D] focus:ring-2 focus:ring-[#8E2D9D]/15"
                 placeholder="HDFC0001234"
                 required
               />
             </div>
             <div>
-              <label className="text-[11px] font-semibold text-slate-300 block mb-1">Branch Name</label>
+              <label className="text-[11px] font-semibold text-[#5F5A72] block mb-1">Branch Name</label>
               <input
                 type="text"
                 value={form.branch_name}
                 onChange={e => setForm({ ...form, branch_name: e.target.value })}
-                className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white outline-none focus:border-cyan-400"
+                className="w-full px-3 py-2 rounded-xl bg-[#FAF5FF] border border-[#E8E0F0] text-xs text-[#1E1B2E] outline-none focus:border-[#8E2D9D] focus:ring-2 focus:ring-[#8E2D9D]/15"
                 placeholder="Silvassa Branch"
                 required
               />
             </div>
             <div>
-              <label className="text-[11px] font-semibold text-slate-300 block mb-1">UPI VPA ID</label>
+              <label className="text-[11px] font-semibold text-[#5F5A72] block mb-1">UPI VPA ID</label>
               <input
                 type="text"
                 value={form.upi_id}
                 onChange={e => setForm({ ...form, upi_id: e.target.value })}
-                className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white font-mono outline-none focus:border-cyan-400"
+                className="w-full px-3 py-2 rounded-xl bg-[#FAF5FF] border border-[#E8E0F0] text-xs text-[#1E1B2E] font-mono outline-none focus:border-[#8E2D9D] focus:ring-2 focus:ring-[#8E2D9D]/15"
                 placeholder="fusionforge@hdfcbank"
               />
             </div>
@@ -1381,8 +1381,8 @@ export const SettingsManager: React.FC = () => {
         </div>
 
         {/* 7. Terms & Conditions */}
-        <div className="pt-4 border-t border-slate-800">
-          <div className="flex items-center gap-2 text-xs font-bold uppercase text-cyan-400 tracking-wider mb-3">
+        <div className="pt-4 border-t border-[#E8E0F0]">
+          <div className="flex items-center gap-2 text-xs font-bold uppercase text-[#8E2D9D] tracking-wider mb-3">
             <FileText className="w-4 h-4" />
             <span>7. Standard Quotation & Invoice Terms</span>
           </div>
@@ -1391,7 +1391,7 @@ export const SettingsManager: React.FC = () => {
               rows={4}
               value={form.terms_conditions}
               onChange={e => setForm({ ...form, terms_conditions: e.target.value })}
-              className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white outline-none focus:border-cyan-400 font-mono leading-relaxed"
+              className="w-full px-3 py-2 rounded-xl bg-[#FAF5FF] border border-[#E8E0F0] text-xs text-[#1E1B2E] outline-none focus:border-[#8E2D9D] focus:ring-2 focus:ring-[#8E2D9D]/15 font-mono leading-relaxed"
               placeholder="Enter standard invoice & quotation terms..."
               required
             />
@@ -1399,20 +1399,20 @@ export const SettingsManager: React.FC = () => {
         </div>
 
         {/* Submit Bar */}
-        <div className="flex items-center justify-between pt-4 border-t border-slate-800">
-          <span className="text-xs text-slate-400">
+        <div className="flex items-center justify-between pt-4 border-t border-[#E8E0F0]">
+          <span className="text-xs text-[#5F5A72]">
             Changes will update invoices, quotations, PDF generator, and public site immediately.
           </span>
           <button
             type="submit"
-            className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-xs font-bold text-slate-950 flex items-center space-x-2 transition-all shadow-lg shadow-cyan-500/20 active:scale-95"
+            className="px-6 py-2.5 rounded-xl bg-[#8E2D9D] hover:bg-[#6F42C1] text-xs font-bold text-white flex items-center space-x-2 transition-all shadow-md shadow-[#8E2D9D]/20 active:scale-95 cursor-pointer"
           >
-            {saved ? <Check className="w-4 h-4 text-slate-950" /> : <Save className="w-4 h-4 text-slate-950" />}
+            {saved ? <Check className="w-4 h-4 text-white" /> : <Save className="w-4 h-4 text-white" />}
             <span>{saved ? 'Changes Saved Successfully!' : 'Save & Publish Master Profile'}</span>
           </button>
         </div>
       </form>
-      </div>
+        </div>
       )}
     </div>
   );

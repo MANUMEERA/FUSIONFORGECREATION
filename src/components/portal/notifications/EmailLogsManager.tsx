@@ -151,15 +151,15 @@ export const EmailLogsManager: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Top Banner */}
-      <div className="p-6 rounded-2xl bg-gradient-to-r from-[#0d1c44] via-[#091533] to-[#0d1c44] border border-blue-500/30 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="p-6 rounded-2xl bg-white border border-[#E8E0F0] shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center space-x-3.5">
-          <div className="p-3 rounded-2xl bg-blue-600/20 border border-blue-500/30 text-cyan-400 shrink-0">
+          <div className="p-3 rounded-2xl bg-[#F3E8FF] border border-[#E8E0F0] text-[#8E2D9D] shrink-0">
             <Mail className="w-6 h-6" />
           </div>
           <div>
-            <h2 className="text-xl font-bold text-white tracking-tight">Central Email Dispatch & Audit Logs</h2>
-            <p className="text-xs text-slate-300 mt-0.5">
-              Official Agency Sender: <span className="font-mono text-cyan-300 font-semibold">admin@fusionforgecreation.com</span> • Stored in Supabase
+            <h2 className="text-xl font-bold text-[#1E1B2E] tracking-tight">Central Email Dispatch & Audit Logs</h2>
+            <p className="text-xs text-[#5F5A72] mt-0.5">
+              Official Agency Sender: <span className="font-mono text-[#8E2D9D] font-semibold">admin@fusionforgecreation.com</span> • Stored in Supabase
             </p>
           </div>
         </div>
@@ -167,7 +167,7 @@ export const EmailLogsManager: React.FC = () => {
         <div className="flex items-center space-x-3">
           <button
             onClick={() => setIsTestModalOpen(true)}
-            className="px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white font-semibold text-xs shadow-lg shadow-blue-500/25 flex items-center space-x-2 cursor-pointer transition-all"
+            className="px-4 py-2 rounded-xl bg-[#8E2D9D] hover:bg-[#6F42C1] text-white font-semibold text-xs shadow-md flex items-center space-x-2 cursor-pointer transition-all"
           >
             <Send className="w-4 h-4" />
             <span>Send Test Relay Email</span>
@@ -177,53 +177,53 @@ export const EmailLogsManager: React.FC = () => {
 
       {/* Filter and Stats Bar */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="p-4 rounded-xl bg-gradient-to-br from-[#0a1430] to-[#060c1e] border border-blue-500/20 shadow-md">
+        <div className="p-4 rounded-xl bg-white border border-[#E8E0F0] shadow-xs">
           <div className="flex items-center justify-between">
-            <span className="text-xs text-slate-400 font-semibold">Total Dispatched</span>
-            <Mail className="w-4 h-4 text-blue-400" />
+            <span className="text-xs text-[#5F5A72] font-semibold">Total Dispatched</span>
+            <Mail className="w-4 h-4 text-[#8E2D9D]" />
           </div>
-          <div className="text-2xl font-bold text-white mt-1">{emailLogs.length}</div>
+          <div className="text-2xl font-bold text-[#1E1B2E] mt-1">{emailLogs.length}</div>
         </div>
 
-        <div className="p-4 rounded-xl bg-gradient-to-br from-[#0a1430] to-[#060c1e] border border-blue-500/20 shadow-md">
+        <div className="p-4 rounded-xl bg-white border border-[#E8E0F0] shadow-xs">
           <div className="flex items-center justify-between">
-            <span className="text-xs text-slate-400 font-semibold">Delivered Successfully</span>
-            <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+            <span className="text-xs text-[#5F5A72] font-semibold">Delivered Successfully</span>
+            <CheckCircle2 className="w-4 h-4 text-emerald-600" />
           </div>
-          <div className="text-2xl font-bold text-emerald-400 mt-1">
+          <div className="text-2xl font-bold text-emerald-600 mt-1">
             {emailLogs.filter(e => e.status === 'sent').length}
           </div>
         </div>
 
-        <div className="p-4 rounded-xl bg-gradient-to-br from-[#0a1430] to-[#060c1e] border border-blue-500/20 shadow-md">
+        <div className="p-4 rounded-xl bg-white border border-[#E8E0F0] shadow-xs">
           <div className="flex items-center justify-between">
-            <span className="text-xs text-slate-400 font-semibold">Failed Attempts</span>
-            <XCircle className="w-4 h-4 text-rose-400" />
+            <span className="text-xs text-[#5F5A72] font-semibold">Failed Attempts</span>
+            <XCircle className="w-4 h-4 text-rose-600" />
           </div>
-          <div className="text-2xl font-bold text-rose-400 mt-1">
+          <div className="text-2xl font-bold text-rose-600 mt-1">
             {emailLogs.filter(e => e.status === 'failed').length}
           </div>
         </div>
 
-        <div className="p-4 rounded-xl bg-gradient-to-br from-[#0a1430] to-[#060c1e] border border-blue-500/20 shadow-md">
+        <div className="p-4 rounded-xl bg-white border border-[#E8E0F0] shadow-xs">
           <div className="flex items-center justify-between">
-            <span className="text-xs text-slate-400 font-semibold">Audited Categories</span>
-            <Database className="w-4 h-4 text-purple-400" />
+            <span className="text-xs text-[#5F5A72] font-semibold">Audited Categories</span>
+            <Database className="w-4 h-4 text-[#6F42C1]" />
           </div>
-          <div className="text-2xl font-bold text-purple-400 mt-1">4 Types</div>
+          <div className="text-2xl font-bold text-[#6F42C1] mt-1">4 Types</div>
         </div>
       </div>
 
       {/* Search & Filter Controls */}
-      <div className="p-4 rounded-2xl bg-gradient-to-r from-[#09132e] via-[#0b1738] to-[#09132e] border border-blue-500/20 flex flex-col md:flex-row md:items-center justify-between gap-3">
+      <div className="p-4 rounded-2xl bg-white border border-[#E8E0F0] flex flex-col md:flex-row md:items-center justify-between gap-3 shadow-xs">
         <div className="relative flex-1 max-w-md">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 text-[#817B91] absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             placeholder="Search by recipient, subject, or message ID..."
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 rounded-xl bg-[#070f24] border border-blue-500/30 text-xs text-white placeholder-slate-400 focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-all"
+            className="w-full pl-9 pr-4 py-2 rounded-xl bg-[#FAF5FF] border border-[#E8E0F0] text-xs text-[#1E1B2E] placeholder-[#817B91] focus:outline-none focus:border-[#8E2D9D] focus:ring-1 focus:ring-[#8E2D9D] transition-all"
           />
         </div>
 
@@ -232,7 +232,7 @@ export const EmailLogsManager: React.FC = () => {
           <select
             value={selectedStatus}
             onChange={e => setSelectedStatus(e.target.value)}
-            className="px-3 py-2 rounded-xl bg-[#070f24] border border-blue-500/30 text-xs text-slate-200 focus:outline-none focus:border-cyan-400 cursor-pointer"
+            className="px-3 py-2 rounded-xl bg-[#FAF5FF] border border-[#E8E0F0] text-xs text-[#1E1B2E] focus:outline-none focus:border-[#8E2D9D] cursor-pointer"
           >
             <option value="all">All Delivery Statuses</option>
             <option value="sent">Delivered (Sent)</option>
@@ -244,7 +244,7 @@ export const EmailLogsManager: React.FC = () => {
           <select
             value={selectedCategory}
             onChange={e => setSelectedCategory(e.target.value)}
-            className="px-3 py-2 rounded-xl bg-[#070f24] border border-blue-500/30 text-xs text-slate-200 focus:outline-none focus:border-cyan-400 cursor-pointer"
+            className="px-3 py-2 rounded-xl bg-[#FAF5FF] border border-[#E8E0F0] text-xs text-[#1E1B2E] focus:outline-none focus:border-[#8E2D9D] cursor-pointer"
           >
             <option value="all">All Email Categories</option>
             <option value="invoice">Tax Invoices</option>
@@ -257,10 +257,10 @@ export const EmailLogsManager: React.FC = () => {
       </div>
 
       {/* Email Logs Table */}
-      <div className="rounded-2xl bg-gradient-to-b from-[#0a1430] to-[#060c1e] border border-blue-500/20 shadow-xl overflow-hidden">
+      <div className="rounded-2xl bg-white border border-[#E8E0F0] shadow-sm overflow-hidden">
         <div className="overflow-x-auto custom-scrollbar">
-          <table className="w-full text-left text-xs text-slate-300">
-            <thead className="bg-[#0e1b42]/80 border-b border-blue-500/20 text-slate-400 uppercase text-[10px] font-bold tracking-wider">
+          <table className="w-full text-left text-xs text-[#1E1B2E]">
+            <thead className="bg-[#FAF5FF] border-b border-[#E8E0F0] text-[#5F5A72] uppercase text-[10px] font-bold tracking-wider">
               <tr>
                 <th className="py-3.5 px-4">Delivery Status</th>
                 <th className="py-3.5 px-4">Recipient Email</th>
@@ -270,45 +270,45 @@ export const EmailLogsManager: React.FC = () => {
                 <th className="py-3.5 px-4 text-right">Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-blue-500/10 font-medium">
+            <tbody className="divide-y divide-[#E8E0F0] font-medium">
               {filteredLogs.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="py-12 text-center text-slate-400">
-                    <Mail className="w-8 h-8 text-slate-500 mx-auto mb-2" />
-                    <p className="font-semibold text-slate-300">No email logs matching current filters</p>
-                    <p className="text-[11px] text-slate-500 mt-1">Dispatches from invoice, quote, or project updates will appear here.</p>
+                  <td colSpan={6} className="py-12 text-center text-[#817B91]">
+                    <Mail className="w-8 h-8 text-[#817B91] mx-auto mb-2" />
+                    <p className="font-semibold text-[#1E1B2E]">No email logs matching current filters</p>
+                    <p className="text-[11px] text-[#817B91] mt-1">Dispatches from invoice, quote, or project updates will appear here.</p>
                   </td>
                 </tr>
               ) : (
                 filteredLogs.map(log => (
-                  <tr key={log.id} className="hover:bg-blue-500/5 transition-colors">
+                  <tr key={log.id} className="hover:bg-[#FAF5FF] transition-colors">
                     <td className="py-3 px-4 whitespace-nowrap">
                       {getStatusBadge(log.status)}
                     </td>
                     <td className="py-3 px-4 whitespace-nowrap">
-                      <div className="font-bold text-white">{log.recipient}</div>
-                      <div className="text-[10px] text-slate-400">From: {log.sender}</div>
+                      <div className="font-bold text-[#1E1B2E]">{log.recipient}</div>
+                      <div className="text-[10px] text-[#817B91]">From: {log.sender}</div>
                     </td>
                     <td className="py-3 px-4 whitespace-nowrap">
                       {getCategoryBadge(log.category)}
                     </td>
                     <td className="py-3 px-4 max-w-xs truncate">
-                      <div className="text-slate-200 font-semibold truncate">{log.subject}</div>
+                      <div className="text-[#1E1B2E] font-semibold truncate">{log.subject}</div>
                       {log.error_message && (
-                        <div className="text-[10px] text-rose-400 truncate flex items-center space-x-1 mt-0.5">
+                        <div className="text-[10px] text-rose-600 truncate flex items-center space-x-1 mt-0.5">
                           <AlertCircle className="w-3 h-3 shrink-0" />
                           <span>{log.error_message}</span>
                         </div>
                       )}
                     </td>
-                    <td className="py-3 px-4 whitespace-nowrap text-[11px] text-slate-400">
+                    <td className="py-3 px-4 whitespace-nowrap text-[11px] text-[#5F5A72]">
                       <div>{new Date(log.created_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</div>
-                      <div className="text-[10px] text-slate-500">{new Date(log.created_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</div>
+                      <div className="text-[10px] text-[#817B91]">{new Date(log.created_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</div>
                     </td>
                     <td className="py-3 px-4 text-right whitespace-nowrap">
                       <button
                         onClick={() => setSelectedLog(log)}
-                        className="px-2.5 py-1 rounded-lg bg-blue-600/20 hover:bg-blue-600/40 text-cyan-300 font-semibold text-xs border border-blue-500/30 transition-colors cursor-pointer"
+                        className="px-2.5 py-1 rounded-lg bg-[#FAF5FF] hover:bg-[#F3E8FF] text-[#8E2D9D] font-semibold text-xs border border-[#E8E0F0] transition-colors cursor-pointer"
                       >
                         Inspect
                       </button>
@@ -323,44 +323,44 @@ export const EmailLogsManager: React.FC = () => {
 
       {/* Inspect Log Modal */}
       {selectedLog && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
-          <div className="w-full max-w-lg bg-gradient-to-b from-[#0e1b40] to-[#070f24] border border-blue-500/30 rounded-2xl shadow-2xl p-6 space-y-4 animate-in fade-in zoom-in-95 text-slate-100">
-            <div className="flex items-center justify-between pb-3 border-b border-blue-500/20">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+          <div className="w-full max-w-lg bg-white border border-[#E8E0F0] rounded-2xl shadow-2xl p-6 space-y-4 animate-in fade-in zoom-in-95 text-[#1E1B2E]">
+            <div className="flex items-center justify-between pb-3 border-b border-[#E8E0F0]">
               <div className="flex items-center space-x-2">
-                <Mail className="w-5 h-5 text-cyan-400" />
-                <h3 className="text-base font-bold text-white">Email Dispatch Audit Record</h3>
+                <Mail className="w-5 h-5 text-[#8E2D9D]" />
+                <h3 className="text-base font-bold text-[#1E1B2E]">Email Dispatch Audit Record</h3>
               </div>
               <button
                 onClick={() => setSelectedLog(null)}
-                className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
+                className="p-1 rounded-lg text-[#817B91] hover:text-[#1E1B2E] hover:bg-[#FAF5FF] transition-colors cursor-pointer"
               >
                 ✕
               </button>
             </div>
 
             <div className="space-y-3 text-xs">
-              <div className="flex items-center justify-between p-2.5 rounded-xl bg-[#060c1d] border border-blue-500/20">
-                <span className="text-slate-400">Delivery Status:</span>
+              <div className="flex items-center justify-between p-2.5 rounded-xl bg-[#FAF5FF] border border-[#E8E0F0]">
+                <span className="text-[#5F5A72]">Delivery Status:</span>
                 <div>{getStatusBadge(selectedLog.status)}</div>
               </div>
 
               <div>
-                <label className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Subject Line</label>
-                <div className="p-2.5 rounded-xl bg-[#060c1d] border border-blue-500/20 font-semibold text-white mt-1">
+                <label className="text-[10px] text-[#817B91] uppercase font-bold tracking-wider">Subject Line</label>
+                <div className="p-2.5 rounded-xl bg-[#FAF5FF] border border-[#E8E0F0] font-semibold text-[#1E1B2E] mt-1">
                   {selectedLog.subject}
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Recipient</label>
-                  <div className="p-2 rounded-xl bg-[#060c1d] border border-blue-500/20 text-white font-mono mt-1 truncate">
+                  <label className="text-[10px] text-[#817B91] uppercase font-bold tracking-wider">Recipient</label>
+                  <div className="p-2 rounded-xl bg-[#FAF5FF] border border-[#E8E0F0] text-[#1E1B2E] font-mono mt-1 truncate">
                     {selectedLog.recipient}
                   </div>
                 </div>
                 <div>
-                  <label className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Official Sender</label>
-                  <div className="p-2 rounded-xl bg-[#060c1d] border border-blue-500/20 text-white font-mono mt-1 truncate">
+                  <label className="text-[10px] text-[#817B91] uppercase font-bold tracking-wider">Official Sender</label>
+                  <div className="p-2 rounded-xl bg-[#FAF5FF] border border-[#E8E0F0] text-[#1E1B2E] font-mono mt-1 truncate">
                     {selectedLog.sender}
                   </div>
                 </div>
@@ -368,15 +368,15 @@ export const EmailLogsManager: React.FC = () => {
 
               {selectedLog.message_id && (
                 <div>
-                  <label className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Relay Message ID</label>
-                  <div className="p-2 rounded-xl bg-[#060c1d] border border-blue-500/20 font-mono text-cyan-300 text-[11px] mt-1 flex items-center justify-between">
+                  <label className="text-[10px] text-[#817B91] uppercase font-bold tracking-wider">Relay Message ID</label>
+                  <div className="p-2 rounded-xl bg-[#FAF5FF] border border-[#E8E0F0] font-mono text-[#8E2D9D] text-[11px] mt-1 flex items-center justify-between">
                     <span className="truncate">{selectedLog.message_id}</span>
                     <button
                       onClick={() => handleCopy(selectedLog.message_id!, selectedLog.id)}
-                      className="p-1 text-slate-400 hover:text-white"
+                      className="p-1 text-[#817B91] hover:text-[#1E1B2E]"
                       title="Copy Message ID"
                     >
-                      {copiedId === selectedLog.id ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                      {copiedId === selectedLog.id ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
                     </button>
                   </div>
                 </div>
@@ -384,8 +384,8 @@ export const EmailLogsManager: React.FC = () => {
 
               {selectedLog.error_message && (
                 <div>
-                  <label className="text-[10px] text-rose-400 uppercase font-bold tracking-wider">Failure Reason / Relay Exception</label>
-                  <div className="p-2.5 rounded-xl bg-rose-950/40 border border-rose-500/30 text-rose-200 mt-1 font-mono text-[11px]">
+                  <label className="text-[10px] text-rose-600 uppercase font-bold tracking-wider">Failure Reason / Relay Exception</label>
+                  <div className="p-2.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 mt-1 font-mono text-[11px]">
                     {selectedLog.error_message}
                   </div>
                 </div>
@@ -393,14 +393,14 @@ export const EmailLogsManager: React.FC = () => {
 
               {selectedLog.metadata && Object.keys(selectedLog.metadata).length > 0 && (
                 <div>
-                  <label className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Dispatch Metadata</label>
-                  <div className="p-2 rounded-xl bg-[#060c1d] border border-blue-500/20 text-[11px] font-mono text-slate-300 mt-1 max-h-28 overflow-y-auto custom-scrollbar">
+                  <label className="text-[10px] text-[#817B91] uppercase font-bold tracking-wider">Dispatch Metadata</label>
+                  <div className="p-2 rounded-xl bg-[#FAF5FF] border border-[#E8E0F0] text-[11px] font-mono text-[#1E1B2E] mt-1 max-h-28 overflow-y-auto custom-scrollbar">
                     {JSON.stringify(selectedLog.metadata, null, 2)}
                   </div>
                 </div>
               )}
 
-              <div className="text-[10px] text-slate-500 text-right pt-2 border-t border-blue-500/15">
+              <div className="text-[10px] text-[#817B91] text-right pt-2 border-t border-[#E8E0F0]">
                 Logged at {new Date(selectedLog.created_at).toLocaleString('en-IN')}
               </div>
             </div>
@@ -408,7 +408,7 @@ export const EmailLogsManager: React.FC = () => {
             <div className="pt-2 flex justify-end">
               <button
                 onClick={() => setSelectedLog(null)}
-                className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-semibold text-xs transition-colors cursor-pointer"
+                className="px-4 py-2 rounded-xl bg-white hover:bg-[#FAF5FF] text-[#5F5A72] font-semibold text-xs border border-[#E8E0F0] transition-colors cursor-pointer"
               >
                 Close
               </button>
@@ -419,16 +419,16 @@ export const EmailLogsManager: React.FC = () => {
 
       {/* Test Email Dispatch Modal */}
       {isTestModalOpen && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
-          <div className="w-full max-w-md bg-gradient-to-b from-[#0e1b40] to-[#070f24] border border-blue-500/30 rounded-2xl shadow-2xl p-6 space-y-4 animate-in fade-in zoom-in-95 text-slate-100">
-            <div className="flex items-center justify-between pb-3 border-b border-blue-500/20">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+          <div className="w-full max-w-md bg-white border border-[#E8E0F0] rounded-2xl shadow-2xl p-6 space-y-4 animate-in fade-in zoom-in-95 text-[#1E1B2E]">
+            <div className="flex items-center justify-between pb-3 border-b border-[#E8E0F0]">
               <div className="flex items-center space-x-2">
-                <Send className="w-5 h-5 text-cyan-400" />
-                <h3 className="text-base font-bold text-white">Send Test Relay Email</h3>
+                <Send className="w-5 h-5 text-[#8E2D9D]" />
+                <h3 className="text-base font-bold text-[#1E1B2E]">Send Test Relay Email</h3>
               </div>
               <button
                 onClick={() => setIsTestModalOpen(false)}
-                className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
+                className="p-1 rounded-lg text-[#817B91] hover:text-[#1E1B2E] hover:bg-[#FAF5FF] transition-colors cursor-pointer"
               >
                 ✕
               </button>
@@ -436,8 +436,8 @@ export const EmailLogsManager: React.FC = () => {
 
             <form onSubmit={handleSendTestEmail} className="space-y-3.5 text-xs">
               <div>
-                <label className="text-[11px] text-slate-300 font-semibold block mb-1">
-                  Recipient Email Address <span className="text-rose-400">*</span>
+                <label className="text-[11px] text-[#1E1B2E] font-semibold block mb-1">
+                  Recipient Email Address <span className="text-rose-500">*</span>
                 </label>
                 <input
                   type="email"
@@ -445,53 +445,53 @@ export const EmailLogsManager: React.FC = () => {
                   placeholder="e.g. client@example.com"
                   value={testEmailRecipient}
                   onChange={e => setTestEmailRecipient(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl bg-[#060c1d] border border-blue-500/30 text-white text-xs placeholder-slate-500 focus:outline-none focus:border-cyan-400"
+                  className="w-full px-3 py-2 rounded-xl bg-[#FAF5FF] border border-[#E8E0F0] text-[#1E1B2E] text-xs placeholder-[#817B91] focus:outline-none focus:border-[#8E2D9D]"
                 />
               </div>
 
               <div>
-                <label className="text-[11px] text-slate-300 font-semibold block mb-1">
+                <label className="text-[11px] text-[#1E1B2E] font-semibold block mb-1">
                   Subject Line
                 </label>
                 <input
                   type="text"
                   value={testEmailSubject}
                   onChange={e => setTestEmailSubject(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl bg-[#060c1d] border border-blue-500/30 text-white text-xs placeholder-slate-500 focus:outline-none focus:border-cyan-400"
+                  className="w-full px-3 py-2 rounded-xl bg-[#FAF5FF] border border-[#E8E0F0] text-[#1E1B2E] text-xs placeholder-[#817B91] focus:outline-none focus:border-[#8E2D9D]"
                 />
               </div>
 
               <div>
-                <label className="text-[11px] text-slate-300 font-semibold block mb-1">
+                <label className="text-[11px] text-[#1E1B2E] font-semibold block mb-1">
                   Message Content
                 </label>
                 <textarea
                   rows={3}
                   value={testEmailBody}
                   onChange={e => setTestEmailBody(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl bg-[#060c1d] border border-blue-500/30 text-white text-xs placeholder-slate-500 focus:outline-none focus:border-cyan-400"
+                  className="w-full px-3 py-2 rounded-xl bg-[#FAF5FF] border border-[#E8E0F0] text-[#1E1B2E] text-xs placeholder-[#817B91] focus:outline-none focus:border-[#8E2D9D]"
                 />
               </div>
 
-              <div className="p-3 rounded-xl bg-blue-950/30 border border-blue-500/20 text-[11px] text-slate-300 flex items-start space-x-2">
-                <Info className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
+              <div className="p-3 rounded-xl bg-[#FAF5FF] border border-[#E8E0F0] text-[11px] text-[#5F5A72] flex items-start space-x-2">
+                <Info className="w-4 h-4 text-[#8E2D9D] shrink-0 mt-0.5" />
                 <span>
                   Dispatched via verified backend relay under sender <strong>admin@fusionforgecreation.com</strong>.
                 </span>
               </div>
 
-              <div className="flex items-center justify-end space-x-2 pt-2 border-t border-blue-500/20">
+              <div className="flex items-center justify-end space-x-2 pt-2 border-t border-[#E8E0F0]">
                 <button
                   type="button"
                   onClick={() => setIsTestModalOpen(false)}
-                  className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-semibold text-xs transition-colors cursor-pointer"
+                  className="px-4 py-2 rounded-xl bg-white hover:bg-[#FAF5FF] text-[#5F5A72] font-semibold text-xs border border-[#E8E0F0] transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isSendingTest}
-                  className="px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white font-semibold text-xs shadow-lg shadow-blue-500/25 flex items-center space-x-1.5 cursor-pointer disabled:opacity-50"
+                  className="px-4 py-2 rounded-xl bg-[#8E2D9D] hover:bg-[#6F42C1] text-white font-semibold text-xs shadow-md flex items-center space-x-1.5 cursor-pointer disabled:opacity-50"
                 >
                   {isSendingTest ? (
                     <>
