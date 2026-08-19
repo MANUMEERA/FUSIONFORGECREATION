@@ -51,13 +51,13 @@ export const DashboardOverview: React.FC = () => {
   const activeQuotations = quotations;
   const openEnquiries = enquiries.filter(e => !['closed', 'Closed', 'lost', 'won', 'Converted', 'converted'].includes(e.status));
   
-  const totalClientsCount = clients.length || 24;
+  const totalClientsCount = clients.length;
   const openEnquiriesCount = openEnquiries.length;
   const quotationsCount = activeQuotations.length;
   const totalInvoicesCount = activeInvoices.length;
 
-  const totalOutstanding = activeInvoices.reduce((acc, i) => acc + (i.balanceDue || 0), 0) || 125000;
-  const totalPaid = activeInvoices.reduce((acc, i) => acc + (i.paidAmount || 0), 0) || 340000;
+  const totalOutstanding = activeInvoices.reduce((acc, i) => acc + (i.balanceDue || 0), 0);
+  const totalPaid = activeInvoices.reduce((acc, i) => acc + (i.paidAmount || 0), 0);
   const totalBilled = totalPaid + totalOutstanding;
 
   // Financial Outflow stats
@@ -124,7 +124,7 @@ export const DashboardOverview: React.FC = () => {
               </div>
             </div>
             <div className="mt-3 flex items-center justify-between text-xs text-[#5F5A72] border-t border-[#E8E0F0] pt-2.5">
-              <span>{enquiries.filter(e => e.status === 'new').length || 4} new inbound leads</span>
+              <span>{openEnquiries.length} new inbound {openEnquiries.length === 1 ? 'lead' : 'leads'}</span>
               <span className="text-blue-600 font-semibold flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
                 Review <ArrowUpRight className="w-3.5 h-3.5" />
               </span>
@@ -450,30 +450,36 @@ export const DashboardOverview: React.FC = () => {
           </div>
 
           <div className="space-y-2.5">
-            {enquiries.slice(0, 4).map(enq => (
-              <div key={enq.id} className="p-3.5 rounded-xl bg-[#FAF5FF] border border-[#E8E0F0] flex justify-between items-center text-xs hover:border-[#C084FC] transition-all shadow-xs">
-                <div className="space-y-0.5">
-                  <div className="font-bold text-[#1E1B2E] flex items-center gap-2">
-                    <span>{enq.name}</span>
-                    <span className="text-[10px] text-[#817B91] font-normal">({enq.company || 'Direct'})</span>
-                  </div>
-                  <div className="text-[11px] text-[#5F5A72] truncate max-w-xs">{enq.projectDescription}</div>
-                  <div className="text-[10px] text-[#817B91]">{new Date(enq.createdAt).toLocaleDateString('en-IN')}</div>
-                </div>
-                <div className="text-right shrink-0">
-                  <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
-                    enq.status === 'new' 
-                      ? 'bg-blue-50 text-blue-700 border border-blue-200'
-                      : enq.status === 'contacted'
-                      ? 'bg-[#F3E8FF] text-[#6F42C1] border border-[#E8E0F0]'
-                      : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                  }`}>
-                    {enq.status}
-                  </span>
-                  <div className="text-[11px] font-mono text-[#1E1B2E] font-semibold mt-1">{enq.budgetRange}</div>
-                </div>
+            {enquiries.length === 0 ? (
+              <div className="p-6 text-center text-xs text-[#5F5A72] bg-[#FAF5FF] rounded-xl border border-[#E8E0F0]">
+                No lead enquiries received yet.
               </div>
-            ))}
+            ) : (
+              enquiries.slice(0, 4).map(enq => (
+                <div key={enq.id} className="p-3.5 rounded-xl bg-[#FAF5FF] border border-[#E8E0F0] flex justify-between items-center text-xs hover:border-[#C084FC] transition-all shadow-xs">
+                  <div className="space-y-0.5">
+                    <div className="font-bold text-[#1E1B2E] flex items-center gap-2">
+                      <span>{enq.name}</span>
+                      <span className="text-[10px] text-[#817B91] font-normal">({enq.company || 'Direct'})</span>
+                    </div>
+                    <div className="text-[11px] text-[#5F5A72] truncate max-w-xs">{enq.projectDescription}</div>
+                    <div className="text-[10px] text-[#817B91]">{new Date(enq.createdAt).toLocaleDateString('en-IN')}</div>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
+                      enq.status === 'new' 
+                        ? 'bg-blue-50 text-blue-700 border border-blue-200'
+                        : enq.status === 'contacted'
+                        ? 'bg-[#F3E8FF] text-[#6F42C1] border border-[#E8E0F0]'
+                        : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                    }`}>
+                      {enq.status}
+                    </span>
+                    <div className="text-[11px] font-mono text-[#1E1B2E] font-semibold mt-1">{enq.budgetRange}</div>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
 
@@ -493,27 +499,33 @@ export const DashboardOverview: React.FC = () => {
           </div>
 
           <div className="space-y-2.5">
-            {activeQuotations.slice(0, 4).map(quote => (
-              <div key={quote.id} className="p-3.5 rounded-xl bg-[#FAF5FF] border border-[#E8E0F0] flex justify-between items-center text-xs hover:border-[#C084FC] transition-all shadow-xs">
-                <div className="space-y-0.5">
-                  <div className="font-bold text-[#1E1B2E]">{quote.clientCompany || quote.clientName}</div>
-                  <div className="text-[11px] text-[#6F42C1] font-mono font-semibold">{quote.quoteNumber}</div>
-                  <div className="text-[10px] text-[#5F5A72] truncate max-w-xs">{quote.title}</div>
-                </div>
-                <div className="text-right shrink-0">
-                  <div className="font-mono font-bold text-[#1E1B2E] text-sm">₹{quote.totalAmount.toLocaleString('en-IN')}</div>
-                  <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase inline-block mt-1 ${
-                    quote.status === 'converted'
-                      ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                      : quote.status === 'sent'
-                      ? 'bg-blue-50 text-blue-700 border border-blue-200'
-                      : 'bg-slate-100 text-[#5F5A72] border border-slate-200'
-                  }`}>
-                    {quote.status}
-                  </span>
-                </div>
+            {activeQuotations.length === 0 ? (
+              <div className="p-6 text-center text-xs text-[#5F5A72] bg-[#FAF5FF] rounded-xl border border-[#E8E0F0]">
+                No quotations created yet.
               </div>
-            ))}
+            ) : (
+              activeQuotations.slice(0, 4).map(quote => (
+                <div key={quote.id} className="p-3.5 rounded-xl bg-[#FAF5FF] border border-[#E8E0F0] flex justify-between items-center text-xs hover:border-[#C084FC] transition-all shadow-xs">
+                  <div className="space-y-0.5">
+                    <div className="font-bold text-[#1E1B2E]">{quote.clientCompany || quote.clientName}</div>
+                    <div className="text-[11px] text-[#6F42C1] font-mono font-semibold">{quote.quoteNumber}</div>
+                    <div className="text-[10px] text-[#5F5A72] truncate max-w-xs">{quote.title}</div>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <div className="font-mono font-bold text-[#1E1B2E] text-sm">₹{quote.totalAmount.toLocaleString('en-IN')}</div>
+                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase inline-block mt-1 ${
+                      quote.status === 'converted'
+                        ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                        : quote.status === 'sent'
+                        ? 'bg-blue-50 text-blue-700 border border-blue-200'
+                        : 'bg-slate-100 text-[#5F5A72] border border-slate-200'
+                    }`}>
+                      {quote.status}
+                    </span>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
 
@@ -540,31 +552,37 @@ export const DashboardOverview: React.FC = () => {
           </div>
 
           <div className="space-y-2.5">
-            {activeInvoices.slice(0, 4).map(inv => (
-              <div key={inv.id} className="p-3.5 rounded-xl bg-[#FAF5FF] border border-[#E8E0F0] flex justify-between items-center text-xs hover:border-[#C084FC] transition-all shadow-xs">
-                <div className="space-y-0.5">
-                  <div className="font-bold text-[#1E1B2E] flex items-center gap-2">
-                    <span>{inv.buyerCompany || inv.clientCompany || inv.clientName}</span>
-                    {inv.invoiceNumber === 'FFC-2026-0003' && (
-                      <span className="px-1.5 py-0.2 rounded text-[9px] bg-[#F3E8FF] text-[#8E2D9D] border border-[#C084FC] font-bold">PROMPT SPEC</span>
-                    )}
-                  </div>
-                  <div className="text-[11px] text-[#5F5A72] font-mono">{inv.invoiceNumber} • {inv.issueDate}</div>
-                </div>
-                <div className="text-right shrink-0">
-                  <div className="font-mono font-bold text-[#1E1B2E] text-sm">₹{inv.totalAmount.toLocaleString('en-IN')}</div>
-                  <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase inline-block mt-1 ${
-                    inv.status === 'paid'
-                      ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                      : inv.status === 'partially_paid'
-                      ? 'bg-amber-50 text-amber-700 border border-amber-200'
-                      : 'bg-blue-50 text-blue-700 border border-blue-200'
-                  }`}>
-                    {inv.status.replace('_', ' ')}
-                  </span>
-                </div>
+            {activeInvoices.length === 0 ? (
+              <div className="p-6 text-center text-xs text-[#5F5A72] bg-[#FAF5FF] rounded-xl border border-[#E8E0F0]">
+                No tax invoices created yet.
               </div>
-            ))}
+            ) : (
+              activeInvoices.slice(0, 4).map(inv => (
+                <div key={inv.id} className="p-3.5 rounded-xl bg-[#FAF5FF] border border-[#E8E0F0] flex justify-between items-center text-xs hover:border-[#C084FC] transition-all shadow-xs">
+                  <div className="space-y-0.5">
+                    <div className="font-bold text-[#1E1B2E] flex items-center gap-2">
+                      <span>{inv.buyerCompany || inv.clientCompany || inv.clientName}</span>
+                      {inv.invoiceNumber === 'FFC-2026-0003' && (
+                        <span className="px-1.5 py-0.2 rounded text-[9px] bg-[#F3E8FF] text-[#8E2D9D] border border-[#C084FC] font-bold">PROMPT SPEC</span>
+                      )}
+                    </div>
+                    <div className="text-[11px] text-[#5F5A72] font-mono">{inv.invoiceNumber} • {inv.issueDate}</div>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <div className="font-mono font-bold text-[#1E1B2E] text-sm">₹{inv.totalAmount.toLocaleString('en-IN')}</div>
+                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase inline-block mt-1 ${
+                      inv.status === 'paid'
+                        ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                        : inv.status === 'partially_paid'
+                        ? 'bg-amber-50 text-amber-700 border border-amber-200'
+                        : 'bg-blue-50 text-blue-700 border border-blue-200'
+                    }`}>
+                      {inv.status.replace('_', ' ')}
+                    </span>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
 
@@ -727,24 +745,30 @@ export const DashboardOverview: React.FC = () => {
           {/* Recent Events Feed */}
           <div className="space-y-2">
             <div className="text-[11px] font-bold text-[#817B91] uppercase tracking-wider">Recent Inbound Traffic</div>
-            {visitorEvents.slice(0, 3).map(ev => (
-              <div key={ev.id} className="p-2.5 rounded-xl bg-[#FAF5FF] border border-[#E8E0F0] flex items-center justify-between text-xs">
-                <div className="space-y-0.5">
-                  <div className="font-semibold text-[#1E1B2E] flex items-center gap-2">
-                    <span className="text-[11px] font-mono text-[#6F42C1]">{ev.pagePath || '/'}{ev.sectionId || ''}</span>
-                    <span className="text-[10px] px-1.5 py-0.2 rounded bg-white text-[#5F5A72] border border-[#E8E0F0] font-mono">
-                      {ev.deviceType} • {ev.browser}
+            {visitorEvents.length === 0 ? (
+              <div className="p-4 text-center text-xs text-[#5F5A72] bg-[#FAF5FF] rounded-xl border border-[#E8E0F0]">
+                No recent visitor traffic recorded yet.
+              </div>
+            ) : (
+              visitorEvents.slice(0, 3).map(ev => (
+                <div key={ev.id} className="p-2.5 rounded-xl bg-[#FAF5FF] border border-[#E8E0F0] flex items-center justify-between text-xs">
+                  <div className="space-y-0.5">
+                    <div className="font-semibold text-[#1E1B2E] flex items-center gap-2">
+                      <span className="text-[11px] font-mono text-[#6F42C1]">{ev.pagePath || '/'}{ev.sectionId || ''}</span>
+                      <span className="text-[10px] px-1.5 py-0.2 rounded bg-white text-[#5F5A72] border border-[#E8E0F0] font-mono">
+                        {ev.deviceType} • {ev.browser}
+                      </span>
+                    </div>
+                    <div className="text-[10px] text-[#817B91]">{ev.region || 'India'} • Ref: {ev.referrer || 'direct'}</div>
+                  </div>
+                  <div className="text-right">
+                    <span className="px-2 py-0.5 rounded text-[9px] font-mono font-bold bg-[#F3E8FF] text-[#8E2D9D] border border-[#E8E0F0]">
+                      {ev.eventType}
                     </span>
                   </div>
-                  <div className="text-[10px] text-[#817B91]">{ev.region || 'India'} • Ref: {ev.referrer || 'direct'}</div>
                 </div>
-                <div className="text-right">
-                  <span className="px-2 py-0.5 rounded text-[9px] font-mono font-bold bg-[#F3E8FF] text-[#8E2D9D] border border-[#E8E0F0]">
-                    {ev.eventType}
-                  </span>
-                </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </div>
 

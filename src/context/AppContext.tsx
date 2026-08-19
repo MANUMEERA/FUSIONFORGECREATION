@@ -2643,7 +2643,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return newEnq;
   };
 
-  const triggerSimulatedLeadAlert = (): ProjectEnquiry => {
+  const triggerSimulatedLeadAlert = (): ProjectEnquiry | null => {
     const sampleLeads = [
       {
         name: 'Dr. Vikram Malhotra',
@@ -2686,7 +2686,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       }
     ];
 
-    const pick = sampleLeads[Math.floor(Math.random() * sampleLeads.length)];
+    // Check for unique non-duplicate leads
+    const availableLeads = sampleLeads.filter(s => !enquiries.some(e => e.email === s.email));
+    if (availableLeads.length === 0) {
+      // If already present, play chime/buzzer for existing latest alert without adding duplicate
+      buzzerEngine.playLeadBuzzer();
+      return null;
+    }
+
+    const pick = availableLeads[0];
     return addEnquiry(pick);
   };
 
@@ -2737,11 +2745,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     });
   };
 
-  const deleteEnquiry = (id: string) => {
+  const deleteEnquiry = async (id: string) => {
+    const enqToDelete = enquiries.find(e => e.id === id);
     setEnquiries(prev => prev.filter(e => e.id !== id));
+    
+    if (latestLeadAlert?.id === id) {
+      setLatestLeadAlert(null);
+    }
 
     if (isSupabaseConfigured) {
-      supabase.from('enquiries').delete().eq('id', id).then();
+      try {
+        await supabase.from('enquiries').delete().eq('id', id);
+      } catch (err) {
+        console.warn('[Supabase Delete Enquiry] Error:', err);
+      }
     }
 
     addAuditLog({
@@ -2751,7 +2768,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       action: 'DELETE',
       table_name: 'enquiries',
       record_id: id,
-      details: `Deleted enquiry ${id}`
+      details: `Deleted lead enquiry: ${enqToDelete?.name || id} (${enqToDelete?.company || 'Direct'}) by Super Admin`
     });
   };
 
