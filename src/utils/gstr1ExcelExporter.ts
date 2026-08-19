@@ -1,7 +1,7 @@
-import * as XLSX from 'xlsx';
+import writeExcelFile from 'write-excel-file/universal';
 import { Invoice, CreditDebitNote, AgencyConfig } from '../types';
 import { formatDateGstr1, formatDateDDMMYYYY } from './dateUtils';
-import { formatPlaceOfSupply, getStateCodeByName, getStateNameByCode, INDIAN_STATES } from '../data/indianStates';
+import { getStateCodeByName, getStateNameByCode, INDIAN_STATES } from '../data/indianStates';
 
 export interface Gstr1ExportOptions {
   periodLabel: string;
@@ -90,6 +90,25 @@ export function getGstr1InvoiceType(invoice: Invoice): string {
 }
 
 /**
+ * Trigger download of blob in browser
+ */
+async function downloadExcelBlob(sheets: any[], fileName: string) {
+  try {
+    const blob = await writeExcelFile(sheets).toBlob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error('Error generating Excel file:', error);
+  }
+}
+
+/**
  * Generates and downloads the official Sequence-Based GSTR-1 Excel Workbook with 5 sheets + Audit Summary
  */
 export function exportGstr1Workbook(
@@ -105,217 +124,280 @@ export function exportGstr1Workbook(
   const b2bInvoices = activeInvoices.filter(inv => isB2BRecipient(inv.buyerGstin || inv.clientGstin));
   const b2cInvoices = activeInvoices.filter(inv => !isB2BRecipient(inv.buyerGstin || inv.clientGstin));
 
-  const wb = XLSX.utils.book_new();
-
   // =========================================================================
   // 1. SHEET: b2b (B2B Tax Invoices for Registered Recipients)
   // =========================================================================
-  const b2bRows: any[] = [];
-  b2bInvoices.forEach(inv => {
-    const recipientGstin = (inv.buyerGstin || inv.clientGstin || '').trim().toUpperCase();
-    const receiverName = inv.buyerCompany || inv.clientCompany || inv.clientName || 'Registered Client';
-    const invoiceNumber = inv.invoiceNumber || inv.invoice_number || 'INV-001';
-    const invoiceDate = formatDateGstr1(inv.issueDate || inv.issue_date);
-    const invoiceValue = Number(inv.totalAmount || inv.grand_total || 0);
-    const pos = getStandardGstPlaceOfSupply(inv.placeOfSupply || inv.place_of_supply, inv.buyerState);
-    const reverseCharge = getReverseChargeFlag(inv.reverseCharge || inv.reverse_charge);
-    const invType = getGstr1InvoiceType(inv);
-    const rate = inv.gstRate !== undefined ? inv.gstRate : 18;
-    const taxableValue = Number(inv.taxableAmount || inv.taxable_amount || 0);
-    const igst = Number(inv.igstAmount || inv.igst_amount || 0);
-    const cgst = Number(inv.cgstAmount || inv.cgst_amount || 0);
-    const sgstUtgst = Number((inv.sgstAmount || inv.sgst_amount || 0) + (inv.utgstAmount || inv.utgst_amount || 0));
-
-    b2bRows.push({
-      'GSTIN/UIN of Recipient': recipientGstin,
-      'Receiver Name': receiverName,
-      'Invoice Number': invoiceNumber,
-      'Invoice Date': invoiceDate,
-      'Invoice Value': invoiceValue,
-      'Place Of Supply': pos,
-      'Reverse Charge': reverseCharge,
-      'Invoice Type': invType,
-      'Rate': rate,
-      'Taxable Value': taxableValue,
-      'IGST': igst,
-      'CGST': cgst,
-      'SGST/UTGST': sgstUtgst
-    });
-  });
-
-  const b2bSheet = XLSX.utils.json_to_sheet(b2bRows.length > 0 ? b2bRows : [{
-    'GSTIN/UIN of Recipient': '',
-    'Receiver Name': 'No B2B Invoices in selected period',
-    'Invoice Number': '',
-    'Invoice Date': '',
-    'Invoice Value': 0,
-    'Place Of Supply': '',
-    'Reverse Charge': 'N',
-    'Invoice Type': 'Regular',
-    'Rate': 0,
-    'Taxable Value': 0,
-    'IGST': 0,
-    'CGST': 0,
-    'SGST/UTGST': 0
-  }]);
-  b2bSheet['!cols'] = [
-    { wch: 18 }, // GSTIN
-    { wch: 32 }, // Receiver Name
-    { wch: 18 }, // Invoice Number
-    { wch: 20 }, // Invoice Date (DD-MONTH NAME-YYYY)
-    { wch: 15 }, // Invoice Value
-    { wch: 35 }, // Place of Supply
-    { wch: 14 }, // Reverse Charge
-    { wch: 25 }, // Invoice Type
-    { wch: 10 }, // Rate
-    { wch: 15 }, // Taxable Value
-    { wch: 14 }, // IGST
-    { wch: 14 }, // CGST
-    { wch: 14 }  // SGST/UTGST
+  const b2bHeaders = [
+    'GSTIN/UIN of Recipient',
+    'Receiver Name',
+    'Invoice Number',
+    'Invoice Date',
+    'Invoice Value',
+    'Place Of Supply',
+    'Reverse Charge',
+    'Invoice Type',
+    'Rate',
+    'Taxable Value',
+    'IGST',
+    'CGST',
+    'SGST/UTGST'
   ];
-  XLSX.utils.book_append_sheet(wb, b2bSheet, 'b2b');
+
+  const b2bRows: any[][] = [
+    b2bHeaders.map(h => ({ value: h, fontWeight: 'bold' }))
+  ];
+
+  if (b2bInvoices.length > 0) {
+    b2bInvoices.forEach(inv => {
+      const recipientGstin = (inv.buyerGstin || inv.clientGstin || '').trim().toUpperCase();
+      const receiverName = inv.buyerCompany || inv.clientCompany || inv.clientName || 'Registered Client';
+      const invoiceNumber = inv.invoiceNumber || inv.invoice_number || 'INV-001';
+      const invoiceDate = formatDateGstr1(inv.issueDate || inv.issue_date);
+      const invoiceValue = Number(inv.totalAmount || inv.grand_total || 0);
+      const pos = getStandardGstPlaceOfSupply(inv.placeOfSupply || inv.place_of_supply, inv.buyerState);
+      const reverseCharge = getReverseChargeFlag(inv.reverseCharge || inv.reverse_charge);
+      const invType = getGstr1InvoiceType(inv);
+      const rate = inv.gstRate !== undefined ? inv.gstRate : 18;
+      const taxableValue = Number(inv.taxableAmount || inv.taxable_amount || 0);
+      const igst = Number(inv.igstAmount || inv.igst_amount || 0);
+      const cgst = Number(inv.cgstAmount || inv.cgst_amount || 0);
+      const sgstUtgst = Number((inv.sgstAmount || inv.sgst_amount || 0) + (inv.utgstAmount || inv.utgst_amount || 0));
+
+      b2bRows.push([
+        { value: recipientGstin, type: String },
+        { value: receiverName, type: String },
+        { value: invoiceNumber, type: String },
+        { value: invoiceDate, type: String },
+        { value: invoiceValue, type: Number },
+        { value: pos, type: String },
+        { value: reverseCharge, type: String },
+        { value: invType, type: String },
+        { value: rate, type: Number },
+        { value: taxableValue, type: Number },
+        { value: igst, type: Number },
+        { value: cgst, type: Number },
+        { value: sgstUtgst, type: Number }
+      ]);
+    });
+  } else {
+    b2bRows.push([
+      { value: '', type: String },
+      { value: 'No B2B Invoices in selected period', type: String },
+      { value: '', type: String },
+      { value: '', type: String },
+      { value: 0, type: Number },
+      { value: '', type: String },
+      { value: 'N', type: String },
+      { value: 'Regular', type: String },
+      { value: 0, type: Number },
+      { value: 0, type: Number },
+      { value: 0, type: Number },
+      { value: 0, type: Number },
+      { value: 0, type: Number }
+    ]);
+  }
+
+  const b2bColumns = [
+    { width: 18 },
+    { width: 32 },
+    { width: 18 },
+    { width: 20 },
+    { width: 15 },
+    { width: 35 },
+    { width: 14 },
+    { width: 25 },
+    { width: 10 },
+    { width: 15 },
+    { width: 14 },
+    { width: 14 },
+    { width: 14 }
+  ];
 
   // =========================================================================
   // 2. SHEET: b2c (B2C / Unregistered Outward Supplies)
   // =========================================================================
-  const b2cRows: any[] = [];
-  b2cInvoices.forEach(inv => {
-    const receiverName = inv.buyerCompany || inv.clientCompany || inv.clientName || 'Direct Consumer';
-    const invoiceNumber = inv.invoiceNumber || inv.invoice_number || 'INV-001';
-    const invoiceDate = formatDateGstr1(inv.issueDate || inv.issue_date);
-    const invoiceValue = Number(inv.totalAmount || inv.grand_total || 0);
-    const pos = getStandardGstPlaceOfSupply(inv.placeOfSupply || inv.place_of_supply, inv.buyerState);
-    const rate = inv.gstRate !== undefined ? inv.gstRate : 18;
-    const taxableValue = Number(inv.taxableAmount || inv.taxable_amount || 0);
-    const igst = Number(inv.igstAmount || inv.igst_amount || 0);
-    const cgst = Number(inv.cgstAmount || inv.cgst_amount || 0);
-    const sgstUtgst = Number((inv.sgstAmount || inv.sgst_amount || 0) + (inv.utgstAmount || inv.utgst_amount || 0));
-
-    b2cRows.push({
-      'Type': 'OE',
-      'Receiver Name': receiverName,
-      'Invoice Number': invoiceNumber,
-      'Invoice Date': invoiceDate,
-      'Invoice Value': invoiceValue,
-      'Place Of Supply': pos,
-      'Rate': rate,
-      'Taxable Value': taxableValue,
-      'IGST': igst,
-      'CGST': cgst,
-      'SGST/UTGST': sgstUtgst,
-      'Cess Amount': 0
-    });
-  });
-
-  const b2cSheet = XLSX.utils.json_to_sheet(b2cRows.length > 0 ? b2cRows : [{
-    'Type': 'OE',
-    'Receiver Name': 'No B2C Invoices in selected period',
-    'Invoice Number': '',
-    'Invoice Date': '',
-    'Invoice Value': 0,
-    'Place Of Supply': '',
-    'Rate': 0,
-    'Taxable Value': 0,
-    'IGST': 0,
-    'CGST': 0,
-    'SGST/UTGST': 0,
-    'Cess Amount': 0
-  }]);
-  b2cSheet['!cols'] = [
-    { wch: 10 }, // Type
-    { wch: 30 }, // Receiver Name
-    { wch: 18 }, // Invoice Number
-    { wch: 20 }, // Invoice Date
-    { wch: 15 }, // Invoice Value
-    { wch: 35 }, // Place of Supply
-    { wch: 10 }, // Rate
-    { wch: 15 }, // Taxable Value
-    { wch: 14 }, // IGST
-    { wch: 14 }, // CGST
-    { wch: 14 }, // SGST/UTGST
-    { wch: 12 }  // Cess
+  const b2cHeaders = [
+    'Type',
+    'Receiver Name',
+    'Invoice Number',
+    'Invoice Date',
+    'Invoice Value',
+    'Place Of Supply',
+    'Rate',
+    'Taxable Value',
+    'IGST',
+    'CGST',
+    'SGST/UTGST',
+    'Cess Amount'
   ];
-  XLSX.utils.book_append_sheet(wb, b2cSheet, 'b2c');
+
+  const b2cRows: any[][] = [
+    b2cHeaders.map(h => ({ value: h, fontWeight: 'bold' }))
+  ];
+
+  if (b2cInvoices.length > 0) {
+    b2cInvoices.forEach(inv => {
+      const receiverName = inv.buyerCompany || inv.clientCompany || inv.clientName || 'Direct Consumer';
+      const invoiceNumber = inv.invoiceNumber || inv.invoice_number || 'INV-001';
+      const invoiceDate = formatDateGstr1(inv.issueDate || inv.issue_date);
+      const invoiceValue = Number(inv.totalAmount || inv.grand_total || 0);
+      const pos = getStandardGstPlaceOfSupply(inv.placeOfSupply || inv.place_of_supply, inv.buyerState);
+      const rate = inv.gstRate !== undefined ? inv.gstRate : 18;
+      const taxableValue = Number(inv.taxableAmount || inv.taxable_amount || 0);
+      const igst = Number(inv.igstAmount || inv.igst_amount || 0);
+      const cgst = Number(inv.cgstAmount || inv.cgst_amount || 0);
+      const sgstUtgst = Number((inv.sgstAmount || inv.sgst_amount || 0) + (inv.utgstAmount || inv.utgst_amount || 0));
+
+      b2cRows.push([
+        { value: 'OE', type: String },
+        { value: receiverName, type: String },
+        { value: invoiceNumber, type: String },
+        { value: invoiceDate, type: String },
+        { value: invoiceValue, type: Number },
+        { value: pos, type: String },
+        { value: rate, type: Number },
+        { value: taxableValue, type: Number },
+        { value: igst, type: Number },
+        { value: cgst, type: Number },
+        { value: sgstUtgst, type: Number },
+        { value: 0, type: Number }
+      ]);
+    });
+  } else {
+    b2cRows.push([
+      { value: 'OE', type: String },
+      { value: 'No B2C Invoices in selected period', type: String },
+      { value: '', type: String },
+      { value: '', type: String },
+      { value: 0, type: Number },
+      { value: '', type: String },
+      { value: 0, type: Number },
+      { value: 0, type: Number },
+      { value: 0, type: Number },
+      { value: 0, type: Number },
+      { value: 0, type: Number },
+      { value: 0, type: Number }
+    ]);
+  }
+
+  const b2cColumns = [
+    { width: 10 },
+    { width: 30 },
+    { width: 18 },
+    { width: 20 },
+    { width: 15 },
+    { width: 35 },
+    { width: 10 },
+    { width: 15 },
+    { width: 14 },
+    { width: 14 },
+    { width: 14 },
+    { width: 12 }
+  ];
 
   // =========================================================================
   // 3. SHEET: cdnr (Credit & Debit Notes Registered & Unregistered)
   // =========================================================================
-  const cdnrRows: any[] = [];
-  activeNotes.forEach(note => {
-    const recipientGstin = (note.clientGstin || '').trim().toUpperCase() || 'UNREGISTERED';
-    const receiverName = note.clientCompany || note.clientName || 'Client';
-    const noteNumber = note.noteNumber || note.note_number || 'CN-001';
-    const noteDate = formatDateGstr1(note.issueDate || note.issue_date);
-    const noteType = note.noteType === 'credit' ? 'Credit Note' : 'Debit Note';
-    const origInvNumber = note.invoiceNumber || note.invoice_number || 'N/A';
-    const origInvDate = note.invoiceDate ? formatDateGstr1(note.invoiceDate) : 'N/A';
-    const pos = getStandardGstPlaceOfSupply(note.placeOfSupply || note.place_of_supply, note.buyerState);
-    const reverseCharge = getReverseChargeFlag(note.reverseCharge || note.reverse_charge);
-    const noteValue = Number(note.totalAmount || note.total_amount || 0);
-    const rate = note.gstRate !== undefined ? note.gstRate : 18;
-    const taxableValue = Number(note.taxableAmount || note.taxable_amount || 0);
-    const igst = Number(note.igstAmount || note.igst_amount || 0);
-    const cgst = Number(note.cgstAmount || note.cgst_amount || 0);
-    const sgstUtgst = Number((note.sgstAmount || note.sgst_amount || 0) + (note.utgstAmount || note.utgst_amount || 0));
-    const reason = note.reason || '04-Correction in Invoice';
-
-    cdnrRows.push({
-      'GSTIN/UIN of Recipient': recipientGstin,
-      'Receiver Name': receiverName,
-      'Note/Voucher Number': noteNumber,
-      'Note Date': noteDate,
-      'Note Type': noteType,
-      'Original Invoice Number': origInvNumber,
-      'Original Invoice Date': origInvDate,
-      'Place Of Supply': pos,
-      'Reverse Charge': reverseCharge,
-      'Note Value': noteValue,
-      'Rate': rate,
-      'Taxable Value': taxableValue,
-      'IGST': igst,
-      'CGST': cgst,
-      'SGST/UTGST': sgstUtgst,
-      'Reason for Issuance': reason
-    });
-  });
-
-  const cdnrSheet = XLSX.utils.json_to_sheet(cdnrRows.length > 0 ? cdnrRows : [{
-    'GSTIN/UIN of Recipient': '',
-    'Receiver Name': 'No Credit/Debit Notes in selected period',
-    'Note/Voucher Number': '',
-    'Note Date': '',
-    'Note Type': 'Credit Note',
-    'Original Invoice Number': '',
-    'Original Invoice Date': '',
-    'Place Of Supply': '',
-    'Reverse Charge': 'N',
-    'Note Value': 0,
-    'Rate': 0,
-    'Taxable Value': 0,
-    'IGST': 0,
-    'CGST': 0,
-    'SGST/UTGST': 0,
-    'Reason for Issuance': 'None'
-  }]);
-  cdnrSheet['!cols'] = [
-    { wch: 18 }, // GSTIN
-    { wch: 30 }, // Receiver Name
-    { wch: 18 }, // Note Number
-    { wch: 20 }, // Note Date
-    { wch: 14 }, // Note Type
-    { wch: 20 }, // Original Inv Num
-    { wch: 20 }, // Original Inv Date
-    { wch: 35 }, // Place of Supply
-    { wch: 14 }, // Reverse Charge
-    { wch: 14 }, // Note Value
-    { wch: 10 }, // Rate
-    { wch: 14 }, // Taxable Value
-    { wch: 14 }, // IGST
-    { wch: 14 }, // CGST
-    { wch: 14 }, // SGST/UTGST
-    { wch: 28 }  // Reason
+  const cdnrHeaders = [
+    'GSTIN/UIN of Recipient',
+    'Receiver Name',
+    'Note/Voucher Number',
+    'Note Date',
+    'Note Type',
+    'Original Invoice Number',
+    'Original Invoice Date',
+    'Place Of Supply',
+    'Reverse Charge',
+    'Note Value',
+    'Rate',
+    'Taxable Value',
+    'IGST',
+    'CGST',
+    'SGST/UTGST',
+    'Reason for Issuance'
   ];
-  XLSX.utils.book_append_sheet(wb, cdnrSheet, 'cdnr');
+
+  const cdnrRows: any[][] = [
+    cdnrHeaders.map(h => ({ value: h, fontWeight: 'bold' }))
+  ];
+
+  if (activeNotes.length > 0) {
+    activeNotes.forEach(note => {
+      const recipientGstin = (note.clientGstin || '').trim().toUpperCase() || 'UNREGISTERED';
+      const receiverName = note.clientCompany || note.clientName || 'Client';
+      const noteNumber = note.noteNumber || note.note_number || 'CN-001';
+      const noteDate = formatDateGstr1(note.issueDate || note.issue_date);
+      const noteType = note.noteType === 'credit' ? 'Credit Note' : 'Debit Note';
+      const origInvNumber = note.invoiceNumber || note.invoice_number || 'N/A';
+      const origInvDate = note.invoiceDate ? formatDateGstr1(note.invoiceDate) : 'N/A';
+      const pos = getStandardGstPlaceOfSupply(note.placeOfSupply || note.place_of_supply, note.buyerState);
+      const reverseCharge = getReverseChargeFlag(note.reverseCharge || note.reverse_charge);
+      const noteValue = Number(note.totalAmount || note.total_amount || 0);
+      const rate = note.gstRate !== undefined ? note.gstRate : 18;
+      const taxableValue = Number(note.taxableAmount || note.taxable_amount || 0);
+      const igst = Number(note.igstAmount || note.igst_amount || 0);
+      const cgst = Number(note.cgstAmount || note.cgst_amount || 0);
+      const sgstUtgst = Number((note.sgstAmount || note.sgst_amount || 0) + (note.utgstAmount || note.utgst_amount || 0));
+      const reason = note.reason || '04-Correction in Invoice';
+
+      cdnrRows.push([
+        { value: recipientGstin, type: String },
+        { value: receiverName, type: String },
+        { value: noteNumber, type: String },
+        { value: noteDate, type: String },
+        { value: noteType, type: String },
+        { value: origInvNumber, type: String },
+        { value: origInvDate, type: String },
+        { value: pos, type: String },
+        { value: reverseCharge, type: String },
+        { value: noteValue, type: Number },
+        { value: rate, type: Number },
+        { value: taxableValue, type: Number },
+        { value: igst, type: Number },
+        { value: cgst, type: Number },
+        { value: sgstUtgst, type: Number },
+        { value: reason, type: String }
+      ]);
+    });
+  } else {
+    cdnrRows.push([
+      { value: '', type: String },
+      { value: 'No Credit/Debit Notes in selected period', type: String },
+      { value: '', type: String },
+      { value: '', type: String },
+      { value: 'Credit Note', type: String },
+      { value: '', type: String },
+      { value: '', type: String },
+      { value: '', type: String },
+      { value: 'N', type: String },
+      { value: 0, type: Number },
+      { value: 0, type: Number },
+      { value: 0, type: Number },
+      { value: 0, type: Number },
+      { value: 0, type: Number },
+      { value: 0, type: Number },
+      { value: 'None', type: String }
+    ]);
+  }
+
+  const cdnrColumns = [
+    { width: 18 },
+    { width: 30 },
+    { width: 18 },
+    { width: 20 },
+    { width: 14 },
+    { width: 20 },
+    { width: 20 },
+    { width: 35 },
+    { width: 14 },
+    { width: 14 },
+    { width: 10 },
+    { width: 14 },
+    { width: 14 },
+    { width: 14 },
+    { width: 14 },
+    { width: 28 }
+  ];
 
   // =========================================================================
   // 4. SHEET: hsn (HSN / SAC Summary of Outward Supplies)
@@ -336,7 +418,6 @@ export function exportGstr1Workbook(
   activeInvoices.forEach(inv => {
     const invGstRate = inv.gstRate !== undefined ? inv.gstRate : 18;
     const isInter = (inv.igstAmount || 0) > 0;
-    const isUt = (inv.utgstAmount || 0) > 0;
 
     (inv.items || []).forEach(item => {
       const hsnCode = item.sacCode || (item as any).sac_code || '998314';
@@ -384,44 +465,66 @@ export function exportGstr1Workbook(
     });
   });
 
-  const hsnRows: any[] = Object.values(hsnMap).map(h => ({
-    'HSN': h.hsn,
-    'Description': h.description,
-    'UQC': h.uqc,
-    'Total Quantity': h.totalQuantity,
-    'Total Value': Math.round(h.totalValue * 100) / 100,
-    'Rate': h.rate,
-    'Taxable Value': Math.round(h.taxableValue * 100) / 100,
-    'IGST': Math.round(h.igst * 100) / 100,
-    'CGST': Math.round(h.cgst * 100) / 100,
-    'SGST/UTGST': Math.round(h.sgstUtgst * 100) / 100
-  }));
-
-  const hsnSheet = XLSX.utils.json_to_sheet(hsnRows.length > 0 ? hsnRows : [{
-    'HSN': '998314',
-    'Description': 'Information Technology & Software Development Services',
-    'UQC': 'OTH-OTHERS',
-    'Total Quantity': 0,
-    'Total Value': 0,
-    'Rate': 18,
-    'Taxable Value': 0,
-    'IGST': 0,
-    'CGST': 0,
-    'SGST/UTGST': 0
-  }]);
-  hsnSheet['!cols'] = [
-    { wch: 12 }, // HSN/SAC
-    { wch: 45 }, // Description
-    { wch: 15 }, // UQC
-    { wch: 14 }, // Total Quantity
-    { wch: 16 }, // Total Value
-    { wch: 10 }, // Rate
-    { wch: 16 }, // Taxable Value
-    { wch: 14 }, // IGST
-    { wch: 14 }, // CGST
-    { wch: 14 }  // SGST/UTGST
+  const hsnHeaders = [
+    'HSN',
+    'Description',
+    'UQC',
+    'Total Quantity',
+    'Total Value',
+    'Rate',
+    'Taxable Value',
+    'IGST',
+    'CGST',
+    'SGST/UTGST'
   ];
-  XLSX.utils.book_append_sheet(wb, hsnSheet, 'hsn');
+
+  const hsnRows: any[][] = [
+    hsnHeaders.map(h => ({ value: h, fontWeight: 'bold' }))
+  ];
+
+  const hsnList = Object.values(hsnMap);
+  if (hsnList.length > 0) {
+    hsnList.forEach(h => {
+      hsnRows.push([
+        { value: h.hsn, type: String },
+        { value: h.description, type: String },
+        { value: h.uqc, type: String },
+        { value: h.totalQuantity, type: Number },
+        { value: Math.round(h.totalValue * 100) / 100, type: Number },
+        { value: h.rate, type: Number },
+        { value: Math.round(h.taxableValue * 100) / 100, type: Number },
+        { value: Math.round(h.igst * 100) / 100, type: Number },
+        { value: Math.round(h.cgst * 100) / 100, type: Number },
+        { value: Math.round(h.sgstUtgst * 100) / 100, type: Number }
+      ]);
+    });
+  } else {
+    hsnRows.push([
+      { value: '998314', type: String },
+      { value: 'Information Technology & Software Development Services', type: String },
+      { value: 'OTH-OTHERS', type: String },
+      { value: 0, type: Number },
+      { value: 0, type: Number },
+      { value: 18, type: Number },
+      { value: 0, type: Number },
+      { value: 0, type: Number },
+      { value: 0, type: Number },
+      { value: 0, type: Number }
+    ]);
+  }
+
+  const hsnColumns = [
+    { width: 12 },
+    { width: 45 },
+    { width: 15 },
+    { width: 14 },
+    { width: 16 },
+    { width: 10 },
+    { width: 16 },
+    { width: 14 },
+    { width: 14 },
+    { width: 14 }
+  ];
 
   // =========================================================================
   // 5. SHEET: docs (Document Sequences & Summaries)
@@ -438,7 +541,7 @@ export function exportGstr1Workbook(
   const creditNotes = activeNotes.filter(n => n.noteType === 'credit');
   const debitNotes = activeNotes.filter(n => n.noteType === 'debit');
 
-  const cnFrom = creditNotes.length > 0 ? creditNotes[0].noteNumber : (creditNotes.length > 0 ? 'CN-2026-0001' : 'N/A');
+  const cnFrom = creditNotes.length > 0 ? creditNotes[0].noteNumber : 'N/A';
   const cnTo = creditNotes.length > 0 ? creditNotes[creditNotes.length - 1].noteNumber : 'N/A';
   const totalCn = creditNotes.length;
   const cancelledCn = creditNotes.filter(c => c.status === 'cancelled').length;
@@ -448,43 +551,51 @@ export function exportGstr1Workbook(
   const totalDn = debitNotes.length;
   const cancelledDn = debitNotes.filter(d => d.status === 'cancelled').length;
 
-  const docsRows: any[] = [
-    {
-      'Nature of Document': '1. Invoices for outward supply',
-      'Sr. No. From': invFrom,
-      'Sr. No. To': invTo,
-      'Total Number': totalInvCount,
-      'Cancelled': cancelledInvoices,
-      'Net Issued': netIssuedInv
-    },
-    {
-      'Nature of Document': '2. Credit Notes for outward supply',
-      'Sr. No. From': cnFrom,
-      'Sr. No. To': cnTo,
-      'Total Number': totalCn,
-      'Cancelled': cancelledCn,
-      'Net Issued': totalCn - cancelledCn
-    },
-    {
-      'Nature of Document': '3. Debit Notes for outward supply',
-      'Sr. No. From': dnFrom,
-      'Sr. No. To': dnTo,
-      'Total Number': totalDn,
-      'Cancelled': cancelledDn,
-      'Net Issued': totalDn - cancelledDn
-    }
+  const docsHeaders = [
+    'Nature of Document',
+    'Sr. No. From',
+    'Sr. No. To',
+    'Total Number',
+    'Cancelled',
+    'Net Issued'
   ];
 
-  const docsSheet = XLSX.utils.json_to_sheet(docsRows);
-  docsSheet['!cols'] = [
-    { wch: 38 }, // Nature of Document
-    { wch: 20 }, // From
-    { wch: 20 }, // To
-    { wch: 14 }, // Total Number
-    { wch: 12 }, // Cancelled
-    { wch: 14 }  // Net Issued
+  const docsRows: any[][] = [
+    docsHeaders.map(h => ({ value: h, fontWeight: 'bold' })),
+    [
+      { value: '1. Invoices for outward supply', type: String },
+      { value: invFrom, type: String },
+      { value: invTo, type: String },
+      { value: totalInvCount, type: Number },
+      { value: cancelledInvoices, type: Number },
+      { value: netIssuedInv, type: Number }
+    ],
+    [
+      { value: '2. Credit Notes for outward supply', type: String },
+      { value: cnFrom, type: String },
+      { value: cnTo, type: String },
+      { value: totalCn, type: Number },
+      { value: cancelledCn, type: Number },
+      { value: totalCn - cancelledCn, type: Number }
+    ],
+    [
+      { value: '3. Debit Notes for outward supply', type: String },
+      { value: dnFrom, type: String },
+      { value: dnTo, type: String },
+      { value: totalDn, type: Number },
+      { value: cancelledDn, type: Number },
+      { value: totalDn - cancelledDn, type: Number }
+    ]
   ];
-  XLSX.utils.book_append_sheet(wb, docsSheet, 'docs');
+
+  const docsColumns = [
+    { width: 38 },
+    { width: 20 },
+    { width: 20 },
+    { width: 14 },
+    { width: 12 },
+    { width: 14 }
+  ];
 
   // =========================================================================
   // 6. SHEET: summary (Formal Audit & Reconciliation Sheet)
@@ -508,10 +619,10 @@ export function exportGstr1Workbook(
   const netGstr3bTaxable = totalTaxable - totalCnTaxable + totalDnTaxable;
   const netGstr3bTax = totalTax - totalCnTax + totalDnTax;
 
-  const summaryData = [
-    ['FUSION FORGE CREATIONS — STATUTORY GST REPORTING SUMMARY'],
-    ['Generated Under Authority of Goods & Services Tax Rules, India'],
-    [''],
+  const summaryRawData = [
+    ['FUSION FORGE CREATIONS — STATUTORY GST REPORTING SUMMARY', ''],
+    ['Generated Under Authority of Goods & Services Tax Rules, India', ''],
+    ['', ''],
     ['Report Attribute', 'Configuration / Value'],
     ['Taxpayer Legal Name', agency?.legal_name || 'Fusion Forge Creations Private Limited'],
     ['Taxpayer Trade Name', agency?.trade_name || agency?.name || 'Fusion Forge Creations'],
@@ -524,8 +635,8 @@ export function exportGstr1Workbook(
     ['Filter End Date', options.endDate],
     ['Report Generation Timestamp', `${generationTimestamp} IST`],
     ['Active LUT ARN for SEZ/Export', agency?.lutNumber || 'AD260426001234F (Valid FY 2026-27)'],
-    [''],
-    ['STATUTORY OUTWARD SUMMARY (GSTR-1 RECONCILIATION)'],
+    ['', ''],
+    ['STATUTORY OUTWARD SUMMARY (GSTR-1 RECONCILIATION)', ''],
     ['Metric', 'Count / Value (₹ INR)'],
     ['Total B2B Invoices (Table 4)', b2bInvoices.length],
     ['Total B2C Invoices (Table 7)', b2cInvoices.length],
@@ -537,22 +648,65 @@ export function exportGstr1Workbook(
     ['Total CGST Outward (₹)', totalCgst],
     ['Total SGST / UTGST Outward (₹)', totalSgstUtgst],
     ['Total Tax Liability on Outward Supplies (₹)', totalTax],
-    [''],
-    ['GSTR-3B TABLE 3.1 NET RECONCILIATION'],
+    ['', ''],
+    ['GSTR-3B TABLE 3.1 NET RECONCILIATION', ''],
     ['Net Taxable Value (Invoices - CN + DN) (₹)', netGstr3bTaxable],
     ['Net Tax Payable to Govt (Invoices - CN + DN) (₹)', netGstr3bTax]
   ];
 
-  const summarySheet = XLSX.utils.aoa_to_sheet(summaryData);
-  summarySheet['!cols'] = [{ wch: 45 }, { wch: 45 }];
-  XLSX.utils.book_append_sheet(wb, summarySheet, 'summary');
+  const summaryRows: any[][] = summaryRawData.map((row, idx) => {
+    const isHeading = idx === 0 || idx === 3 || idx === 16 || idx === 17 || idx === 29;
+    return [
+      { value: row[0], type: String, fontWeight: isHeading ? 'bold' : undefined },
+      { value: typeof row[1] === 'number' ? row[1] : String(row[1] || ''), type: typeof row[1] === 'number' ? Number : String, fontWeight: isHeading ? 'bold' : undefined }
+    ];
+  });
+
+  const summaryColumns = [
+    { width: 45 },
+    { width: 45 }
+  ];
 
   // Generate File Name: GSTR1_<GSTIN>_<Period>_<Timestamp>.xlsx
   const safeGstin = (agency?.gstin || '26AABCF1234F1Z5').replace(/[^a-zA-Z0-9]/g, '');
   const safePeriod = options.periodLabel.replace(/[^a-zA-Z0-9_-]/g, '_');
   const fileName = `GSTR1_${safeGstin}_${safePeriod}.xlsx`;
 
-  XLSX.writeFile(wb, fileName);
+  const sheetsPayload = [
+    {
+      data: b2bRows,
+      sheet: 'b2b',
+      columns: b2bColumns
+    },
+    {
+      data: b2cRows,
+      sheet: 'b2c',
+      columns: b2cColumns
+    },
+    {
+      data: cdnrRows,
+      sheet: 'cdnr',
+      columns: cdnrColumns
+    },
+    {
+      data: hsnRows,
+      sheet: 'hsn',
+      columns: hsnColumns
+    },
+    {
+      data: docsRows,
+      sheet: 'docs',
+      columns: docsColumns
+    },
+    {
+      data: summaryRows,
+      sheet: 'summary',
+      columns: summaryColumns
+    }
+  ];
+
+  // Initiate download via browser
+  downloadExcelBlob(sheetsPayload, fileName);
 
   return {
     fileName,
