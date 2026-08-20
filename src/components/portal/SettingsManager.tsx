@@ -243,31 +243,27 @@ export const SettingsManager: React.FC = () => {
 
   // Toggle active/inactive for a social channel
   const handleToggleChannelActive = (channelId: string) => {
-    setSocialChannels(prev => {
-      const updated = prev.map(ch => ch.id === channelId ? { ...ch, active: !ch.active } : ch);
-      const dict = buildSocialLinksDictionary(updated);
-      updateAgencyConfig({
-        social_channels: updated,
-        socialChannels: updated,
-        social_links: dict,
-        socialLinks: dict
-      });
-      return updated;
+    const updated = socialChannels.map(ch => ch.id === channelId ? { ...ch, active: !ch.active } : ch);
+    setSocialChannels(updated);
+    const dict = buildSocialLinksDictionary(updated);
+    updateAgencyConfig({
+      social_channels: updated,
+      socialChannels: updated,
+      social_links: dict,
+      socialLinks: dict
     });
   };
 
   // Delete a social channel
   const handleDeleteChannel = (channelId: string) => {
-    setSocialChannels(prev => {
-      const updated = prev.filter(ch => ch.id !== channelId);
-      const dict = buildSocialLinksDictionary(updated);
-      updateAgencyConfig({
-        social_channels: updated,
-        socialChannels: updated,
-        social_links: dict,
-        socialLinks: dict
-      });
-      return updated;
+    const updated = socialChannels.filter(ch => ch.id !== channelId);
+    setSocialChannels(updated);
+    const dict = buildSocialLinksDictionary(updated);
+    updateAgencyConfig({
+      social_channels: updated,
+      socialChannels: updated,
+      social_links: dict,
+      socialLinks: dict
     });
   };
 
