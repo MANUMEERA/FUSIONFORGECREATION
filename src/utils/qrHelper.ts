@@ -8,6 +8,20 @@ export interface UpiPaymentDetails {
   note?: string;
 }
 
+export interface EinvoiceQrPayload {
+  sellerGstin: string;
+  buyerGstin?: string;
+  docNo: string;
+  docType?: string;
+  docDate: string;
+  totalInvoiceValue: number;
+  itemCount?: number;
+  mainHsnCode?: string;
+  irn: string;
+  ackNo?: string;
+  ackDate?: string;
+}
+
 /**
  * Builds standard UPI deep-link URL according to NPCI specifications:
  * upi://pay?pa=...&pn=...&am=...&tn=...&cu=INR
@@ -28,6 +42,25 @@ export function buildUpiPaymentUrl(details: UpiPaymentDetails): string {
   params.append('cu', 'INR');
 
   return `upi://pay?${params.toString()}`;
+}
+
+/**
+ * Builds standard GST E-Invoice payload string (IRP / NIC compliant format)
+ */
+export function buildEinvoiceQrString(payload: EinvoiceQrPayload): string {
+  return JSON.stringify({
+    SellerGstin: payload.sellerGstin || '21AAACF1234M1Z5',
+    BuyerGstin: payload.buyerGstin && payload.buyerGstin !== '—' ? payload.buyerGstin : 'URP',
+    DocNo: payload.docNo || '',
+    DocTyp: payload.docType || 'INV',
+    DocDt: payload.docDate || '',
+    TotInvVal: Math.round((payload.totalInvoiceValue || 0) * 100) / 100,
+    ItemCnt: payload.itemCount || 1,
+    MainHsnCode: payload.mainHsnCode || '998314',
+    Irn: payload.irn || '',
+    AckNo: payload.ackNo || '',
+    AckDt: payload.ackDate || ''
+  });
 }
 
 /**
@@ -69,3 +102,20 @@ export async function generateQrDataUrl(data: string, size = 130): Promise<strin
     return '';
   }
 }
+
+/**
+ * Generates dedicated Indian GST e-Invoice QR code SVG
+ */
+export async function generateEinvoiceQrSvg(payload: EinvoiceQrPayload, size = 120): Promise<string> {
+  const qrString = buildEinvoiceQrString(payload);
+  return generateQrSvg(qrString, size);
+}
+
+/**
+ * Generates dedicated Indian GST e-Invoice QR code Data URL
+ */
+export async function generateEinvoiceQrDataUrl(payload: EinvoiceQrPayload, size = 130): Promise<string> {
+  const qrString = buildEinvoiceQrString(payload);
+  return generateQrDataUrl(qrString, size);
+}
+

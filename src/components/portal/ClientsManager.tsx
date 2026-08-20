@@ -938,7 +938,7 @@ export const ClientsManager: React.FC = () => {
 
         {/* Footer info bar */}
         <div className="px-5 py-3 border-t border-[#E8E0F0] bg-[#FAF8FF] flex flex-col sm:flex-row justify-between items-center text-xs text-[#5F5A72] gap-2">
-          <span>Showing {filteredClients.length} of {clients.length} clients</span>
+          <span>Showing {filteredClients.length} of {clients.filter(c => !c.isDeleted && c.status !== 'deleted').length} active clients</span>
           <span className="text-[#817B91] font-medium">GSTIN verification enabled • SAC 998314 Compliance ready</span>
         </div>
       </div>

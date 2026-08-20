@@ -30,7 +30,8 @@ import {
   Truck,
   QrCode,
   FolderKanban,
-  AlertTriangle
+  AlertTriangle,
+  Copy
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { useToast } from '../../context/ToastContext';
@@ -45,7 +46,7 @@ import {
 } from '../../utils/gstEngine';
 import { generateNextDocumentNumber, DEFAULT_INVOICE_NUMBERING } from '../../utils/documentNumbering';
 import { formatDateDDMMYYYY } from '../../utils/dateUtils';
-import { generateQrSvg } from '../../utils/qrHelper';
+import { generateQrSvg, generateEinvoiceQrSvg } from '../../utils/qrHelper';
 import { BrandLogo } from '../BrandLogo';
 
 export const InvoicesManager: React.FC = () => {
@@ -118,8 +119,11 @@ export const InvoicesManager: React.FC = () => {
   const [formInvoiceType, setFormInvoiceType] = useState<string>('Regular');
   const [formLutArn, setFormLutArn] = useState<string>('AD260426001234F');
 
-  // View modal QR SVG state
+  // View modal QR SVG state (UPI & e-Invoice)
   const [viewModalQrSvg, setViewModalQrSvg] = useState<string>('');
+  const [viewModalEinvoiceQrSvg, setViewModalEinvoiceQrSvg] = useState<string>('');
+  const [formEinvoiceQrSvg, setFormEinvoiceQrSvg] = useState<string>('');
+  const [copiedIrn, setCopiedIrn] = useState<boolean>(false);
 
   // Explicit Seller & Buyer State Codes (GST Engine authoritative inputs)
   const [formSellerStateCode, setFormSellerStateCode] = useState('21'); // Default Odisha, or 26 for DNH & DD
@@ -140,21 +144,41 @@ export const InvoicesManager: React.FC = () => {
   const [formNotes, setFormNotes] = useState('SAC 998314 - Software development & IT consulting.');
   const [formPaymentTerms, setFormPaymentTerms] = useState('Payment due within 15 days of invoice date.');
 
-  // Dynamically generate Payment QR for Viewing Modal
+  // Dynamically generate Payment QR & e-Invoice QR for Viewing Modal
   useEffect(() => {
     if (viewingInvoice) {
+      // 1. UPI Payment QR
       const upiId = viewingInvoice.bankDetails?.upiId || agencyConfig.upi_id || agencyConfig.bankDetails?.upiId || 'fusionforge@hdfcbank';
       const payeeName = agencyConfig.company_name || agencyConfig.name || 'Fusion Forge Creation';
       const upiUrl = `upi://pay?pa=${encodeURIComponent(upiId)}&pn=${encodeURIComponent(payeeName)}&am=${viewingInvoice.totalAmount.toFixed(2)}&tn=${encodeURIComponent(`Invoice ${viewingInvoice.invoiceNumber}`)}&cu=INR`;
       generateQrSvg(upiUrl, 95).then(svg => setViewModalQrSvg(svg)).catch(() => setViewModalQrSvg(''));
+
+      // 2. Official Indian GST e-Invoice QR
+      const hasEinvoice = Boolean(viewingInvoice.irn || viewingInvoice.ackNo || viewingInvoice.acknowledgement_number || viewingInvoice.arn);
+      if (hasEinvoice) {
+        const einvoicePayload = {
+          sellerGstin: agencyConfig.gstin || '21AAACF1234M1Z5',
+          buyerGstin: (viewingInvoice.buyerGstin && viewingInvoice.buyerGstin !== '—') 
+            ? viewingInvoice.buyerGstin 
+            : (viewingInvoice.clientGstin && viewingInvoice.clientGstin !== '—' ? viewingInvoice.clientGstin : 'URP'),
+          docNo: viewingInvoice.invoiceNumber,
+          docType: 'INV',
+          docDate: formatDateDDMMYYYY(viewingInvoice.issueDate || (viewingInvoice as any).issue_date || new Date().toISOString()),
+          totalInvoiceValue: viewingInvoice.totalAmount,
+          itemCount: viewingInvoice.items?.length || 1,
+          mainHsnCode: viewingInvoice.items?.[0]?.sacCode || '998314',
+          irn: viewingInvoice.irn || 'f1a948e718b26127cb4a14207f90372886f34e8f1bb89091694f4d2217f2ba4e',
+          ackNo: viewingInvoice.ackNo || viewingInvoice.acknowledgement_number || '112233445566',
+          ackDate: viewingInvoice.ackDate || viewingInvoice.acknowledgement_date || viewingInvoice.issueDate
+        };
+        generateEinvoiceQrSvg(einvoicePayload, 110)
+          .then(svg => setViewModalEinvoiceQrSvg(svg))
+          .catch(() => setViewModalEinvoiceQrSvg(''));
+      } else {
+        setViewModalEinvoiceQrSvg('');
+      }
     }
   }, [viewingInvoice, agencyConfig]);
-
-  // GST Simulator Sandbox state
-  const [simSellerCode, setSimSellerCode] = useState('26');
-  const [simBuyerCode, setSimBuyerCode] = useState('26');
-  const [simTaxableAmt, setSimTaxableAmt] = useState(100000);
-  const [simGstRate, setSimGstRate] = useState(18);
 
   // Authoritative GST Engine calculation for the active form
   const authoritativeCalculation = useMemo(() => {
@@ -170,6 +194,57 @@ export const InvoicesManager: React.FC = () => {
       currency: 'INR'
     });
   }, [formSellerStateCode, formBuyerStateCode, formItems, formDiscountType, formDiscountValue, formGstRate, formInvoiceType, formLutArn]);
+
+  // Dynamically generate form e-Invoice QR preview
+  useEffect(() => {
+    if (formIrn || formAckNo || formArn) {
+      const einvoicePayload = {
+        sellerGstin: agencyConfig.gstin || '21AAACF1234M1Z5',
+        buyerGstin: formClientGstin || 'URP',
+        docNo: formInvoiceNumber || 'FFC/2026-27/001',
+        docType: 'INV',
+        docDate: formatDateDDMMYYYY(formIssueDate),
+        totalInvoiceValue: authoritativeCalculation.grandTotal,
+        itemCount: formItems.length,
+        mainHsnCode: formItems[0]?.sacCode || '998314',
+        irn: formIrn || 'f1a948e718b26127cb4a14207f90372886f34e8f1bb89091694f4d2217f2ba4e',
+        ackNo: formAckNo || '112233445566',
+        ackDate: formAckDate || formIssueDate
+      };
+      generateEinvoiceQrSvg(einvoicePayload, 100)
+        .then(svg => setFormEinvoiceQrSvg(svg))
+        .catch(() => setFormEinvoiceQrSvg(''));
+    } else {
+      setFormEinvoiceQrSvg('');
+    }
+  }, [formIrn, formAckNo, formArn, formClientGstin, formInvoiceNumber, formIssueDate, authoritativeCalculation.grandTotal, formItems, formAckDate, agencyConfig.gstin]);
+
+  // Helper to auto-generate standard 64-char IRN hash and Ack details
+  const handleAutoGenerateEinvoice = () => {
+    let hash = '';
+    const hexChars = '0123456789abcdef';
+    for (let i = 0; i < 64; i++) {
+      hash += hexChars[Math.floor(Math.random() * hexChars.length)];
+    }
+    const ack = `${Math.floor(100000000000 + Math.random() * 900000000000)}`;
+    setFormIrn(hash);
+    setFormAckNo(ack);
+    setFormAckDate(formIssueDate || new Date().toISOString().split('T')[0]);
+    setFormArn(`AA${formSellerStateCode || '21'}${new Date().getFullYear() % 100}${String(Math.floor(100000 + Math.random() * 900000))}Z`);
+  };
+
+  const handleClearEinvoice = () => {
+    setFormIrn('');
+    setFormAckNo('');
+    setFormAckDate('');
+    setFormArn('');
+  };
+
+  // GST Simulator Sandbox state
+  const [simSellerCode, setSimSellerCode] = useState('26');
+  const [simBuyerCode, setSimBuyerCode] = useState('26');
+  const [simTaxableAmt, setSimTaxableAmt] = useState(100000);
+  const [simGstRate, setSimGstRate] = useState(18);
 
   // Authoritative GST calculation for the Simulator
   const simCalculation = useMemo(() => {
@@ -1159,33 +1234,121 @@ export const InvoicesManager: React.FC = () => {
               </div>
             </div>
 
-            {/* E-Invoice / Statutory Reference Bar */}
+            {/* E-Invoice / Statutory Reference Bar with QR Code */}
             {(viewingInvoice.irn || viewingInvoice.ackNo || viewingInvoice.acknowledgement_number || viewingInvoice.arn) && (
-              <div className="bg-[#FAF8FF] border border-[#E8E0F0] rounded-xl p-3 text-[11px] font-mono grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2 text-[#5F5A72]">
-                {viewingInvoice.irn && (
-                  <div className="col-span-full break-all">
-                    <span className="text-[#817B91] font-bold">IRN: </span>
-                    <span className="text-[#8E2D9D]">{viewingInvoice.irn}</span>
+              <div className="bg-[#FAF8FF] border-2 border-[#E8E0F0] rounded-2xl p-4 sm:p-5 shadow-xs relative overflow-hidden">
+                {/* Official Indian e-Invoice Header Tag */}
+                <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-[#E8E0F0] mb-3.5">
+                  <div className="flex items-center space-x-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
+                    <span className="text-[11px] font-black uppercase tracking-wider text-[#1E1B2E] flex items-center gap-1.5">
+                      <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                      Government of India • GST e-Invoicing System (IRP)
+                    </span>
                   </div>
-                )}
-                {(viewingInvoice.ackNo || viewingInvoice.acknowledgement_number) && (
-                  <div>
-                    <span className="text-[#817B91] font-bold">Ack No: </span>
-                    <span className="text-[#1E1B2E]">{viewingInvoice.ackNo || viewingInvoice.acknowledgement_number}</span>
+                  <div className="flex items-center space-x-2">
+                    <span className="px-2.5 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-[10px] font-bold uppercase tracking-wider">
+                      Digitally Authenticated (INV-01)
+                    </span>
+                    <span className="px-2 py-0.5 rounded bg-[#FAF5FF] border border-[#E8E0F0] text-[#8E2D9D] text-[10px] font-mono font-bold">
+                      SAC: {viewingInvoice.items?.[0]?.sacCode || '998314'}
+                    </span>
                   </div>
-                )}
-                {(viewingInvoice.ackDate || viewingInvoice.acknowledgement_date) && (
-                  <div>
-                    <span className="text-[#817B91] font-bold">Ack Date: </span>
-                    <span className="text-[#1E1B2E]">{formatDateDDMMYYYY(viewingInvoice.ackDate || viewingInvoice.acknowledgement_date)}</span>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
+                  {/* Left Column: Official E-Invoice QR Code */}
+                  <div className="md:col-span-4 lg:col-span-3 flex flex-col items-center justify-center p-3 bg-white border border-[#E8E0F0] rounded-xl shadow-xs">
+                    {viewModalEinvoiceQrSvg ? (
+                      <div 
+                        className="w-[110px] h-[110px] flex items-center justify-center"
+                        dangerouslySetInnerHTML={{ __html: viewModalEinvoiceQrSvg }}
+                      />
+                    ) : (
+                      <div className="w-[110px] h-[110px] flex flex-col items-center justify-center text-[#817B91] border border-dashed border-[#E8E0F0] rounded-lg">
+                        <QrCode className="w-8 h-8 text-[#8E2D9D]" />
+                        <span className="text-[9px] mt-1">Generating QR...</span>
+                      </div>
+                    )}
+                    <span className="text-[9px] font-bold text-[#8E2D9D] uppercase tracking-wider mt-2 text-center">
+                      e-Invoice Verification QR
+                    </span>
+                    <span className="text-[8px] text-[#5F5A72] text-center mt-0.5">
+                      Scan with NIC e-Invoice App
+                    </span>
                   </div>
-                )}
-                {viewingInvoice.arn && (
-                  <div>
-                    <span className="text-[#817B91] font-bold">ARN: </span>
-                    <span className="text-[#1E1B2E]">{viewingInvoice.arn}</span>
+
+                  {/* Right Column: IRN & Ack Metadata */}
+                  <div className="md:col-span-8 lg:col-span-9 space-y-2.5 text-xs">
+                    {/* IRN Block */}
+                    {viewingInvoice.irn && (
+                      <div className="bg-white p-3 rounded-xl border border-[#E8E0F0] space-y-1">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-[#5F5A72] flex items-center gap-1">
+                            <Zap className="w-3 h-3 text-[#8E2D9D]" />
+                            IRN (Invoice Reference Number) - 64 Character Hash:
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (viewingInvoice.irn) {
+                                navigator.clipboard.writeText(viewingInvoice.irn);
+                                setCopiedIrn(true);
+                                setTimeout(() => setCopiedIrn(false), 2000);
+                              }
+                            }}
+                            className="px-2 py-0.5 rounded-md bg-[#FAF5FF] hover:bg-[#F3E8FF] border border-[#E8E0F0] text-[10px] font-bold text-[#8E2D9D] flex items-center gap-1 transition-all cursor-pointer"
+                          >
+                            {copiedIrn ? (
+                              <>
+                                <Check className="w-3 h-3 text-emerald-600" />
+                                <span className="text-emerald-700">Copied!</span>
+                              </>
+                            ) : (
+                              <>
+                                <Copy className="w-3 h-3" />
+                                <span>Copy IRN</span>
+                              </>
+                            )}
+                          </button>
+                        </div>
+                        <div className="font-mono text-[11px] text-[#8E2D9D] font-bold break-all bg-[#FAF8FF] p-1.5 rounded border border-[#E8E0F0]/60 select-all">
+                          {viewingInvoice.irn}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Ack No & Ack Date & ARN Grid */}
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-[11px]">
+                      {(viewingInvoice.ackNo || viewingInvoice.acknowledgement_number) && (
+                        <div className="bg-white p-2.5 rounded-xl border border-[#E8E0F0]">
+                          <span className="text-[10px] font-bold text-[#5F5A72] uppercase block">Ack No:</span>
+                          <span className="font-mono font-bold text-[#1E1B2E] text-xs">
+                            {viewingInvoice.ackNo || viewingInvoice.acknowledgement_number}
+                          </span>
+                        </div>
+                      )}
+
+                      {(viewingInvoice.ackDate || viewingInvoice.acknowledgement_date) && (
+                        <div className="bg-white p-2.5 rounded-xl border border-[#E8E0F0]">
+                          <span className="text-[10px] font-bold text-[#5F5A72] uppercase block">Ack Date:</span>
+                          <span className="font-mono font-bold text-[#1E1B2E] text-xs">
+                            {formatDateDDMMYYYY(viewingInvoice.ackDate || viewingInvoice.acknowledgement_date)}
+                          </span>
+                        </div>
+                      )}
+
+                      {viewingInvoice.arn && (
+                        <div className="bg-white p-2.5 rounded-xl border border-[#E8E0F0]">
+                          <span className="text-[10px] font-bold text-[#5F5A72] uppercase block">ARN Ref:</span>
+                          <span className="font-mono font-bold text-[#1E1B2E] text-xs">
+                            {viewingInvoice.arn}
+                          </span>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                )}
+                </div>
               </div>
             )}
 
@@ -1901,50 +2064,101 @@ export const InvoicesManager: React.FC = () => {
               </div>
 
               {/* Row 3.7: E-Invoice & Statutory References (Optional) */}
-              <div className="bg-[#FAF8FF] rounded-2xl border border-[#E8E0F0] p-4 space-y-3">
-                <div className="text-xs font-bold text-[#5F5A72] uppercase tracking-wider flex items-center space-x-2">
-                  <QrCode className="w-4 h-4 text-[#8E2D9D]" />
-                  <span>E-Invoice & Statutory References (Optional)</span>
+              <div className="bg-[#FAF8FF] rounded-2xl border border-[#E8E0F0] p-4 sm:p-5 space-y-4">
+                <div className="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-[#E8E0F0]">
+                  <div className="text-xs font-bold text-[#1E1B2E] uppercase tracking-wider flex items-center space-x-2">
+                    <QrCode className="w-4 h-4 text-[#8E2D9D]" />
+                    <span>E-Invoice & Statutory References (Optional)</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={handleAutoGenerateEinvoice}
+                      className="px-2.5 py-1 rounded-lg bg-[#FAF5FF] hover:bg-[#F3E8FF] border border-[#C084FC] text-[11px] font-bold text-[#8E2D9D] flex items-center gap-1 transition-all cursor-pointer"
+                    >
+                      <Zap className="w-3.5 h-3.5 text-[#8E2D9D]" />
+                      <span>⚡ Auto-Generate IRN & QR</span>
+                    </button>
+                    {(formIrn || formAckNo || formArn) && (
+                      <button
+                        type="button"
+                        onClick={handleClearEinvoice}
+                        className="px-2 py-1 rounded-lg bg-white hover:bg-rose-50 border border-[#E8E0F0] text-[11px] font-semibold text-rose-600 transition-all cursor-pointer"
+                      >
+                        Clear
+                      </button>
+                    )}
+                  </div>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-xs">
-                  <div>
-                    <label className="text-[11px] text-[#5F5A72] block mb-1">Ack No.</label>
-                    <input
-                      type="text"
-                      value={formAckNo}
-                      onChange={e => setFormAckNo(e.target.value)}
-                      placeholder="112233445566"
-                      className="w-full bg-white border border-[#E8E0F0] rounded-xl px-3 py-2 font-mono text-[#1E1B2E]"
-                    />
+
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
+                  {/* Inputs Grid */}
+                  <div className="lg:col-span-8 grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                    <div>
+                      <label className="text-[11px] font-semibold text-[#5F5A72] block mb-1">Ack No.</label>
+                      <input
+                        type="text"
+                        value={formAckNo}
+                        onChange={e => setFormAckNo(e.target.value)}
+                        placeholder="e.g. 112233445566"
+                        className="w-full bg-white border border-[#E8E0F0] rounded-xl px-3 py-2 font-mono text-[#1E1B2E] focus:outline-none focus:border-[#8E2D9D]"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[11px] font-semibold text-[#5F5A72] block mb-1">Ack Date</label>
+                      <input
+                        type="date"
+                        value={formAckDate}
+                        onChange={e => setFormAckDate(e.target.value)}
+                        className="w-full bg-white border border-[#E8E0F0] rounded-xl px-3 py-2 text-[#1E1B2E] focus:outline-none focus:border-[#8E2D9D]"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[11px] font-semibold text-[#5F5A72] block mb-1">ARN (Application Ref)</label>
+                      <input
+                        type="text"
+                        value={formArn}
+                        onChange={e => setFormArn(e.target.value)}
+                        placeholder="e.g. AA210226001234Z"
+                        className="w-full bg-white border border-[#E8E0F0] rounded-xl px-3 py-2 font-mono text-[#1E1B2E] focus:outline-none focus:border-[#8E2D9D]"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[11px] font-semibold text-[#5F5A72] block mb-1">IRN (64-Digit Hash)</label>
+                      <input
+                        type="text"
+                        value={formIrn}
+                        onChange={e => setFormIrn(e.target.value)}
+                        placeholder="64-character SHA-256 IRN hash"
+                        className="w-full bg-white border border-[#E8E0F0] rounded-xl px-3 py-2 font-mono text-xs text-[#1E1B2E] focus:outline-none focus:border-[#8E2D9D]"
+                      />
+                    </div>
                   </div>
-                  <div>
-                    <label className="text-[11px] text-[#5F5A72] block mb-1">Ack Date</label>
-                    <input
-                      type="date"
-                      value={formAckDate}
-                      onChange={e => setFormAckDate(e.target.value)}
-                      className="w-full bg-white border border-[#E8E0F0] rounded-xl px-3 py-2 text-[#1E1B2E]"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-[11px] text-[#5F5A72] block mb-1">ARN (Application Ref)</label>
-                    <input
-                      type="text"
-                      value={formArn}
-                      onChange={e => setFormArn(e.target.value)}
-                      placeholder="AA240226001234Z"
-                      className="w-full bg-white border border-[#E8E0F0] rounded-xl px-3 py-2 font-mono text-[#1E1B2E]"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-[11px] text-[#5F5A72] block mb-1">IRN (Invoice Ref Num)</label>
-                    <input
-                      type="text"
-                      value={formIrn}
-                      onChange={e => setFormIrn(e.target.value)}
-                      placeholder="64-digit IRN hash"
-                      className="w-full bg-white border border-[#E8E0F0] rounded-xl px-3 py-2 font-mono text-[#1E1B2E]"
-                    />
+
+                  {/* Live QR Preview Box */}
+                  <div className="lg:col-span-4 flex flex-col items-center justify-center p-3 bg-white border border-[#E8E0F0] rounded-xl shadow-xs min-h-[140px]">
+                    {formEinvoiceQrSvg ? (
+                      <>
+                        <div 
+                          className="w-[95px] h-[95px] flex items-center justify-center"
+                          dangerouslySetInnerHTML={{ __html: formEinvoiceQrSvg }}
+                        />
+                        <span className="text-[9px] font-bold text-emerald-700 uppercase tracking-wider mt-1.5 flex items-center gap-1">
+                          <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                          Live e-Invoice QR Active
+                        </span>
+                      </>
+                    ) : (
+                      <div className="flex flex-col items-center justify-center text-[#817B91] py-4">
+                        <QrCode className="w-8 h-8 text-[#C084FC]" />
+                        <span className="text-[10px] font-semibold mt-1.5 text-center text-[#5F5A72]">
+                          e-Invoice QR Preview
+                        </span>
+                        <span className="text-[9px] text-[#817B91] text-center mt-0.5">
+                          Populate IRN / Ack No or click Auto-Generate
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>

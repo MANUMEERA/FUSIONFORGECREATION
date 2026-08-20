@@ -49,10 +49,11 @@ export const DashboardOverview: React.FC = () => {
 
   // Active records (exclude soft-deleted)
   const activeInvoices = invoices.filter(i => !i.isDeleted);
+  const activeClients = clients.filter(c => !c.isDeleted && c.status !== 'deleted');
   const activeQuotations = quotations;
   const openEnquiries = enquiries.filter(e => !['closed', 'Closed', 'lost', 'won', 'Converted', 'converted'].includes(e.status));
   
-  const totalClientsCount = clients.length;
+  const totalClientsCount = activeClients.length;
   const openEnquiriesCount = openEnquiries.length;
   const quotationsCount = activeQuotations.length;
   const totalInvoicesCount = activeInvoices.length;

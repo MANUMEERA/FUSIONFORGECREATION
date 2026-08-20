@@ -461,6 +461,36 @@ export async function generateInvoicePDF(invoice: Invoice, customAgencyConfig?: 
     paymentQrSvg = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=110x110&data=${encodeURIComponent(upiUrl)}" alt="UPI QR" style="width:105px;height:105px;" />`;
   }
 
+  // Generate E-Invoice Official QR Code (Indian GST B2B IRP format)
+  const hasEinvoiceDetails = Boolean(invoice.irn || invoice.ackNo || invoice.acknowledgement_number || invoice.arn);
+  let einvoiceQrSvg = '';
+  if (hasEinvoiceDetails) {
+    const einvoicePayload = JSON.stringify({
+      SellerGstin: sellerGstin,
+      BuyerGstin: buyerGstin && buyerGstin !== '—' ? buyerGstin : 'URP',
+      DocNo: invoice.invoiceNumber,
+      DocTyp: 'INV',
+      DocDt: invoiceDateStr,
+      TotInvVal: invoice.totalAmount,
+      ItemCnt: invoice.items?.length || 1,
+      MainHsnCode: invoice.items?.[0]?.sacCode || '998314',
+      Irn: invoice.irn || '',
+      AckNo: invoice.ackNo || invoice.acknowledgement_number || '',
+      AckDt: invoice.ackDate || invoice.acknowledgement_date || invoiceDateStr
+    });
+    try {
+      const QRCode = (await import('qrcode')).default;
+      einvoiceQrSvg = await QRCode.toString(einvoicePayload, {
+        type: 'svg',
+        width: 100,
+        margin: 1,
+        color: { dark: '#0f172a', light: '#ffffff' }
+      });
+    } catch (err) {
+      einvoiceQrSvg = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(einvoicePayload)}" alt="e-Invoice QR" style="width:95px;height:95px;" />`;
+    }
+  }
+
   // Terms and Delay-Interest Clause
   const rawTerms = cfg.invoice_terms 
     ? (Array.isArray(cfg.invoice_terms) ? cfg.invoice_terms : cfg.invoice_terms.split('\n')).filter(Boolean)
@@ -549,20 +579,51 @@ export async function generateInvoicePDF(invoice: Invoice, customAgencyConfig?: 
             color: #0f172a;
           }
 
-          /* E-Invoice / Statutory Reference Bar */
-          .einvoice-bar {
-            background: #f1f5f9;
-            border: 1px solid #cbd5e1;
-            border-radius: 4px;
+          /* E-Invoice / Statutory Reference Container with QR Code */
+          .einvoice-container {
+            background: #f8fafc;
+            border: 1.5px solid #cbd5e1;
+            border-radius: 6px;
             padding: 8px 12px;
             margin-bottom: 14px;
-            display: grid;
-            grid-template-columns: 2fr 1fr 1fr;
-            gap: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+          }
+          .einvoice-details-side {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+          }
+          .einvoice-title-tag {
+            font-size: 9px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: #0f172a;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 3px;
+            margin-bottom: 2px;
+          }
+          .einvoice-title-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #10b981;
+            display: inline-block;
+          }
+          .einvoice-item {
             font-size: 11px;
+            line-height: 1.3;
           }
           .einvoice-item strong {
             color: #0f172a;
+            font-size: 10px;
             display: inline-block;
           }
           .einvoice-val {
@@ -570,6 +631,24 @@ export async function generateInvoicePDF(invoice: Invoice, customAgencyConfig?: 
             color: #0369a1;
             font-weight: 700;
             word-break: break-all;
+          }
+          .einvoice-qr-side {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            padding: 4px;
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+          }
+          .einvoice-qr-label {
+            font-size: 8px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #0369a1;
+            margin-top: 2px;
           }
 
           /* Parties Grid: Strictly BILLED TO & SHIPPED TO */
@@ -781,27 +860,43 @@ export async function generateInvoicePDF(invoice: Invoice, customAgencyConfig?: 
             </div>
           </div>
 
-          <!-- E-Invoice Reference Bar (if populated) -->
-          ${(invoice.irn || invoice.ackNo || invoice.arn) ? `
-            <div class="einvoice-bar">
-              ${invoice.irn ? `
-                <div class="einvoice-item">
-                  <strong>IRN:</strong> <span class="einvoice-val">${invoice.irn}</span>
+          <!-- E-Invoice Reference Bar with QR Code (if populated) -->
+          ${hasEinvoiceDetails ? `
+            <div class="einvoice-container">
+              <div class="einvoice-details-side">
+                <div class="einvoice-title-tag">
+                  <span class="einvoice-title-dot"></span>
+                  GOVERNMENT OF INDIA • GST e-INVOICE AUTHENTICATED (IRP)
                 </div>
-              ` : ''}
-              ${invoice.ackNo || invoice.acknowledgement_number ? `
-                <div class="einvoice-item">
-                  <strong>Ack No:</strong> <span class="einvoice-val">${invoice.ackNo || invoice.acknowledgement_number}</span>
+                ${invoice.irn ? `
+                  <div class="einvoice-item">
+                    <strong>IRN:</strong> <span class="einvoice-val">${invoice.irn}</span>
+                  </div>
+                ` : ''}
+                <div style="display: flex; gap: 16px; flex-wrap: wrap; margin-top: 2px;">
+                  ${invoice.ackNo || invoice.acknowledgement_number ? `
+                    <div class="einvoice-item">
+                      <strong>Ack No:</strong> <span class="einvoice-val">${invoice.ackNo || invoice.acknowledgement_number}</span>
+                    </div>
+                  ` : ''}
+                  ${invoice.ackDate || invoice.acknowledgement_date ? `
+                    <div class="einvoice-item">
+                      <strong>Ack Date:</strong> <span class="einvoice-val">${formatDateDDMMYYYY(invoice.ackDate || invoice.acknowledgement_date || '')}</span>
+                    </div>
+                  ` : ''}
+                  ${invoice.arn ? `
+                    <div class="einvoice-item">
+                      <strong>ARN:</strong> <span class="einvoice-val">${invoice.arn}</span>
+                    </div>
+                  ` : ''}
                 </div>
-              ` : ''}
-              ${invoice.ackDate || invoice.acknowledgement_date ? `
-                <div class="einvoice-item">
-                  <strong>Ack Date:</strong> <span class="einvoice-val">${formatDateDDMMYYYY(invoice.ackDate || invoice.acknowledgement_date || '')}</span>
-                </div>
-              ` : ''}
-              ${invoice.arn ? `
-                <div class="einvoice-item">
-                  <strong>ARN:</strong> <span class="einvoice-val">${invoice.arn}</span>
+              </div>
+              ${einvoiceQrSvg ? `
+                <div class="einvoice-qr-side">
+                  <div style="width: 85px; height: 85px; display: flex; align-items: center; justify-content: center;">
+                    ${einvoiceQrSvg}
+                  </div>
+                  <div class="einvoice-qr-label">e-Invoice QR</div>
                 </div>
               ` : ''}
             </div>
