@@ -1200,6 +1200,7 @@ export interface Gstr1DocRow {
 
 export type AppNotificationType =
   | 'lead_received'
+  | 'lead_assigned'
   | 'lead_status_changed'
   | 'quotation_created'
   | 'quotation_sent'

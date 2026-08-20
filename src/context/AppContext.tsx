@@ -118,6 +118,9 @@ interface AppContextType {
   clearLeadAlert: () => void;
   isBuzzerMuted: boolean;
   toggleBuzzerMute: () => boolean;
+  isLeadMonitoringActive: boolean;
+  toggleLeadMonitoring: () => boolean;
+  setLeadMonitoringActive: (active: boolean) => void;
   testBuzzerSound: () => void;
   triggerSimulatedLeadAlert: () => ProjectEnquiry | null;
   clearAllEnquiries: () => Promise<void>;
@@ -209,6 +212,7 @@ interface AppContextType {
   deletePayment: (id: string) => void;
   
   addEnquiry: (enquiry: Omit<ProjectEnquiry, 'id' | 'createdAt' | 'updatedAt' | 'status' | 'priority'>) => ProjectEnquiry;
+  updateEnquiry: (id: string, updates: Partial<ProjectEnquiry>) => void;
   updateEnquiryStatus: (id: string, status: ProjectEnquiry['status']) => void;
   convertEnquiryToClient: (enquiryId: string) => Client | null;
   deleteEnquiry: (id: string) => void;
@@ -320,6 +324,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // Real-time Lead Notification & Audio Buzzer Alert State
   const [latestLeadAlert, setLatestLeadAlert] = useState<ProjectEnquiry | null>(null);
   const [isBuzzerMuted, setIsBuzzerMuted] = useState<boolean>(() => buzzerEngine.isSoundMuted());
+  const [isLeadMonitoringActive, setIsLeadMonitoringActive] = useState<boolean>(() => {
+    try {
+      const saved = localStorage.getItem('fusion_lead_monitoring_active');
+      return saved !== 'false';
+    } catch {
+      return true;
+    }
+  });
 
   const clearLeadAlert = useCallback(() => {
     setLatestLeadAlert(null);
@@ -329,6 +341,28 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const muted = buzzerEngine.toggleMute();
     setIsBuzzerMuted(muted);
     return muted;
+  }, []);
+
+  const toggleLeadMonitoring = useCallback(() => {
+    setIsLeadMonitoringActive(prev => {
+      const next = !prev;
+      try {
+        localStorage.setItem('fusion_lead_monitoring_active', String(next));
+      } catch (err) {
+        console.warn('Failed to save monitoring state:', err);
+      }
+      return next;
+    });
+    return !isLeadMonitoringActive;
+  }, [isLeadMonitoringActive]);
+
+  const setLeadMonitoringActive = useCallback((active: boolean) => {
+    setIsLeadMonitoringActive(active);
+    try {
+      localStorage.setItem('fusion_lead_monitoring_active', String(active));
+    } catch (err) {
+      console.warn('Failed to save monitoring state:', err);
+    }
   }, []);
 
   const testBuzzerSound = useCallback(() => {
@@ -2636,9 +2670,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       details: `Project Scope Submission by ${enqData.name} (${enqData.company || 'Direct'}) for ${enqData.service || enqData.serviceCategory || 'Custom Solution'}${enqData.gstin ? ` [GSTIN: ${enqData.gstin}]` : ''}`
     });
 
-    // Authoritatively notify logged-in Admin user with visual alert and sound buzzer
-    setLatestLeadAlert(newEnq);
-    buzzerEngine.playLeadBuzzer();
+    // Authoritatively notify logged-in Admin user with visual alert and sound buzzer if monitoring is active
+    if (isLeadMonitoringActive) {
+      setLatestLeadAlert(newEnq);
+      buzzerEngine.playLeadBuzzer();
+    }
 
     addNotification({
       type: 'lead_received',
@@ -2718,6 +2754,55 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       record_id: 'ALL',
       details: 'Cleared all project scope enquiries for fresh testing'
     });
+  };
+
+  const updateEnquiry = (id: string, updates: Partial<ProjectEnquiry>) => {
+    const enq = enquiries.find(e => e.id === id);
+    setEnquiries(prev => prev.map(e => e.id === id ? { ...e, ...updates, updatedAt: new Date().toISOString() } : e));
+
+    if (isSupabaseConfigured) {
+      const dbUpdates: any = {
+        updated_at: new Date().toISOString()
+      };
+      if (updates.status) dbUpdates.status = updates.status;
+      if (updates.assigned_to !== undefined) dbUpdates.assigned_to = updates.assigned_to;
+      if (updates.budgetRange !== undefined) dbUpdates.budget = updates.budgetRange;
+      if (updates.priority !== undefined) dbUpdates.priority = updates.priority;
+      if (updates.service !== undefined) dbUpdates.service = updates.service;
+      if (updates.message !== undefined) dbUpdates.message = updates.message;
+
+      supabase.from('enquiries').update(dbUpdates).eq('id', id).then();
+    }
+
+    addAuditLog({
+      user_id: currentUser.id,
+      user_email: currentUser.email,
+      user_role: currentUser.role,
+      action: 'UPDATE',
+      table_name: 'enquiries',
+      record_id: id,
+      details: `Updated enquiry details: ${Object.keys(updates).join(', ')}`
+    });
+
+    if (updates.assigned_to && updates.assigned_to !== enq?.assigned_to) {
+      const assignedUser = users.find(u => u.id === updates.assigned_to || u.email === updates.assigned_to);
+      addNotification({
+        type: 'lead_assigned',
+        category: 'leads',
+        title: '🎯 Lead Assigned',
+        message: `Project enquiry from "${enq?.name || 'Client'}" was assigned to ${assignedUser?.name || 'Staff'}.`,
+        link: 'enquiries',
+        entity_type: 'enquiry',
+        entity_id: id,
+        priority: 'high',
+        metadata: {
+          enquiryId: id,
+          assignedTo: updates.assigned_to,
+          assignedToName: assignedUser?.name
+        },
+        event_key: `lead_assigned_${id}_${updates.assigned_to}`
+      });
+    }
   };
 
   const updateEnquiryStatus = (id: string, status: ProjectEnquiry['status']) => {
@@ -5178,6 +5263,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       clearLeadAlert,
       isBuzzerMuted,
       toggleBuzzerMute,
+      isLeadMonitoringActive,
+      toggleLeadMonitoring,
+      setLeadMonitoringActive,
       testBuzzerSound,
       triggerSimulatedLeadAlert,
       clients,
@@ -5239,6 +5327,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       updatePayment,
       deletePayment,
       addEnquiry,
+      updateEnquiry,
       updateEnquiryStatus,
       convertEnquiryToClient,
       deleteEnquiry,

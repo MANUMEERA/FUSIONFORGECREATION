@@ -42,6 +42,7 @@ export const DashboardOverview: React.FC = () => {
     legalDocuments,
     visitorEvents,
     isVisitorTrackingEnabled,
+    users,
     setActiveTab, 
     recordPayment 
   } = useApp();
@@ -455,30 +456,39 @@ export const DashboardOverview: React.FC = () => {
                 No lead enquiries received yet.
               </div>
             ) : (
-              enquiries.slice(0, 4).map(enq => (
-                <div key={enq.id} className="p-3.5 rounded-xl bg-[#FAF5FF] border border-[#E8E0F0] flex justify-between items-center text-xs hover:border-[#C084FC] transition-all shadow-xs">
-                  <div className="space-y-0.5">
-                    <div className="font-bold text-[#1E1B2E] flex items-center gap-2">
-                      <span>{enq.name}</span>
-                      <span className="text-[10px] text-[#817B91] font-normal">({enq.company || 'Direct'})</span>
+              enquiries.slice(0, 4).map(enq => {
+                const assignedUser = users.find(u => u.id === enq.assigned_to);
+
+                return (
+                  <div key={enq.id} className="p-3.5 rounded-xl bg-[#FAF5FF] border border-[#E8E0F0] flex justify-between items-center text-xs hover:border-[#C084FC] transition-all shadow-xs">
+                    <div className="space-y-0.5">
+                      <div className="font-bold text-[#1E1B2E] flex items-center gap-2">
+                        <span>{enq.name}</span>
+                        <span className="text-[10px] text-[#817B91] font-normal">({enq.company || 'Direct'})</span>
+                        {assignedUser && (
+                          <span className="px-1.5 py-0.2 rounded bg-purple-100 text-[#8E2D9D] text-[9px] font-semibold">
+                            👤 {assignedUser.name}
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-[11px] text-[#5F5A72] truncate max-w-xs">{enq.projectDescription}</div>
+                      <div className="text-[10px] text-[#817B91]">{new Date(enq.createdAt).toLocaleDateString('en-IN')}</div>
                     </div>
-                    <div className="text-[11px] text-[#5F5A72] truncate max-w-xs">{enq.projectDescription}</div>
-                    <div className="text-[10px] text-[#817B91]">{new Date(enq.createdAt).toLocaleDateString('en-IN')}</div>
+                    <div className="text-right shrink-0">
+                      <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
+                        enq.status === 'new' 
+                          ? 'bg-blue-50 text-blue-700 border border-blue-200'
+                          : enq.status === 'contacted'
+                          ? 'bg-[#F3E8FF] text-[#6F42C1] border border-[#E8E0F0]'
+                          : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                      }`}>
+                        {enq.status}
+                      </span>
+                      <div className="text-[11px] font-mono text-emerald-700 font-semibold mt-1">{enq.budgetRange}</div>
+                    </div>
                   </div>
-                  <div className="text-right shrink-0">
-                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
-                      enq.status === 'new' 
-                        ? 'bg-blue-50 text-blue-700 border border-blue-200'
-                        : enq.status === 'contacted'
-                        ? 'bg-[#F3E8FF] text-[#6F42C1] border border-[#E8E0F0]'
-                        : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                    }`}>
-                      {enq.status}
-                    </span>
-                    <div className="text-[11px] font-mono text-[#1E1B2E] font-semibold mt-1">{enq.budgetRange}</div>
-                  </div>
-                </div>
-              ))
+                );
+              })
             )}
           </div>
         </div>
