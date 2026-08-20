@@ -9,16 +9,20 @@ import {
   X, 
   CheckCircle2, 
   Building2, 
-  User 
+  User,
+  AlertTriangle 
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { TestimonialItem } from '../../types';
+import { useToast } from '../../context/ToastContext';
 
 export const TestimonialsManager: React.FC = () => {
   const { testimonials, addTestimonial, updateTestimonial, deleteTestimonial } = useApp();
+  const { success } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [testiToDelete, setTestiToDelete] = useState<TestimonialItem | null>(null);
 
   // Form State
   const [clientName, setClientName] = useState('');
@@ -169,16 +173,14 @@ export const TestimonialsManager: React.FC = () => {
                 <button
                   onClick={() => openEditModal(item)}
                   className="p-2 rounded-xl bg-[#FAF5FF] hover:bg-[#F3E8FF] text-[#5F5A72] hover:text-[#8E2D9D] border border-[#E8E0F0] cursor-pointer transition-colors"
+                  title="Edit Testimonial"
                 >
                   <Edit3 className="w-3.5 h-3.5" />
                 </button>
                 <button
-                  onClick={() => {
-                    if (confirm(`Delete testimonial from ${item.clientName}?`)) {
-                      deleteTestimonial(item.id);
-                    }
-                  }}
+                  onClick={() => setTestiToDelete(item)}
                   className="p-2 rounded-xl bg-[#FAF5FF] hover:bg-rose-50 text-[#5F5A72] hover:text-[#DC2626] border border-[#E8E0F0] cursor-pointer transition-colors"
+                  title="Delete Testimonial"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                 </button>
@@ -187,6 +189,49 @@ export const TestimonialsManager: React.FC = () => {
           </div>
         ))}
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {testiToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
+          <div className="w-full max-w-md bg-white border border-red-200 rounded-3xl shadow-2xl p-6 relative text-[#1E1B2E]">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2.5 rounded-2xl bg-red-50 text-red-600 border border-red-200">
+                <AlertTriangle className="w-6 h-6" />
+              </div>
+              <div>
+                <h2 className="text-lg font-bold text-[#1E1B2E]">Delete Testimonial</h2>
+                <p className="text-xs text-red-600 font-semibold">Confirm permanent removal</p>
+              </div>
+            </div>
+
+            <p className="text-xs text-[#5F5A72] mb-4 leading-relaxed">
+              Are you sure you want to delete testimonial from <strong className="text-[#1E1B2E]">{testiToDelete.clientName}</strong> ({testiToDelete.company})?
+            </p>
+
+            <div className="pt-3 border-t border-[#E8E0F0] flex items-center justify-end space-x-2">
+              <button
+                type="button"
+                onClick={() => setTestiToDelete(null)}
+                className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-[#5F5A72] font-semibold text-xs cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  deleteTestimonial(testiToDelete.id);
+                  success('Testimonial Deleted', `Feedback from ${testiToDelete.clientName} removed.`);
+                  setTestiToDelete(null);
+                }}
+                className="px-5 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs shadow-xs cursor-pointer flex items-center gap-1.5"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>Delete</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Modal */}
       {isModalOpen && (

@@ -117,15 +117,15 @@ export interface PaymentTermItem {
 }
 
 export interface DocumentNumberConfig {
-  document_type: 'invoice' | 'quotation';
-  prefix: string; // e.g. "INV" | "QTN"
+  document_type: 'invoice' | 'quotation' | 'credit_note' | 'debit_note';
+  prefix: string; // e.g. "INV" | "QTN" | "CN" | "DN"
   company_code: string; // e.g. "FFC"
   include_year: boolean;
-  year_format: 'YYYY' | 'YY' | 'YYYY-YY';
+  year_format: 'YYYY' | 'YY' | 'YYYY-YY' | 'FY';
   starting_sequence: number; // e.g. 10001 or 1
   current_sequence: number; // e.g. 10001
   separator: string; // e.g. "/" or "-"
-  style: 'standard' | 'shorter' | 'custom';
+  style: 'standard' | 'shorter' | 'custom' | 'fiscal' | 'compact' | 'sequential';
   custom_pattern?: string;
 }
 
@@ -179,6 +179,8 @@ export interface SellerProfile {
   numbering_configs?: {
     invoice: DocumentNumberConfig;
     quotation: DocumentNumberConfig;
+    credit_note?: DocumentNumberConfig;
+    debit_note?: DocumentNumberConfig;
   };
 
   // Compatibility & metadata fields

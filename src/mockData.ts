@@ -24,7 +24,12 @@ import {
   LegalDocumentHistoryItem,
   VisitorEvent
 } from './types';
-import { DEFAULT_INVOICE_NUMBERING, DEFAULT_QUOTATION_NUMBERING } from './utils/documentNumbering';
+import { 
+  DEFAULT_INVOICE_NUMBERING, 
+  DEFAULT_QUOTATION_NUMBERING,
+  DEFAULT_CREDIT_NOTE_NUMBERING,
+  DEFAULT_DEBIT_NOTE_NUMBERING 
+} from './utils/documentNumbering';
 
 export const INITIAL_PRICE_PRESETS: ServicePricePreset[] = [
   {
@@ -168,7 +173,7 @@ export const DEFAULT_INVOICE_TERMS: string[] = [
 export const INITIAL_SOCIAL_CHANNELS: SocialChannelItem[] = [
   { id: 'linkedin', platform: 'linkedin', name: 'LinkedIn', url: 'https://linkedin.com/company/fusionforgecreation', active: true, color: '#0A66C2' },
   { id: 'github', platform: 'github', name: 'GitHub', url: 'https://github.com/fusionforgecreation', active: true, color: '#6e5494' },
-  { id: 'whatsapp', platform: 'whatsapp', name: 'WhatsApp', url: 'https://wa.me/919004077126', active: true, color: '#25D366' },
+  { id: 'whatsapp', platform: 'whatsapp', name: 'WhatsApp', url: '', active: false, color: '#25D366' },
   { id: 'twitter', platform: 'twitter', name: 'Twitter / X', url: 'https://twitter.com/fusionforge_dev', active: true, color: '#1DA1F2' },
   { id: 'instagram', platform: 'instagram', name: 'Instagram', url: 'https://instagram.com/fusionforgecreation', active: true, color: '#E1306C' },
   { id: 'youtube', platform: 'youtube', name: 'YouTube', url: 'https://youtube.com/@fusionforgecreation', active: true, color: '#FF0000' }
@@ -180,17 +185,17 @@ export const AGENCY_CONFIG = {
   company_name: 'Fusion Forge Creation',
   tagline: 'Where Ideas Fuse With Technology',
   motto: 'INNOVATE • BUILD • AUTOMATE • GROW',
-  email: 'contact@fusionforge.io',
-  phone: '+91 90040 77126',
+  email: '',
+  phone: '',
   address: 'H2/203, Yogi Milan, Near Ring Road, Silvassa, Dadra & Nagar Haveli - 396230',
   city: 'Silvassa',
   state: 'Dadra & Nagar Haveli',
   state_code: '26',
   postalCode: '396230',
-  gstin: '26AALFF1234F1Z5',
-  pan: 'AALFF1234F',
-  msme_number: 'UDYAM-DN-00-0012345',
-  msmeNumber: 'UDYAM-DN-00-0012345',
+  gstin: '',
+  pan: '',
+  msme_number: '',
+  msmeNumber: '',
   jurisdiction: 'Silvassa, Dadra & Nagar Haveli',
   sacCode: '998314',
   logo_url: '/logo.svg',
@@ -205,10 +210,10 @@ export const AGENCY_CONFIG = {
   reverse_charge_default: 'No',
   
   // Phase 11: LUT & SEZ Compliance Defaults
-  lut_arn: 'AD260426001234F',
-  lutArn: 'AD260426001234F',
-  lutNumber: 'AD260426001234F',
-  lut_number: 'AD260426001234F',
+  lut_arn: '',
+  lutArn: '',
+  lutNumber: '',
+  lut_number: '',
   lutFinancialYear: '2026-27',
   lut_financial_year: '2026-27',
   lutDate: '2026-04-01',
@@ -221,7 +226,9 @@ export const AGENCY_CONFIG = {
   payment_terms: INITIAL_PAYMENT_TERMS,
   numbering_configs: {
     invoice: DEFAULT_INVOICE_NUMBERING,
-    quotation: DEFAULT_QUOTATION_NUMBERING
+    quotation: DEFAULT_QUOTATION_NUMBERING,
+    credit_note: DEFAULT_CREDIT_NOTE_NUMBERING,
+    debit_note: DEFAULT_DEBIT_NOTE_NUMBERING
   },
   social_channels: INITIAL_SOCIAL_CHANNELS,
   socialChannels: INITIAL_SOCIAL_CHANNELS,
@@ -231,7 +238,7 @@ export const AGENCY_CONFIG = {
     twitter: 'https://twitter.com/fusionforge_dev',
     instagram: 'https://instagram.com/fusionforgecreation',
     youtube: 'https://youtube.com/@fusionforgecreation',
-    whatsapp: 'https://wa.me/919004077126'
+    whatsapp: ''
   },
   socialLinks: {
     github: 'https://github.com/fusionforgecreation',
@@ -239,23 +246,23 @@ export const AGENCY_CONFIG = {
     twitter: 'https://twitter.com/fusionforge_dev',
     instagram: 'https://instagram.com/fusionforgecreation',
     youtube: 'https://youtube.com/@fusionforgecreation',
-    whatsapp: 'https://wa.me/919004077126'
+    whatsapp: ''
   },
   bankDetails: {
     accountName: 'Fusion Forge Creation',
-    bankName: 'HDFC Bank Ltd',
-    accountNumber: '50200012345678',
-    ifscCode: 'HDFC0001234',
-    branch: 'Silvassa Branch',
-    upiId: 'fusionforge@hdfcbank'
+    bankName: '',
+    accountNumber: '',
+    ifscCode: '',
+    branch: '',
+    upiId: ''
   },
-  bank_name: 'HDFC Bank Ltd',
+  bank_name: '',
   account_name: 'Fusion Forge Creation',
-  account_number: '50200012345678',
-  ifsc_code: 'HDFC0001234',
-  branch_name: 'Silvassa Branch',
-  upi_id: 'fusionforge@hdfcbank',
-  upiId: 'fusionforge@hdfcbank',
+  account_number: '',
+  ifsc_code: '',
+  branch_name: '',
+  upi_id: '',
+  upiId: '',
   terms_conditions: 'Payment due within 15 days of issue date.',
   terms: [
     '50% advance upon project initiation.',
@@ -272,7 +279,7 @@ export const INITIAL_USERS: UserProfile[] = [
     name: 'Manoj Satapathy',
     email: 'admin@fusionforgecreation.com',
     role: 'super_admin',
-    phone: '+91 90040 77126',
+    phone: '',
     is_active: true,
     mfa_enabled: true,
     two_factor_confirmed: true,
@@ -527,7 +534,7 @@ export const INITIAL_FAQS = [
   {
     id: 'faq_6',
     question: 'Are your quotations and tax invoices GST compliant in India?',
-    answer: 'Yes. Fusion Forge Creation is registered under GSTIN 21AAACF9876B1Z5 with Service Accounting Code SAC 998314 (Information Technology Software Services). We provide full B2B tax invoices with CGST/SGST or IGST breakdowns for input tax credit (ITC).',
+    answer: 'Yes. Fusion Forge Creation is fully compliant with Service Accounting Code SAC 998314 (Information Technology Software Services). We provide complete B2B tax invoices with itemized CGST/SGST or IGST breakdowns for Input Tax Credit (ITC) claiming.',
     category: 'Pricing & GST' as const,
     order: 6,
     isPublished: true
@@ -548,8 +555,8 @@ export const INITIAL_CHATBOT_SETTINGS: ChatbotSettings = {
     'How to get a formal Quotation?'
   ],
   enableBot: true,
-  contactEmail: 'contact@fusionforge.io',
-  contactPhone: '+91 90040 77126'
+  contactEmail: '',
+  contactPhone: ''
 };
 
 export const INITIAL_CHATBOT_QA: ChatbotQAItem[] = [
@@ -608,7 +615,7 @@ export const INITIAL_CHATBOT_QA: ChatbotQAItem[] = [
   {
     id: 'cqa_5',
     question: 'Are your invoices GST compliant in India? What is SAC Code 998314?',
-    answer: 'Yes, 100%. Fusion Forge Creation is registered under GSTIN 26AALFF1234F1Z5 in Silvassa (Dadra & Nagar Haveli). We provide official B2B Tax Invoices under SAC 998314 (Information Technology Software Services), enabling your business to claim full Input Tax Credit (ITC). Intra-state deals receive CGST (9%) + SGST (9%), while inter-state deals receive IGST (18%).',
+    answer: 'Yes, 100%. Fusion Forge Creation provides official B2B Tax Invoices under SAC 998314 (Information Technology Software Services), enabling your business to claim full Input Tax Credit (ITC). Intra-state deals receive CGST (9%) + SGST/UTGST (9%), while inter-state deals receive IGST (18%).',
     category: 'GST & Invoicing',
     keywords: ['gst', 'gstin', 'sac', '998314', 'tax', 'invoice', 'itc', 'input tax credit', 'cgst', 'sgst', 'igst', 'hsn', 'compliance', 'b2b'],
     suggestedFollowUps: ['What are your payment terms?', 'How much does a web app cost?'],
@@ -660,12 +667,12 @@ export const INITIAL_CHATBOT_QA: ChatbotQAItem[] = [
   {
     id: 'cqa_9',
     question: 'Where is Fusion Forge Creation located and how can I contact you directly?',
-    answer: 'Our headquarters is located at Survey No. 274, Athal Village, Silvassa, Dadra & Nagar Haveli (396230).\n\n• Email: contact@fusionforge.io / manojsatapathy.jp@gmail.com\n• Phone / WhatsApp: +91 90040 77126\n• Executive Lead: Manoj Satapathy\n\nYou can contact us directly or drop a message via the enquiry form below!',
+    answer: 'Our engineering headquarters is located in Silvassa, Dadra & Nagar Haveli (396230).\n\n• Executive Lead: Manoj Satapathy\n\nYou can reach out directly via the Project Scope Enquiry form on this website or through our official communication channels!',
     category: 'Contact & Support',
     keywords: ['location', 'address', 'where', 'city', 'silvassa', 'office', 'phone', 'whatsapp', 'email', 'contact', 'manoj', 'satapathy', 'call', 'talk'],
     suggestedFollowUps: ['Fill Project Scope Form', 'How to get a formal quote?'],
     actionLink: '#contact',
-    actionLabel: 'Reach Out via Phone / WhatsApp',
+    actionLabel: 'Reach Out via Enquiry Form',
     isActive: true,
     orderIndex: 9,
     matchCount: 119
@@ -1836,8 +1843,8 @@ These Terms of Engagement govern all software engineering, mobile development, c
 
 ### 1. Enterprise Tax Identification
 - **Legal Trade Name**: Fusion Forge Creation
-- **Registered GSTIN**: 26AALFF1234F1Z5
-- **Permanent Account Number (PAN)**: AALFF1234F
+- **Registered GSTIN**: Under Registration / Provided on Official Tax Invoices
+- **Permanent Account Number (PAN)**: Available on Request / Disclosed on Invoices
 - **Principal Place of Business**: Dadra and Nagar Haveli and Daman and Diu (State Code: 26)
 - **Primary SAC Code**: **998314** (Information Technology Design and Development Services)
 

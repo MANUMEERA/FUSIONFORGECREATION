@@ -72,7 +72,7 @@ export const SettingsManager: React.FC = () => {
     return [
       { id: 'linkedin', platform: 'linkedin', name: 'LinkedIn', url: sl.linkedin || 'https://linkedin.com/company/fusionforgecreation', active: true, color: '#0A66C2' },
       { id: 'github', platform: 'github', name: 'GitHub', url: sl.github || 'https://github.com/fusionforgecreation', active: true, color: '#8b949e' },
-      { id: 'whatsapp', platform: 'whatsapp', name: 'WhatsApp', url: sl.whatsapp || 'https://wa.me/919004077126', active: true, color: '#25D366' },
+      { id: 'whatsapp', platform: 'whatsapp', name: 'WhatsApp', url: sl.whatsapp || '', active: false, color: '#25D366' },
       { id: 'twitter', platform: 'twitter', name: 'Twitter / X', url: sl.twitter || 'https://twitter.com/fusionforge_dev', active: true, color: '#1DA1F2' },
       { id: 'instagram', platform: 'instagram', name: 'Instagram', url: sl.instagram || 'https://instagram.com/fusionforgecreation', active: true, color: '#E1306C' },
       { id: 'youtube', platform: 'youtube', name: 'YouTube', url: sl.youtube || 'https://youtube.com/@fusionforgecreation', active: true, color: '#FF0000' }
@@ -84,17 +84,17 @@ export const SettingsManager: React.FC = () => {
   const [form, setForm] = useState({
     company_name: agencyConfig.company_name || agencyConfig.name || 'Fusion Forge Creation',
     tagline: agencyConfig.tagline || 'Where Ideas Fuse With Technology',
-    email: agencyConfig.email || 'contact@fusionforge.io',
-    phone: agencyConfig.phone || '+91 90040 77126',
+    email: agencyConfig.email || '',
+    phone: agencyConfig.phone || '',
     address: agencyConfig.address || 'H2/203, Yogi Milan, Near Ring Road, Silvassa, Dadra & Nagar Haveli - 396230',
     city: agencyConfig.city || 'Silvassa',
     state: agencyConfig.state || 'Dadra & Nagar Haveli',
     postalCode: agencyConfig.postalCode || '396230',
-    gstin: agencyConfig.gstin || '26AALFF1234F1Z5',
-    pan: agencyConfig.pan || (agencyConfig.gstin && agencyConfig.gstin.length >= 12 ? agencyConfig.gstin.substring(2, 12) : 'AALFF1234F'),
+    gstin: agencyConfig.gstin || '',
+    pan: agencyConfig.pan || (agencyConfig.gstin && agencyConfig.gstin.length >= 12 ? agencyConfig.gstin.substring(2, 12) : ''),
     sacCode: agencyConfig.sacCode || '998314',
     state_code: agencyConfig.state_code || '26',
-    msme_number: agencyConfig.msme_number || agencyConfig.msmeNumber || 'UDYAM-DN-01-0012345',
+    msme_number: agencyConfig.msme_number || agencyConfig.msmeNumber || '',
     jurisdiction: agencyConfig.jurisdiction || 'Silvassa, Dadra & Nagar Haveli',
     logo_url: agencyConfig.logo_url || '/logo.svg',
     signature_url: agencyConfig.signature_url || '/signatures/authorized_signatory.png',
@@ -104,16 +104,16 @@ export const SettingsManager: React.FC = () => {
     linkedin: initialSocial.linkedin || 'https://linkedin.com/company/fusionforgecreation',
     twitter: initialSocial.twitter || 'https://twitter.com/fusionforge_dev',
     instagram: initialSocial.instagram || 'https://instagram.com/fusionforgecreation',
-    whatsapp: initialSocial.whatsapp || 'https://wa.me/919004077126',
+    whatsapp: initialSocial.whatsapp || '',
     youtube: initialSocial.youtube || 'https://youtube.com/@fusionforgecreation',
 
     // Bank Details
-    bank_name: agencyConfig.bank_name || agencyConfig.bankDetails?.bankName || 'HDFC Bank Ltd',
+    bank_name: agencyConfig.bank_name || agencyConfig.bankDetails?.bankName || '',
     account_name: agencyConfig.account_name || agencyConfig.bankDetails?.accountName || 'Fusion Forge Creation',
-    account_number: agencyConfig.account_number || agencyConfig.bankDetails?.accountNumber || '50200012345678',
-    ifsc_code: agencyConfig.ifsc_code || agencyConfig.bankDetails?.ifscCode || 'HDFC0001234',
-    branch_name: agencyConfig.branch_name || agencyConfig.bankDetails?.branch || 'Silvassa Branch',
-    upi_id: agencyConfig.bankDetails?.upiId || 'fusionforge@hdfcbank',
+    account_number: agencyConfig.account_number || agencyConfig.bankDetails?.accountNumber || '',
+    ifsc_code: agencyConfig.ifsc_code || agencyConfig.bankDetails?.ifscCode || '',
+    branch_name: agencyConfig.branch_name || agencyConfig.bankDetails?.branch || '',
+    upi_id: agencyConfig.bankDetails?.upiId || '',
     terms_conditions: agencyConfig.terms_conditions || '1. 50% advance on project kickoff, balance on milestone deliverables.\n2. Invoices are payable within 15 days of issue date.\n3. Goods & Services Tax (GST) charged as per Indian taxation norms (SAC 998314).\n4. All payments to be remitted to the aforementioned bank account only.'
   });
 
@@ -503,7 +503,7 @@ export const SettingsManager: React.FC = () => {
                   value={quickCompliance.gstin}
                   onChange={e => handleQuickGstinChange(e.target.value)}
                   className="w-full px-2.5 py-1.5 rounded-lg bg-white border border-[#E8E0F0] text-xs text-[#1E1B2E] font-mono font-bold focus:border-[#8E2D9D] focus:ring-2 focus:ring-[#8E2D9D]/15 outline-none uppercase"
-                  placeholder="26AALFF1234F1Z5"
+                  placeholder="e.g. 26AAAAA0000A1Z5"
                 />
               </div>
               <div>
@@ -514,7 +514,7 @@ export const SettingsManager: React.FC = () => {
                   value={quickCompliance.pan}
                   onChange={e => setQuickCompliance({ ...quickCompliance, pan: e.target.value.toUpperCase().trim() })}
                   className="w-full px-2.5 py-1.5 rounded-lg bg-white border border-[#E8E0F0] text-xs text-[#1E1B2E] font-mono font-bold focus:border-[#8E2D9D] focus:ring-2 focus:ring-[#8E2D9D]/15 outline-none uppercase"
-                  placeholder="AALFF1234F"
+                  placeholder="e.g. AAAAA0000A"
                 />
               </div>
 
@@ -824,8 +824,7 @@ export const SettingsManager: React.FC = () => {
                 value={form.email}
                 onChange={e => setForm({ ...form, email: e.target.value })}
                 className="w-full px-3 py-2 rounded-xl bg-[#FAF5FF] border border-[#E8E0F0] text-xs text-[#1E1B2E] outline-none focus:border-[#8E2D9D] focus:ring-2 focus:ring-[#8E2D9D]/15"
-                placeholder="contact@fusionforge.io"
-                required
+                placeholder="e.g. contact@yourcompany.com"
               />
             </div>
             <div>
@@ -835,8 +834,7 @@ export const SettingsManager: React.FC = () => {
                 value={form.phone}
                 onChange={e => setForm({ ...form, phone: e.target.value })}
                 className="w-full px-3 py-2 rounded-xl bg-[#FAF5FF] border border-[#E8E0F0] text-xs text-[#1E1B2E] outline-none focus:border-[#8E2D9D] focus:ring-2 focus:ring-[#8E2D9D]/15"
-                placeholder="+91 90040 77126"
-                required
+                placeholder="e.g. +91 98765 43210"
               />
             </div>
           </div>
@@ -859,7 +857,6 @@ export const SettingsManager: React.FC = () => {
                 onChange={e => setForm({ ...form, address: e.target.value })}
                 className="w-full px-3 py-2 rounded-xl bg-[#FAF5FF] border border-[#E8E0F0] text-xs text-[#1E1B2E] outline-none focus:border-[#8E2D9D] focus:ring-2 focus:ring-[#8E2D9D]/15 font-medium"
                 placeholder="H2/203, Yogi Milan, Near Ring Road, Silvassa, Dadra & Nagar Haveli - 396230"
-                required
               />
             </div>
             <div>
@@ -870,7 +867,6 @@ export const SettingsManager: React.FC = () => {
                 onChange={e => setForm({ ...form, city: e.target.value })}
                 className="w-full px-3 py-2 rounded-xl bg-[#FAF5FF] border border-[#E8E0F0] text-xs text-[#1E1B2E] outline-none focus:border-[#8E2D9D] focus:ring-2 focus:ring-[#8E2D9D]/15"
                 placeholder="Silvassa"
-                required
               />
             </div>
             <div>
@@ -881,7 +877,6 @@ export const SettingsManager: React.FC = () => {
                 onChange={e => setForm({ ...form, state: e.target.value })}
                 className="w-full px-3 py-2 rounded-xl bg-[#FAF5FF] border border-[#E8E0F0] text-xs text-[#1E1B2E] outline-none focus:border-[#8E2D9D] focus:ring-2 focus:ring-[#8E2D9D]/15"
                 placeholder="Dadra & Nagar Haveli"
-                required
               />
             </div>
             <div>
@@ -892,7 +887,6 @@ export const SettingsManager: React.FC = () => {
                 onChange={e => setForm({ ...form, postalCode: e.target.value })}
                 className="w-full px-3 py-2 rounded-xl bg-[#FAF5FF] border border-[#E8E0F0] text-xs text-[#1E1B2E] font-mono outline-none focus:border-[#8E2D9D] focus:ring-2 focus:ring-[#8E2D9D]/15"
                 placeholder="396230"
-                required
               />
             </div>
           </div>
@@ -925,9 +919,8 @@ export const SettingsManager: React.FC = () => {
                 value={form.gstin}
                 onChange={e => handleGstinChange(e.target.value)}
                 className="w-full px-3 py-2 rounded-xl bg-[#FAF5FF] border border-[#E8E0F0] text-xs text-[#1E1B2E] font-mono uppercase outline-none focus:border-[#8E2D9D] focus:ring-2 focus:ring-[#8E2D9D]/15"
-                placeholder="26AALFF1234F1Z5"
+                placeholder="e.g. 26AAAAA0000A1Z5"
                 maxLength={15}
-                required
               />
             </div>
 
@@ -945,9 +938,8 @@ export const SettingsManager: React.FC = () => {
                 value={form.pan}
                 onChange={e => setForm({ ...form, pan: e.target.value.toUpperCase().trim() })}
                 className="w-full px-3 py-2 rounded-xl bg-[#FAF5FF] border border-[#E8E0F0] text-xs text-[#1E1B2E] font-mono uppercase outline-none focus:border-[#8E2D9D] focus:ring-2 focus:ring-[#8E2D9D]/15"
-                placeholder="AALFF1234F"
+                placeholder="e.g. AAAAA0000A"
                 maxLength={10}
-                required
               />
             </div>
 

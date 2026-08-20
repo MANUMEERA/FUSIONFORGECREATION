@@ -11,17 +11,21 @@ import {
   CheckCircle2, 
   Code2, 
   Database, 
-  Cloud 
+  Cloud,
+  AlertTriangle 
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { TechnologyItem } from '../../types';
+import { useToast } from '../../context/ToastContext';
 
 export const TechnologiesManager: React.FC = () => {
   const { technologies, addTechnology, updateTechnology, deleteTechnology } = useApp();
+  const { success } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTechId, setEditingTechId] = useState<string | null>(null);
+  const [techToDelete, setTechToDelete] = useState<TechnologyItem | null>(null);
 
   // Form State
   const [name, setName] = useState('');
@@ -166,16 +170,14 @@ export const TechnologiesManager: React.FC = () => {
                 <button
                   onClick={() => openEditModal(tech)}
                   className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-[#5F5A72] hover:text-[#1E1B2E] transition-colors cursor-pointer"
+                  title="Edit Technology"
                 >
                   <Edit3 className="w-3.5 h-3.5" />
                 </button>
                 <button
-                  onClick={() => {
-                    if (confirm(`Delete technology "${tech.name}"?`)) {
-                      deleteTechnology(tech.id);
-                    }
-                  }}
+                  onClick={() => setTechToDelete(tech)}
                   className="p-1.5 rounded-lg bg-slate-100 hover:bg-red-50 text-[#817B91] hover:text-red-600 transition-colors cursor-pointer"
+                  title="Delete Technology"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                 </button>
@@ -184,6 +186,49 @@ export const TechnologiesManager: React.FC = () => {
           </div>
         ))}
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {techToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
+          <div className="w-full max-w-md bg-white border border-red-200 rounded-3xl shadow-2xl p-6 relative text-[#1E1B2E]">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2.5 rounded-2xl bg-red-50 text-red-600 border border-red-200">
+                <AlertTriangle className="w-6 h-6" />
+              </div>
+              <div>
+                <h2 className="text-lg font-bold text-[#1E1B2E]">Delete Technology</h2>
+                <p className="text-xs text-red-600 font-semibold">Confirm permanent removal</p>
+              </div>
+            </div>
+
+            <p className="text-xs text-[#5F5A72] mb-4 leading-relaxed">
+              Are you sure you want to delete <strong className="text-[#1E1B2E]">"{techToDelete.name}"</strong> from your tech stack?
+            </p>
+
+            <div className="pt-3 border-t border-[#E8E0F0] flex items-center justify-end space-x-2">
+              <button
+                type="button"
+                onClick={() => setTechToDelete(null)}
+                className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-[#5F5A72] font-semibold text-xs cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  deleteTechnology(techToDelete.id);
+                  success('Technology Deleted', `"${techToDelete.name}" removed from tech stack.`);
+                  setTechToDelete(null);
+                }}
+                className="px-5 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs shadow-xs cursor-pointer flex items-center gap-1.5"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>Delete</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Add / Edit Technology Modal */}
       {isModalOpen && (

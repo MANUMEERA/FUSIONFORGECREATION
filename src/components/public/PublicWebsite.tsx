@@ -185,7 +185,7 @@ export const PublicWebsite: React.FC = () => {
     },
     {
       question: 'Are your quotations and tax invoices GST compliant in India?',
-      answer: `Yes. ${config.company_name || config.name || 'Fusion Forge Creation'} is registered under GSTIN ${config.gstin || '26AALFF1234F1Z5'} with Service Accounting Code SAC ${config.sacCode || '998314'} (Information Technology Software Services) in ${config.city || 'Silvassa'} (${config.state || 'Dadra & Nagar Haveli'}). We provide full B2B tax invoices with CGST/SGST or IGST breakdowns for full input tax credit (ITC).`
+      answer: `Yes. ${config.company_name || config.name || 'Fusion Forge Creation'} is fully compliant ${config.gstin ? `under GSTIN ${config.gstin} ` : ''}with Service Accounting Code SAC ${config.sacCode || '998314'} (Information Technology Software Services) in ${config.city || 'Silvassa'} (${config.state || 'Dadra & Nagar Haveli'}). We provide full B2B tax invoices with CGST/SGST or IGST breakdowns for full input tax credit (ITC).`
     }
   ];
 
@@ -494,22 +494,6 @@ export const PublicWebsite: React.FC = () => {
                   <span className="text-cyan-400 font-mono text-xs">&lt;/&gt;</span>
                   <span>Our Core Services</span>
                 </a>
-              </div>
-
-              {/* Stats Counters (100% Custom Code | 99.9% Uptime SLA | 24/7 Support) */}
-              <div className="pt-6 border-t border-blue-500/20 grid grid-cols-3 gap-4">
-                <div>
-                  <div className="text-xl sm:text-2xl font-black text-white font-mono">100%</div>
-                  <div className="text-[11px] text-slate-400 font-medium">Custom Code</div>
-                </div>
-                <div>
-                  <div className="text-xl sm:text-2xl font-black text-white font-mono">99.9%</div>
-                  <div className="text-[11px] text-slate-400 font-medium">Uptime SLA</div>
-                </div>
-                <div>
-                  <div className="text-xl sm:text-2xl font-black text-white font-mono">24/7</div>
-                  <div className="text-[11px] text-slate-400 font-medium">Support</div>
-                </div>
               </div>
 
             </div>
@@ -1251,37 +1235,51 @@ export const PublicWebsite: React.FC = () => {
 
               {/* Direct Communication Channels */}
               <div className="grid grid-cols-1 gap-3">
-                <a
-                  href={`mailto:${config.email}`}
-                  className="p-3.5 rounded-2xl bg-slate-950/60 border border-slate-800/80 hover:border-cyan-500/50 flex items-center justify-between group transition-all cursor-pointer"
-                >
-                  <div className="flex items-center space-x-3">
+                {config.email ? (
+                  <a
+                    href={`mailto:${config.email}`}
+                    className="p-3.5 rounded-2xl bg-slate-950/60 border border-slate-800/80 hover:border-cyan-500/50 flex items-center justify-between group transition-all cursor-pointer"
+                  >
+                    <div className="flex items-center space-x-3">
+                      <div className="w-7 h-7 rounded-lg bg-cyan-500/10 flex items-center justify-center text-cyan-400">
+                        <Mail className="w-3.5 h-3.5" />
+                      </div>
+                      <div>
+                        <div className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">Official Email</div>
+                        <div className="text-xs font-mono font-medium text-slate-200 group-hover:text-cyan-400 transition-colors">{config.email}</div>
+                      </div>
+                    </div>
+                    <ArrowRight className="w-3.5 h-3.5 text-slate-500 group-hover:text-cyan-400 group-hover:translate-x-0.5 transition-all" />
+                  </a>
+                ) : (
+                  <div className="p-3.5 rounded-2xl bg-slate-950/60 border border-slate-800/80 flex items-center space-x-3">
                     <div className="w-7 h-7 rounded-lg bg-cyan-500/10 flex items-center justify-center text-cyan-400">
                       <Mail className="w-3.5 h-3.5" />
                     </div>
                     <div>
-                      <div className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">Official Email</div>
-                      <div className="text-xs font-mono font-medium text-slate-200 group-hover:text-cyan-400 transition-colors">{config.email}</div>
+                      <div className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">Direct Communication</div>
+                      <div className="text-xs text-slate-300">Submit Scope Form for Instant Review</div>
                     </div>
                   </div>
-                  <ArrowRight className="w-3.5 h-3.5 text-slate-500 group-hover:text-cyan-400 group-hover:translate-x-0.5 transition-all" />
-                </a>
+                )}
 
-                <a
-                  href={`tel:${config.phone.replace(/[^0-9+]/g, '')}`}
-                  className="p-3.5 rounded-2xl bg-slate-950/60 border border-slate-800/80 hover:border-emerald-500/50 flex items-center justify-between group transition-all cursor-pointer"
-                >
-                  <div className="flex items-center space-x-3">
-                    <div className="w-7 h-7 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-400">
-                      <Phone className="w-3.5 h-3.5" />
+                {config.phone ? (
+                  <a
+                    href={`tel:${config.phone.replace(/[^0-9+]/g, '')}`}
+                    className="p-3.5 rounded-2xl bg-slate-950/60 border border-slate-800/80 hover:border-emerald-500/50 flex items-center justify-between group transition-all cursor-pointer"
+                  >
+                    <div className="flex items-center space-x-3">
+                      <div className="w-7 h-7 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-400">
+                        <Phone className="w-3.5 h-3.5" />
+                      </div>
+                      <div>
+                        <div className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">Phone & WhatsApp</div>
+                        <div className="text-xs font-mono font-medium text-slate-200 group-hover:text-emerald-400 transition-colors">{config.phone}</div>
+                      </div>
                     </div>
-                    <div>
-                      <div className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">Phone & WhatsApp</div>
-                      <div className="text-xs font-mono font-medium text-slate-200 group-hover:text-emerald-400 transition-colors">{config.phone}</div>
-                    </div>
-                  </div>
-                  <ArrowRight className="w-3.5 h-3.5 text-slate-500 group-hover:text-emerald-400 group-hover:translate-x-0.5 transition-all" />
-                </a>
+                    <ArrowRight className="w-3.5 h-3.5 text-slate-500 group-hover:text-emerald-400 group-hover:translate-x-0.5 transition-all" />
+                  </a>
+                ) : null}
               </div>
 
               {/* Working Hours */}
@@ -1300,11 +1298,11 @@ export const PublicWebsite: React.FC = () => {
                 <div className="grid grid-cols-2 gap-2 text-[11px]">
                   <div className="p-2.5 rounded-xl bg-slate-950/70 border border-slate-800">
                     <div className="text-[10px] text-slate-400 font-semibold">GSTIN</div>
-                    <div className="font-mono font-bold text-slate-200 text-xs">{config.gstin}</div>
+                    <div className="font-mono font-bold text-slate-200 text-xs">{config.gstin || 'Under Registration'}</div>
                   </div>
                   <div className="p-2.5 rounded-xl bg-slate-950/70 border border-slate-800">
                     <div className="text-[10px] text-slate-400 font-semibold">PAN</div>
-                    <div className="font-mono font-bold text-slate-200 text-xs">{config.pan}</div>
+                    <div className="font-mono font-bold text-slate-200 text-xs">{config.pan || 'Available on Invoice'}</div>
                   </div>
                   <div className="p-2.5 rounded-xl bg-slate-950/70 border border-slate-800">
                     <div className="text-[10px] text-slate-400 font-semibold">Service Code</div>
@@ -1424,11 +1422,11 @@ export const PublicWebsite: React.FC = () => {
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
                   <span className="text-slate-400">GSTIN:</span>
-                  <span className="font-mono text-slate-200 font-bold bg-slate-900/90 px-1.5 py-0.5 rounded border border-slate-800">{config.gstin}</span>
+                  <span className="font-mono text-slate-200 font-bold bg-slate-900/90 px-1.5 py-0.5 rounded border border-slate-800">{config.gstin || 'Under Registration'}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-slate-400">PAN:</span>
-                  <span className="font-mono text-slate-200 font-bold bg-slate-900/90 px-1.5 py-0.5 rounded border border-slate-800">{config.pan}</span>
+                  <span className="font-mono text-slate-200 font-bold bg-slate-900/90 px-1.5 py-0.5 rounded border border-slate-800">{config.pan || 'Available on Request'}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-slate-400">SAC Code:</span>

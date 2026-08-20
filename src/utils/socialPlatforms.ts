@@ -11,7 +11,7 @@ export interface PlatformPreset {
 export const PLATFORM_PRESETS: PlatformPreset[] = [
   { id: 'linkedin', name: 'LinkedIn', placeholder: 'https://linkedin.com/company/...', defaultColor: '#0A66C2', iconName: 'linkedin' },
   { id: 'github', name: 'GitHub', placeholder: 'https://github.com/...', defaultColor: '#8b949e', iconName: 'github' },
-  { id: 'whatsapp', name: 'WhatsApp', placeholder: 'https://wa.me/919004077126', defaultColor: '#25D366', iconName: 'whatsapp' },
+  { id: 'whatsapp', name: 'WhatsApp', placeholder: 'https://wa.me/91...', defaultColor: '#25D366', iconName: 'whatsapp' },
   { id: 'twitter', name: 'Twitter / X', placeholder: 'https://twitter.com/...', defaultColor: '#1DA1F2', iconName: 'twitter' },
   { id: 'instagram', name: 'Instagram', placeholder: 'https://instagram.com/...', defaultColor: '#E1306C', iconName: 'instagram' },
   { id: 'youtube', name: 'YouTube', placeholder: 'https://youtube.com/@...', defaultColor: '#FF0000', iconName: 'youtube' },

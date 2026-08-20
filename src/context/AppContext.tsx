@@ -72,7 +72,13 @@ import {
   INITIAL_VISITOR_EVENTS,
   AGENCY_CONFIG 
 } from '../mockData';
-import { DEFAULT_INVOICE_NUMBERING, DEFAULT_QUOTATION_NUMBERING } from '../utils/documentNumbering';
+import { 
+  DEFAULT_INVOICE_NUMBERING, 
+  DEFAULT_QUOTATION_NUMBERING,
+  DEFAULT_CREDIT_NOTE_NUMBERING,
+  DEFAULT_DEBIT_NOTE_NUMBERING,
+  generateNextDocumentNumber 
+} from '../utils/documentNumbering';
 import { INITIAL_SYSTEM_ROLES, SYSTEM_PERMISSIONS, hasPermission } from '../lib/permissions';
 import { calculateGstInvoiceTotals } from '../utils/gstEngine';
 import { getOrCreateSessionId, detectDeviceType, detectBrowser, detectOS, getSanitizedReferrer, buildPrivacySafeMetadata } from '../utils/visitorTracker';
@@ -113,7 +119,8 @@ interface AppContextType {
   isBuzzerMuted: boolean;
   toggleBuzzerMute: () => boolean;
   testBuzzerSound: () => void;
-  triggerSimulatedLeadAlert: () => ProjectEnquiry;
+  triggerSimulatedLeadAlert: () => ProjectEnquiry | null;
+  clearAllEnquiries: () => Promise<void>;
 
   // Phase 12: Central Notification & Email System
   notifications: AppNotification[];
@@ -266,7 +273,7 @@ interface AppContextType {
   setDefaultPaymentTerm: (id: string) => void;
 
   // Phase 5: Document Numbering Configuration
-  updateDocumentNumberConfig: (type: 'invoice' | 'quotation', config: Partial<DocumentNumberConfig>) => void;
+  updateDocumentNumberConfig: (type: 'invoice' | 'quotation' | 'credit_note' | 'debit_note', config: Partial<DocumentNumberConfig>) => void;
 
   updateAgencyConfig: (data: Partial<Omit<typeof AGENCY_CONFIG, 'social_links' | 'socialLinks'> & { social_links?: Record<string, string>; socialLinks?: Record<string, string> }>) => void;
   agencyConfig: typeof AGENCY_CONFIG;
@@ -347,7 +354,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [chatbotQAs, setChatbotQAs] = useState<ChatbotQAItem[]>(INITIAL_CHATBOT_QA);
   const [chatbotSettings, setChatbotSettings] = useState<ChatbotSettings>(INITIAL_CHATBOT_SETTINGS);
   const [users, setUsers] = useState<UserProfile[]>(INITIAL_USERS);
-  const [roles, setRoles] = useState<RoleDefinition[]>(INITIAL_SYSTEM_ROLES);
+  const [roles, setRoles] = useState<RoleDefinition[]>(() => {
+    try {
+      const saved = localStorage.getItem('fusion_forge_roles');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed;
+        }
+      }
+    } catch (e) {
+      console.warn('Failed to load stored roles:', e);
+    }
+    return INITIAL_SYSTEM_ROLES;
+  });
   const [permissions] = useState<PermissionDefinition[]>(SYSTEM_PERMISSIONS);
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>(INITIAL_AUDIT_LOGS);
   const [portfolio, setPortfolio] = useState<PortfolioProject[]>(INITIAL_PORTFOLIO);
@@ -986,7 +1006,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           invoice_terms: sellerData.invoice_terms || prev.invoice_terms,
           numbering_configs: sellerData.numbering_configs ? {
             invoice: { ...DEFAULT_INVOICE_NUMBERING, ...(sellerData.numbering_configs.invoice || {}) },
-            quotation: { ...DEFAULT_QUOTATION_NUMBERING, ...(sellerData.numbering_configs.quotation || {}) }
+            quotation: { ...DEFAULT_QUOTATION_NUMBERING, ...(sellerData.numbering_configs.quotation || {}) },
+            credit_note: { ...DEFAULT_CREDIT_NOTE_NUMBERING, ...(sellerData.numbering_configs.credit_note || {}) },
+            debit_note: { ...DEFAULT_DEBIT_NOTE_NUMBERING, ...(sellerData.numbering_configs.debit_note || {}) }
           } : prev.numbering_configs,
           bank_name: sellerData.bank_name || prev.bank_name,
           account_name: sellerData.account_name || prev.account_name,
@@ -2644,58 +2666,58 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const triggerSimulatedLeadAlert = (): ProjectEnquiry | null => {
-    const sampleLeads = [
-      {
-        name: 'Dr. Vikram Malhotra',
-        company: 'Apex Healthtech AI Ltd',
-        email: 'v.malhotra@apexhealthtech.io',
-        phone: '+91 98450 12890',
-        gstin: '27AAACH1234D1Z9',
-        address: 'Suite 902, Godrej One, Pirojshanagar, Vikhroli, Mumbai, Maharashtra - 400079',
-        service: 'Full-Stack Enterprise AI App',
-        serviceCategory: 'web_development' as const,
-        budgetRange: '₹4,50,000 - ₹8,00,000',
-        projectDescription: 'We require a HIPAA/GST compliant clinical dashboard with real-time patient analytics and doctor appointment scheduling.',
-        source: 'Website Estimator'
-      },
-      {
-        name: 'Priyanka Sharma',
-        company: 'Zenith Logistics Hub',
-        email: 'priyanka@zenithlogistics.in',
-        phone: '+91 91234 56780',
-        gstin: '24AABCS5432E1Z3',
-        address: 'Survey 112, GIDC Phase 3, Naroda, Ahmedabad, Gujarat - 382330',
-        service: 'Supply Chain & Fleet Tracking Web Platform',
-        serviceCategory: 'enterprise_portal' as const,
-        budgetRange: '₹3,00,000 - ₹6,00,000',
-        projectDescription: 'Looking for a custom multi-tenant freight billing system with automatic SAC 998314 invoice generation and live GPS telematics.',
-        source: 'Public Portal Contact'
-      },
-      {
-        name: 'Rohan Deshmukh',
-        company: 'CloudNova Fintech',
-        email: 'rohan.d@cloudnovafin.com',
-        phone: '+91 99887 76655',
-        gstin: '29AABCC9988H1ZM',
-        address: 'Tower 4, Electronic City Phase 1, Bengaluru, Karnataka - 560100',
-        service: 'Fintech Payment Gateway & Client Portal',
-        serviceCategory: 'mobile_app' as const,
-        budgetRange: '₹5,00,000 - ₹10,00,000',
-        projectDescription: 'Immediate requirement for cross-platform iOS & Android mobile application with automated UPI/e-mandate subscription billing.',
-        source: 'AI Chatbot Recommendation'
-      }
-    ];
-
-    // Check for unique non-duplicate leads
-    const availableLeads = sampleLeads.filter(s => !enquiries.some(e => e.email === s.email));
-    if (availableLeads.length === 0) {
-      // If already present, play chime/buzzer for existing latest alert without adding duplicate
+    // 1. If an alert is already active, play chime and return current alert without creating anything
+    if (latestLeadAlert) {
       buzzerEngine.playLeadBuzzer();
-      return null;
+      return latestLeadAlert;
     }
 
-    const pick = availableLeads[0];
-    return addEnquiry(pick);
+    // 2. If enquiries already exist (from front page or elsewhere), replay buzzer alert for the latest enquiry
+    // instead of creating repeated fake demo records
+    if (enquiries.length > 0) {
+      const latestEnquiry = enquiries[0];
+      setLatestLeadAlert(latestEnquiry);
+      buzzerEngine.playLeadBuzzer();
+      return latestEnquiry;
+    }
+
+    // 3. If strictly zero enquiries exist, generate ONE single test lead
+    const sampleLead = {
+      name: 'Dr. Vikram Malhotra',
+      company: 'Apex Healthtech AI Ltd',
+      email: 'v.malhotra@apexhealthtech.io',
+      phone: '+91 98450 12890',
+      gstin: '27AAACH1234D1Z9',
+      address: 'Suite 902, Godrej One, Pirojshanagar, Vikhroli, Mumbai, Maharashtra - 400079',
+      service: 'Full-Stack Enterprise AI App',
+      serviceCategory: 'web_development' as const,
+      budgetRange: '₹4,50,000 - ₹8,00,000',
+      projectDescription: 'We require a HIPAA/GST compliant clinical dashboard with real-time patient analytics and doctor appointment scheduling.',
+      source: 'simulated_test'
+    };
+
+    return addEnquiry(sampleLead);
+  };
+
+  const clearAllEnquiries = async () => {
+    setEnquiries([]);
+    setLatestLeadAlert(null);
+    if (isSupabaseConfigured) {
+      try {
+        await supabase.from('enquiries').delete().neq('id', '0');
+      } catch (err) {
+        console.warn('Failed to clear Supabase enquiries:', err);
+      }
+    }
+    addAuditLog({
+      user_id: currentUser.id,
+      user_email: currentUser.email,
+      user_role: currentUser.role,
+      action: 'DELETE',
+      table_name: 'enquiries',
+      record_id: 'ALL',
+      details: 'Cleared all project scope enquiries for fresh testing'
+    });
   };
 
   const updateEnquiryStatus = (id: string, status: ProjectEnquiry['status']) => {
@@ -3740,8 +3762,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const targetRole = roles.find(r => r.id === id);
     if (!targetRole) return false;
 
-    if (targetRole.isSystem) {
-      console.warn('[Role Management] System built-in roles cannot be deleted.');
+    if (targetRole.code === 'super_admin') {
+      console.warn('[Role Management] Root Super Admin role cannot be deleted.');
       return false;
     }
 
@@ -4038,17 +4060,24 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   // Phase 5: Document Numbering Configuration
-  const updateDocumentNumberConfig = (type: 'invoice' | 'quotation', configUpdate: Partial<DocumentNumberConfig>) => {
+  const updateDocumentNumberConfig = (type: 'invoice' | 'quotation' | 'credit_note' | 'debit_note', configUpdate: Partial<DocumentNumberConfig>) => {
     setAgencyConfig(prev => {
       const currentConfigs = prev.numbering_configs || {
         invoice: DEFAULT_INVOICE_NUMBERING,
-        quotation: DEFAULT_QUOTATION_NUMBERING
+        quotation: DEFAULT_QUOTATION_NUMBERING,
+        credit_note: DEFAULT_CREDIT_NOTE_NUMBERING,
+        debit_note: DEFAULT_DEBIT_NOTE_NUMBERING
       };
+
+      const fallbackConfig = 
+        type === 'credit_note' ? DEFAULT_CREDIT_NOTE_NUMBERING :
+        type === 'debit_note' ? DEFAULT_DEBIT_NOTE_NUMBERING :
+        type === 'quotation' ? DEFAULT_QUOTATION_NUMBERING : DEFAULT_INVOICE_NUMBERING;
 
       const updatedNumbering = {
         ...currentConfigs,
         [type]: {
-          ...currentConfigs[type],
+          ...(currentConfigs[type] || fallbackConfig),
           ...configUpdate
         }
       };
@@ -4686,11 +4715,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   // Phase 11: Credit & Debit Note Management (GSTR-1 CDNR Statutory Compliance)
   const generateNoteNumber = useCallback((type: 'credit' | 'debit'): string => {
-    const prefix = type === 'credit' ? 'CN-2026-' : 'DN-2026-';
-    const matchingNotes = creditDebitNotes.filter(n => n.noteType === type);
-    const nextNum = String(matchingNotes.length + 1).padStart(4, '0');
-    return `${prefix}${nextNum}`;
-  }, [creditDebitNotes]);
+    const docType = type === 'credit' ? 'credit_note' : 'debit_note';
+    const fallbackConfig = type === 'credit' ? DEFAULT_CREDIT_NOTE_NUMBERING : DEFAULT_DEBIT_NOTE_NUMBERING;
+    const config = agencyConfig.numbering_configs?.[docType] || fallbackConfig;
+    const existingNumbers = creditDebitNotes
+      .filter(n => n.noteType === type)
+      .map(n => n.noteNumber || '');
+    const result = generateNextDocumentNumber(docType, config, existingNumbers);
+    return result.number;
+  }, [creditDebitNotes, agencyConfig.numbering_configs]);
 
   const addCreditDebitNote = async (noteData: Omit<CreditDebitNote, 'id' | 'created_at' | 'updated_at'>): Promise<CreditDebitNote> => {
     const id = `cdn_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
@@ -5209,6 +5242,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       updateEnquiryStatus,
       convertEnquiryToClient,
       deleteEnquiry,
+      clearAllEnquiries,
       addService,
       updateService,
       deleteService,

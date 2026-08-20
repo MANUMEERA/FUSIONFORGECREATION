@@ -17,7 +17,8 @@ import {
   AlertCircle,
   X,
   Upload,
-  Percent
+  Percent,
+  AlertTriangle
 } from 'lucide-react';
 import { useApp } from '../../../context/AppContext';
 import { Purchase, PurchasePaymentStatus } from '../../../types';
@@ -31,6 +32,7 @@ export const PurchasesSection: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<'all' | PurchasePaymentStatus>('all');
   const [showModal, setShowModal] = useState(false);
   const [editingPurchase, setEditingPurchase] = useState<Purchase | null>(null);
+  const [purchaseToDelete, setPurchaseToDelete] = useState<Purchase | null>(null);
   const [previewAttachment, setPreviewAttachment] = useState<{ url: string; name: string } | null>(null);
 
   // Form State
@@ -192,11 +194,8 @@ export const PurchasesSection: React.FC = () => {
     }
   };
 
-  const handleDelete = async (id: string, billNo: string) => {
-    if (confirm(`Are you sure you want to delete purchase bill #${billNo}?`)) {
-      await deletePurchase(id);
-      success(`Purchase bill #${billNo} deleted.`);
-    }
+  const handleDelete = (p: Purchase) => {
+    setPurchaseToDelete(p);
   };
 
   const handleQuickPay = async (p: Purchase) => {
@@ -385,7 +384,7 @@ export const PurchasesSection: React.FC = () => {
                           <Edit3 className="w-3.5 h-3.5" />
                         </button>
                         <button
-                          onClick={() => handleDelete(p.id, p.billNumber)}
+                          onClick={() => handleDelete(p)}
                           title="Delete Bill"
                           className="p-1.5 rounded-lg bg-slate-100 hover:bg-red-50 text-[#817B91] hover:text-red-600 border border-[#E8E0F0] cursor-pointer transition-colors"
                         >
@@ -676,6 +675,48 @@ export const PurchasesSection: React.FC = () => {
                 className="px-4 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-[#1E1B2E] text-xs font-bold cursor-pointer"
               >
                 Close Preview
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Delete Purchase Bill Modal */}
+      {purchaseToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
+          <div className="w-full max-w-md bg-white border border-red-200 rounded-3xl shadow-2xl p-6 relative text-[#1E1B2E]">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2.5 rounded-2xl bg-red-50 text-red-600 border border-red-200">
+                <AlertTriangle className="w-6 h-6" />
+              </div>
+              <div>
+                <h2 className="text-lg font-bold text-[#1E1B2E]">Delete Purchase Bill</h2>
+                <p className="text-xs text-red-600 font-semibold">Confirm removal</p>
+              </div>
+            </div>
+
+            <p className="text-xs text-[#5F5A72] mb-4 leading-relaxed">
+              Are you sure you want to delete purchase bill <strong className="text-[#1E1B2E]">#{purchaseToDelete.billNumber}</strong> from <strong className="text-[#1E1B2E]">{purchaseToDelete.supplierName}</strong> (₹{purchaseToDelete.totalAmount.toLocaleString('en-IN')})?
+            </p>
+
+            <div className="pt-3 border-t border-[#E8E0F0] flex items-center justify-end space-x-2">
+              <button
+                type="button"
+                onClick={() => setPurchaseToDelete(null)}
+                className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-[#5F5A72] font-semibold text-xs cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={async () => {
+                  await deletePurchase(purchaseToDelete.id);
+                  success('Purchase Bill Deleted', `Bill #${purchaseToDelete.billNumber} removed.`);
+                  setPurchaseToDelete(null);
+                }}
+                className="px-5 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs shadow-xs cursor-pointer flex items-center gap-1.5"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>Delete</span>
               </button>
             </div>
           </div>

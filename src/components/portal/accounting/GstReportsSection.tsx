@@ -261,7 +261,7 @@ export const GstReportsSection: React.FC = () => {
                 Statutory Return Engine
               </span>
               <span className="text-xs text-[#5F5A72]">
-                GSTIN: <strong className="text-[#1E1B2E] font-mono">{agencyConfig.gstin || '26AALFF1234F1Z5'}</strong>
+                GSTIN: <strong className="text-[#1E1B2E] font-mono">{agencyConfig.gstin || 'Not Configured'}</strong>
               </span>
             </div>
             <h2 className="text-xl font-bold text-[#1E1B2E] mt-1 flex items-center gap-2">

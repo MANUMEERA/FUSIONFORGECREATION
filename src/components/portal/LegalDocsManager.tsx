@@ -19,7 +19,8 @@ import {
   FileCode,
   Scale,
   Building2,
-  Lock
+  Lock,
+  AlertTriangle
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { LegalDocument, LegalDocumentHistoryItem, LegalDocumentStatus } from '../../types';
@@ -41,6 +42,7 @@ export const LegalDocsManager: React.FC = () => {
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [saveSuccessMessage, setSaveSuccessMessage] = useState<string | null>(null);
+  const [historyItemToRestore, setHistoryItemToRestore] = useState<LegalDocumentHistoryItem | null>(null);
 
   // Form state for updating document
   const selectedDoc = legalDocuments.find(d => d.id === selectedDocId) || legalDocuments[0];
@@ -117,13 +119,16 @@ export const LegalDocsManager: React.FC = () => {
   };
 
   const handleRestore = async (historyItem: LegalDocumentHistoryItem) => {
-    if (!window.confirm(`Are you sure you want to rollback to revision ${historyItem.version} (published on ${new Date(historyItem.created_at).toLocaleDateString()})?`)) {
-      return;
-    }
+    setHistoryItemToRestore(historyItem);
+  };
 
-    const success = await restoreLegalDocumentVersion(selectedDoc.id, historyItem.id);
+  const confirmRestore = async () => {
+    if (!historyItemToRestore) return;
+    const item = historyItemToRestore;
+    setHistoryItemToRestore(null);
+    const success = await restoreLegalDocumentVersion(selectedDoc.id, item.id);
     if (success) {
-      setSaveSuccessMessage(`Successfully restored to revision ${historyItem.version}.`);
+      setSaveSuccessMessage(`Successfully restored to revision ${item.version}.`);
       setActiveSubTab('editor');
       setIsEditing(false);
       setTimeout(() => setSaveSuccessMessage(null), 4000);
@@ -630,6 +635,45 @@ export const LegalDocsManager: React.FC = () => {
               )}
             </div>
           )}
+        </div>
+      )}
+
+      {/* Rollback Revision Confirmation Modal */}
+      {historyItemToRestore && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
+          <div className="w-full max-w-md bg-white border border-amber-200 rounded-3xl shadow-2xl p-6 relative text-[#1E1B2E]">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2.5 rounded-2xl bg-amber-50 text-amber-600 border border-amber-200">
+                <AlertTriangle className="w-6 h-6" />
+              </div>
+              <div>
+                <h2 className="text-lg font-bold text-[#1E1B2E]">Confirm Version Rollback</h2>
+                <p className="text-xs text-amber-600 font-semibold">Document will be restored</p>
+              </div>
+            </div>
+
+            <p className="text-xs text-[#5F5A72] mb-4 leading-relaxed">
+              Are you sure you want to rollback <strong className="text-[#1E1B2E]">{selectedDoc.title}</strong> to revision <strong className="text-[#1E1B2E]">{historyItemToRestore.version}</strong> (published on {new Date(historyItemToRestore.created_at).toLocaleDateString()})?
+            </p>
+
+            <div className="pt-3 border-t border-[#E8E0F0] flex items-center justify-end space-x-2">
+              <button
+                type="button"
+                onClick={() => setHistoryItemToRestore(null)}
+                className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-[#5F5A72] font-semibold text-xs cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={confirmRestore}
+                className="px-5 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs shadow-xs cursor-pointer flex items-center gap-1.5"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+                <span>Confirm Rollback</span>
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

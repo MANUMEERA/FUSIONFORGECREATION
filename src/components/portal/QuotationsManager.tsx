@@ -21,7 +21,8 @@ import {
   Lock,
   Clock,
   AlertCircle,
-  Building2
+  Building2,
+  AlertTriangle
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { Quotation, LineItem, GSTType, ServicePricePreset, QuoteStatus } from '../../types';
@@ -40,17 +41,20 @@ export const QuotationsManager: React.FC = () => {
     invoices,
     addQuotation, 
     updateQuotation, 
+    deleteQuotation,
     convertQuoteToInvoice, 
     addClient, 
     agencyConfig, 
     pricePresets, 
     setActiveTab,
-    testBuzzerSound 
+    testBuzzerSound,
+    currentUser
   } = useApp();
 
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [previewQuote, setPreviewQuote] = useState<Quotation | null>(null);
   const [editingQuoteId, setEditingQuoteId] = useState<string | null>(null);
+  const [quoteToDelete, setQuoteToDelete] = useState<Quotation | null>(null);
 
   // Email Modal State
   const [emailModalQuote, setEmailModalQuote] = useState<Quotation | null>(null);
@@ -595,6 +599,17 @@ export const QuotationsManager: React.FC = () => {
                             className="px-2.5 py-1.5 rounded-xl bg-[#FAF5FF] hover:bg-[#F3E8FF] text-[#1E1B2E] text-[11px] font-bold border border-[#E8E0F0] transition-colors cursor-pointer"
                           >
                             Edit
+                          </button>
+                        )}
+
+                        {/* Delete Quotation */}
+                        {currentUser.role === 'super_admin' && (
+                          <button
+                            onClick={() => setQuoteToDelete(q)}
+                            title="Delete Quotation"
+                            className="p-2 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 transition-colors cursor-pointer"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
                           </button>
                         )}
 
@@ -1227,8 +1242,9 @@ export const QuotationsManager: React.FC = () => {
                   <div className="text-[#1E1B2E] font-bold text-sm">{agencyConfig.company_name || agencyConfig.name || 'Fusion Forge Creation'}</div>
                   <div className="text-[#5F5A72] text-[11px] mt-0.5">{agencyConfig.address}</div>
                   <div className="text-[#817B91] text-[11px] font-mono mt-1">
-                    {agencyConfig.gstin ? `GSTIN: ${agencyConfig.gstin} | ` : ''}PAN: {agencyConfig.pan || 'AALFF1234F'}
-                    {agencyConfig.msme_number ? ` | MSME: ${agencyConfig.msme_number}` : ''}
+                    {agencyConfig.gstin ? `GSTIN: ${agencyConfig.gstin} ` : ''}
+                    {agencyConfig.pan ? `| PAN: ${agencyConfig.pan} ` : ''}
+                    {agencyConfig.msme_number ? `| MSME: ${agencyConfig.msme_number}` : ''}
                   </div>
                 </div>
 
@@ -1381,6 +1397,48 @@ export const QuotationsManager: React.FC = () => {
                   <span>Download COMMERCIAL QUOTATION PDF</span>
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Delete Quotation Confirmation Modal */}
+      {quoteToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
+          <div className="w-full max-w-md bg-white border border-red-200 rounded-3xl shadow-2xl p-6 relative text-[#1E1B2E]">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2.5 rounded-2xl bg-red-50 text-red-600 border border-red-200">
+                <AlertTriangle className="w-6 h-6" />
+              </div>
+              <div>
+                <h2 className="text-lg font-bold text-[#1E1B2E]">Delete Quotation</h2>
+                <p className="text-xs text-red-600 font-semibold">Confirm commercial proposal removal</p>
+              </div>
+            </div>
+
+            <p className="text-xs text-[#5F5A72] mb-4 leading-relaxed">
+              Are you sure you want to permanently delete quotation <strong className="text-[#1E1B2E]">{quoteToDelete.quoteNumber}</strong> for <strong className="text-[#1E1B2E]">{quoteToDelete.clientCompany || quoteToDelete.clientName}</strong> (₹{quoteToDelete.totalAmount.toLocaleString('en-IN')})?
+            </p>
+
+            <div className="pt-3 border-t border-[#E8E0F0] flex items-center justify-end space-x-2">
+              <button
+                type="button"
+                onClick={() => setQuoteToDelete(null)}
+                className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-[#5F5A72] font-semibold text-xs cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  deleteQuotation(quoteToDelete.id);
+                  setNotificationMsg({ type: 'success', text: `Quotation ${quoteToDelete.quoteNumber} permanently deleted.` });
+                  setQuoteToDelete(null);
+                }}
+                className="px-5 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs shadow-xs cursor-pointer flex items-center gap-1.5"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>Delete Quote</span>
+              </button>
             </div>
           </div>
         </div>

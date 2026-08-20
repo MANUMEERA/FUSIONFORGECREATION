@@ -17,7 +17,8 @@ import {
   Building2,
   ShieldCheck,
   Percent,
-  UserPlus
+  UserPlus,
+  AlertTriangle
 } from 'lucide-react';
 import { useApp } from '../../../context/AppContext';
 import { StaffMember, SalaryRecord, SalaryPaymentStatus } from '../../../types';
@@ -42,6 +43,8 @@ export const SalarySection: React.FC = () => {
   const [selectedPeriodMonth, setSelectedPeriodMonth] = useState('08');
   const [selectedPeriodYear, setSelectedPeriodYear] = useState(2026);
   const [selectedPayslip, setSelectedPayslip] = useState<SalaryRecord | null>(null);
+  const [salaryToDelete, setSalaryToDelete] = useState<SalaryRecord | null>(null);
+  const [staffToDelete, setStaffToDelete] = useState<StaffMember | null>(null);
 
   // Staff Modal
   const [showStaffModal, setShowStaffModal] = useState(false);
@@ -379,12 +382,9 @@ export const SalarySection: React.FC = () => {
                               </button>
                             )}
                             <button
-                              onClick={() => {
-                                if (confirm(`Remove salary voucher for ${rec.employeeName}?`)) {
-                                  deleteSalaryRecord(rec.id);
-                                }
-                              }}
+                              onClick={() => setSalaryToDelete(rec)}
                               className="p-1.5 rounded-lg bg-slate-100 hover:bg-red-50 text-[#817B91] hover:text-red-600 border border-[#E8E0F0] cursor-pointer"
+                              title="Delete Salary Voucher"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
                             </button>
@@ -462,12 +462,9 @@ export const SalarySection: React.FC = () => {
                   Edit
                 </button>
                 <button
-                  onClick={() => {
-                    if (confirm(`Remove staff member ${staff.fullName}?`)) {
-                      deleteStaffMember(staff.id);
-                    }
-                  }}
+                  onClick={() => setStaffToDelete(staff)}
                   className="p-1 rounded-lg bg-slate-100 hover:bg-red-50 text-[#817B91] hover:text-red-600 cursor-pointer"
+                  title="Remove Staff Member"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                 </button>
@@ -831,6 +828,92 @@ export const SalarySection: React.FC = () => {
                 className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-[#5F5A72] font-bold text-xs cursor-pointer"
               >
                 Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Salary Voucher Confirmation Modal */}
+      {salaryToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
+          <div className="w-full max-w-md bg-white border border-red-200 rounded-3xl shadow-2xl p-6 relative text-[#1E1B2E]">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2.5 rounded-2xl bg-red-50 text-red-600 border border-red-200">
+                <AlertTriangle className="w-6 h-6" />
+              </div>
+              <div>
+                <h2 className="text-lg font-bold text-[#1E1B2E]">Delete Salary Voucher</h2>
+                <p className="text-xs text-red-600 font-semibold">Confirm removal</p>
+              </div>
+            </div>
+
+            <p className="text-xs text-[#5F5A72] mb-4 leading-relaxed">
+              Are you sure you want to remove the salary voucher for <strong className="text-[#1E1B2E]">{salaryToDelete.employeeName}</strong> for {salaryToDelete.period || `${salaryToDelete.periodMonth}/${salaryToDelete.periodYear}`} (₹{salaryToDelete.netSalary.toLocaleString('en-IN')})?
+            </p>
+
+            <div className="pt-3 border-t border-[#E8E0F0] flex items-center justify-end space-x-2">
+              <button
+                type="button"
+                onClick={() => setSalaryToDelete(null)}
+                className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-[#5F5A72] font-semibold text-xs cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  deleteSalaryRecord(salaryToDelete.id);
+                  success('Salary Voucher Removed', `Removed salary record for ${salaryToDelete.employeeName}.`);
+                  setSalaryToDelete(null);
+                }}
+                className="px-5 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs shadow-xs cursor-pointer flex items-center gap-1.5"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>Delete Voucher</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Staff Member Confirmation Modal */}
+      {staffToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
+          <div className="w-full max-w-md bg-white border border-red-200 rounded-3xl shadow-2xl p-6 relative text-[#1E1B2E]">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2.5 rounded-2xl bg-red-50 text-red-600 border border-red-200">
+                <AlertTriangle className="w-6 h-6" />
+              </div>
+              <div>
+                <h2 className="text-lg font-bold text-[#1E1B2E]">Remove Staff Member</h2>
+                <p className="text-xs text-red-600 font-semibold">Confirm staff deletion</p>
+              </div>
+            </div>
+
+            <p className="text-xs text-[#5F5A72] mb-4 leading-relaxed">
+              Are you sure you want to remove staff member <strong className="text-[#1E1B2E]">{staffToDelete.fullName}</strong> ({staffToDelete.designation}) from the staff registry?
+            </p>
+
+            <div className="pt-3 border-t border-[#E8E0F0] flex items-center justify-end space-x-2">
+              <button
+                type="button"
+                onClick={() => setStaffToDelete(null)}
+                className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-[#5F5A72] font-semibold text-xs cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  deleteStaffMember(staffToDelete.id);
+                  success('Staff Member Removed', `${staffToDelete.fullName} removed from registry.`);
+                  setStaffToDelete(null);
+                }}
+                className="px-5 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs shadow-xs cursor-pointer flex items-center gap-1.5"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>Remove Staff</span>
               </button>
             </div>
           </div>

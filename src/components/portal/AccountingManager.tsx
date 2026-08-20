@@ -76,7 +76,7 @@ export const AccountingManager: React.FC = () => {
             Financials, GST Compliance & Accounting Suite
           </h1>
           <p className="text-xs text-[#5F5A72] mt-0.5">
-            GSTIN: <span className="font-mono text-[#1E1B2E] font-semibold">{agencyConfig.gstin || '26AALFF1234F1Z5'}</span> • Primary SAC: <span className="font-mono text-[#8E2D9D] font-bold">998314</span> (IT Software Design & Development)
+            GSTIN: <span className="font-mono text-[#1E1B2E] font-semibold">{agencyConfig.gstin || 'Not Configured'}</span> • Primary SAC: <span className="font-mono text-[#8E2D9D] font-bold">998314</span> (IT Software Design & Development)
           </p>
         </div>
 

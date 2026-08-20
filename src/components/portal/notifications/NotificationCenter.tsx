@@ -51,6 +51,7 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({ onClose,
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [filterReadStatus, setFilterReadStatus] = useState<'all' | 'unread' | 'read'>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
 
   // Role-filtered notifications
   const userNotifications = useMemo(() => {
@@ -95,10 +96,7 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({ onClose,
   };
 
   const handleClearAll = () => {
-    if (window.confirm('Clear all notifications? This will delete all notifications permanently.')) {
-      clearAllNotifications();
-      info('Notifications Cleared', 'All notifications have been removed.');
-    }
+    setShowClearConfirm(true);
   };
 
   const formatTimeAgo = (isoDate: string) => {
@@ -467,6 +465,49 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({ onClose,
           </div>
         </div>
       </div>
+
+      {/* Clear All Notifications Confirmation Modal */}
+      {showClearConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
+          <div className="w-full max-w-md bg-white border border-red-200 rounded-3xl shadow-2xl p-6 relative text-[#1E1B2E]">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2.5 rounded-2xl bg-red-50 text-red-600 border border-red-200">
+                <AlertTriangle className="w-6 h-6" />
+              </div>
+              <div>
+                <h2 className="text-lg font-bold text-[#1E1B2E]">Clear All Notifications</h2>
+                <p className="text-xs text-red-600 font-semibold">Confirm permanent removal</p>
+              </div>
+            </div>
+
+            <p className="text-xs text-[#5F5A72] mb-4 leading-relaxed">
+              Are you sure you want to permanently clear all notifications? This action cannot be undone.
+            </p>
+
+            <div className="pt-3 border-t border-[#E8E0F0] flex items-center justify-end space-x-2">
+              <button
+                type="button"
+                onClick={() => setShowClearConfirm(false)}
+                className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-[#5F5A72] font-semibold text-xs cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  clearAllNotifications();
+                  info('Notifications Cleared', 'All notifications have been removed.');
+                  setShowClearConfirm(false);
+                }}
+                className="px-5 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs shadow-xs cursor-pointer flex items-center gap-1.5"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>Clear All</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

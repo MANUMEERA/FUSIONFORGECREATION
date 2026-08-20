@@ -506,16 +506,16 @@ CREATE TABLE IF NOT EXISTS public.seller_profile (
         DEFAULT 'Where Ideas Fuse With Technology',
 
     email TEXT
-        DEFAULT 'contact@fusionforge.io',
+        DEFAULT '',
 
     phone TEXT
-        DEFAULT '+91 90040 77126',
+        DEFAULT '',
 
     address TEXT
         DEFAULT 'Survey No. 274, Athal Village, Silvassa, Dadra & Nagar Haveli - 396230',
 
     gstin TEXT
-        DEFAULT '26AALFF1234F1Z5',
+        DEFAULT '',
 
     state_code VARCHAR(2)
         DEFAULT '26',
@@ -652,16 +652,16 @@ INSERT INTO public.seller_profile
 SELECT
     'Fusion Forge Creation',
     'Where Ideas Fuse With Technology',
-    'contact@fusionforge.io',
-    '+91 90040 77126',
+    '',
+    '',
     'Survey No. 274, Athal Village, Silvassa, Dadra & Nagar Haveli - 396230',
-    '26AALFF1234F1Z5',
+    '',
     '26',
     'Silvassa Jurisdiction',
-    'HDFC Bank Ltd',
+    '',
     'Fusion Forge Creation',
-    '50200012345678',
-    'HDFC0001234',
+    '',
+    '',
     'Payment due within 15 days of issue date.'
 WHERE NOT EXISTS (
     SELECT 1

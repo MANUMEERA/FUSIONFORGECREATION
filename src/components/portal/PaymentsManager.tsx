@@ -20,8 +20,11 @@ import {
   CheckCheck,
   ShieldCheck,
   Loader2,
-  RefreshCw
+  RefreshCw,
+  Trash2,
+  AlertTriangle
 } from 'lucide-react';
+import { useToast } from '../../context/ToastContext';
 import { useApp } from '../../context/AppContext';
 import { Payment, PaymentMethod } from '../../types';
 import { generatePaymentReceiptPDF } from '../../utils/pdfGenerator';
@@ -40,10 +43,12 @@ export const PaymentsManager: React.FC = () => {
     currentUser
   } = useApp();
 
+  const { success, error: toastError } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [methodFilter, setMethodFilter] = useState<string>('all');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedReceipt, setSelectedReceipt] = useState<Payment | null>(null);
+  const [paymentToDelete, setPaymentToDelete] = useState<Payment | null>(null);
 
   // Email Modal State
   const [emailModalReceipt, setEmailModalReceipt] = useState<Payment | null>(null);
@@ -419,6 +424,17 @@ export const PaymentsManager: React.FC = () => {
                           >
                             <Mail className="w-3.5 h-3.5 text-[#8E2D9D]" />
                           </button>
+
+                          {/* Delete Payment Receipt Trigger */}
+                          {currentUser.role === 'super_admin' && (
+                            <button
+                              onClick={() => setPaymentToDelete(payment)}
+                              title="Delete Payment Receipt"
+                              className="p-1.5 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 transition-colors cursor-pointer"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -807,6 +823,49 @@ export const PaymentsManager: React.FC = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+      {/* Delete Payment Confirmation Modal */}
+      {paymentToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
+          <div className="w-full max-w-md bg-white border border-red-200 rounded-3xl shadow-2xl p-6 relative text-[#1E1B2E]">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2.5 rounded-2xl bg-red-50 text-red-600 border border-red-200">
+                <AlertTriangle className="w-6 h-6" />
+              </div>
+              <div>
+                <h2 className="text-lg font-bold text-[#1E1B2E]">Delete Payment Receipt</h2>
+                <p className="text-xs text-red-600 font-semibold">Confirm payment record removal</p>
+              </div>
+            </div>
+
+            <p className="text-xs text-[#5F5A72] mb-4 leading-relaxed">
+              Are you sure you want to delete payment receipt <strong className="text-[#1E1B2E]">{paymentToDelete.receiptNumber}</strong> of <strong className="text-emerald-700 font-bold">₹{paymentToDelete.amount.toLocaleString('en-IN')}</strong> from <strong className="text-[#1E1B2E]">{paymentToDelete.clientName}</strong>?
+              This will automatically recalculate the associated invoice balance due.
+            </p>
+
+            <div className="pt-3 border-t border-[#E8E0F0] flex items-center justify-end space-x-2">
+              <button
+                type="button"
+                onClick={() => setPaymentToDelete(null)}
+                className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-[#5F5A72] font-semibold text-xs cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  deletePayment(paymentToDelete.id);
+                  success('Payment Deleted', `Receipt ${paymentToDelete.receiptNumber} was successfully removed.`);
+                  setPaymentToDelete(null);
+                }}
+                className="px-5 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs shadow-xs cursor-pointer flex items-center gap-1.5"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>Delete Receipt</span>
+              </button>
+            </div>
           </div>
         </div>
       )}

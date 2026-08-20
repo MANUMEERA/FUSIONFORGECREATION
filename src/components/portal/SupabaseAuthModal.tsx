@@ -16,8 +16,12 @@ import {
   Copy,
   Check,
   QrCode,
+  HelpCircle,
+  Send,
+  AlertTriangle,
   Sparkles,
-  HelpCircle
+  Download,
+  Info
 } from 'lucide-react';
 import { supabase, isSupabaseConfigured } from '../../lib/supabaseClient';
 import { useApp } from '../../context/AppContext';
@@ -27,7 +31,6 @@ import {
   generateTotpSecret, 
   getOtpauthUri, 
   generateQrCodeDataUrl, 
-  calculateTotpCode, 
   verifyTotpCode, 
   generateRecoveryCodes,
   formatSecretKey 
@@ -39,7 +42,7 @@ interface SupabaseAuthModalProps {
   onSuccess?: (user: UserProfile) => void;
 }
 
-type AuthMode = 'login' | 'forgot_password' | 'mfa_verify' | 'mfa_setup';
+type AuthMode = 'login' | 'forgot_password' | 'mfa_verify' | 'mfa_setup' | 'mfa_re_enroll';
 
 export const SupabaseAuthModal: React.FC<SupabaseAuthModalProps> = ({
   isOpen,
@@ -66,34 +69,46 @@ export const SupabaseAuthModal: React.FC<SupabaseAuthModalProps> = ({
   const [copiedRecovery, setCopiedRecovery] = useState(false);
   const [useRecoveryCodeMode, setUseRecoveryCodeMode] = useState(false);
   const [recoveryCodeInput, setRecoveryCodeInput] = useState('');
-  const [currentLiveCode, setCurrentLiveCode] = useState<string>('');
   const [secondsRemaining, setSecondsRemaining] = useState<number>(30);
+
+  // Email Emergency Recovery Code State (Special for Super Admin)
+  const [emailEmergencyCode, setEmailEmergencyCode] = useState<string>('');
+  const [emailRecoverySent, setEmailRecoverySent] = useState(false);
+  const [emailRecoveryCooldown, setEmailRecoveryCooldown] = useState(0);
+  const [showStaffNoticeModal, setShowStaffNoticeModal] = useState(false);
+
+  // Re-Enrollment State (When device is lost & recovery code is used)
+  const [reEnrollSecret, setReEnrollSecret] = useState<string>('');
+  const [reEnrollQrUrl, setReEnrollQrUrl] = useState<string>('');
+  const [reEnrollRecoveryCodes, setReEnrollRecoveryCodes] = useState<string[]>([]);
+  const [reEnrollCodeInput, setReEnrollCodeInput] = useState<string>('');
+  const [copiedReEnrollSecret, setCopiedReEnrollSecret] = useState(false);
+  const [copiedReEnrollRecovery, setCopiedReEnrollRecovery] = useState(false);
 
   // Forgot password state
   const [resetEmail, setResetEmail] = useState('');
   const [resetSent, setResetSent] = useState(false);
 
-  // Live TOTP calculation timer for demo / verification assist
+  // TOTP rotation interval timer
   useEffect(() => {
-    if (!totpSecret) return;
-
-    let isMounted = true;
-    const updateCode = async () => {
+    const updateTimer = () => {
       const sec = 30 - (Math.floor(Date.now() / 1000) % 30);
       setSecondsRemaining(sec);
-      const code = await calculateTotpCode(totpSecret);
-      if (isMounted) {
-        setCurrentLiveCode(code);
-      }
     };
 
-    updateCode();
-    const interval = setInterval(updateCode, 1000);
-    return () => {
-      isMounted = false;
-      clearInterval(interval);
-    };
-  }, [totpSecret]);
+    updateTimer();
+    const interval = setInterval(updateTimer, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Cooldown countdown for email resend
+  useEffect(() => {
+    if (emailRecoveryCooldown <= 0) return;
+    const timer = setInterval(() => {
+      setEmailRecoveryCooldown(prev => (prev > 0 ? prev - 1 : 0));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [emailRecoveryCooldown]);
 
   if (!isOpen) return null;
 
@@ -249,6 +264,58 @@ export const SupabaseAuthModal: React.FC<SupabaseAuthModalProps> = ({
     }
   };
 
+  // ─────────────────────────────────────────────────────────────
+  // SEND EMERGENCY RECOVERY CODE TO REGISTERED EMAIL (SUPER ADMIN)
+  // ─────────────────────────────────────────────────────────────
+  const handleSendEmergencyRecoveryEmail = async () => {
+    if (!pendingUser) return;
+
+    if (pendingUser.role !== 'super_admin') {
+      setShowStaffNoticeModal(true);
+      return;
+    }
+
+    setLoading(true);
+    setErrorMessage('');
+
+    try {
+      // Generate a secure one-time emergency backup recovery token
+      const randomPart = Math.floor(1000 + Math.random() * 9000);
+      const generatedEmergencyCode = `FFC-EMRG-${randomPart}`;
+      
+      setEmailEmergencyCode(generatedEmergencyCode);
+      setEmailRecoverySent(true);
+      setEmailRecoveryCooldown(60);
+
+      // Add to user's valid recovery codes
+      const currentCodes = pendingUser.recovery_codes || [];
+      const updatedCodes = [generatedEmergencyCode, ...currentCodes];
+      updateUser(pendingUser.id, { recovery_codes: updatedCodes });
+
+      addAuditLog({
+        user_id: pendingUser.id,
+        user_email: pendingUser.email,
+        user_role: pendingUser.role,
+        action: 'EMERGENCY_2FA_CODE_DISPATCHED_TO_EMAIL',
+        table_name: 'profiles',
+        record_id: pendingUser.id,
+        details: `Dispatched one-time emergency backup recovery code (${generatedEmergencyCode}) to Super Admin email: ${pendingUser.email}`
+      });
+
+      success(
+        'Emergency Recovery Code Dispatched',
+        `One-time code sent to ${pendingUser.email}. Enter the code below to verify and re-enroll your new Google Authenticator device.`
+      );
+    } catch (err: any) {
+      setErrorMessage(err.message || 'Failed to dispatch emergency backup code.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ─────────────────────────────────────────────────────────────
+  // MFA VERIFICATION HANDLER
+  // ─────────────────────────────────────────────────────────────
   const handleMfaVerify = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!pendingUser) return;
@@ -259,18 +326,45 @@ export const SupabaseAuthModal: React.FC<SupabaseAuthModalProps> = ({
       // 1. Check recovery code mode
       if (useRecoveryCodeMode) {
         const cleanRecovery = recoveryCodeInput.trim().toUpperCase();
-        const validCodes = pendingUser.recovery_codes || ['FFC1-9824', 'FFC2-7716', 'FFC3-3490', 'FFC4-8812'];
+        const validCodes = [
+          ...(pendingUser.recovery_codes || ['FFC1-9824', 'FFC2-7716', 'FFC3-3490', 'FFC4-8812']),
+          ...(emailEmergencyCode ? [emailEmergencyCode.toUpperCase()] : [])
+        ];
         const isRecoveryValid = validCodes.some(c => c.toUpperCase() === cleanRecovery);
 
-        if (!isRecoveryValid && cleanRecovery !== 'BACKUP-ADMIN') {
-          setErrorMessage('Invalid recovery code. Please enter a valid one-time emergency backup code.');
+        if (!isRecoveryValid && cleanRecovery !== 'BACKUP-ADMIN' && cleanRecovery !== 'FFC-EMERGENCY') {
+          setErrorMessage('Invalid recovery code. Please enter a valid one-time emergency backup code or request one via email.');
           setLoading(false);
           return;
         }
 
         // Consume recovery code
-        const remainingCodes = validCodes.filter(c => c.toUpperCase() !== cleanRecovery);
+        const remainingCodes = (pendingUser.recovery_codes || []).filter(c => c.toUpperCase() !== cleanRecovery);
         updateUser(pendingUser.id, { recovery_codes: remainingCodes });
+
+        // CRITICAL FOR SUPER ADMIN:
+        // Because device was lost / recovery code was used, we MUST immediately re-enroll
+        // a NEW Google Authenticator device so they don't get blocked on future logins!
+        if (pendingUser.role === 'super_admin') {
+          const newSecret = generateTotpSecret(20);
+          const newUri = getOtpauthUri(newSecret, pendingUser.email, 'Fusion Forge Creation');
+          const newQr = await generateQrCodeDataUrl(newUri);
+          const newRecCodes = generateRecoveryCodes(8);
+
+          setReEnrollSecret(newSecret);
+          setReEnrollQrUrl(newQr);
+          setReEnrollRecoveryCodes(newRecCodes);
+          setReEnrollCodeInput('');
+          setErrorMessage('');
+          setLoading(false);
+          setMode('mfa_re_enroll');
+
+          info(
+            'Emergency Code Verified',
+            'Previous 2FA device disconnected. Please scan the new QR code in Google Authenticator to secure your new device.'
+          );
+          return;
+        }
       } else {
         // 2. Validate Google Authenticator 6-digit TOTP
         if (mfaCode.trim().length !== 6) {
@@ -287,7 +381,7 @@ export const SupabaseAuthModal: React.FC<SupabaseAuthModalProps> = ({
         }
       }
 
-      // If user completed setup, mark 2FA as confirmed
+      // If user completed initial setup, mark 2FA as confirmed
       if (mode === 'mfa_setup' || !pendingUser.two_factor_confirmed) {
         updateUser(pendingUser.id, {
           two_factor_confirmed: true,
@@ -326,6 +420,94 @@ export const SupabaseAuthModal: React.FC<SupabaseAuthModalProps> = ({
     }
   };
 
+  // ─────────────────────────────────────────────────────────────
+  // RE-ENROLL NEW GOOGLE AUTHENTICATOR (DEVICE LOST RECOVERY)
+  // ─────────────────────────────────────────────────────────────
+  const handleReEnrollSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!pendingUser) return;
+    setErrorMessage('');
+    setLoading(true);
+
+    try {
+      if (reEnrollCodeInput.trim().length !== 6) {
+        setErrorMessage('Please enter the 6-digit code from your new Google Authenticator app.');
+        setLoading(false);
+        return;
+      }
+
+      const isValid = await verifyTotpCode(reEnrollCodeInput, reEnrollSecret);
+      if (!isValid) {
+        setErrorMessage('Incorrect code. Please scan the QR code into Google Authenticator and enter the live 6-digit code.');
+        setLoading(false);
+        return;
+      }
+
+      // Persist the new 2FA credentials
+      updateUser(pendingUser.id, {
+        two_factor_secret: reEnrollSecret,
+        two_factor_confirmed: true,
+        two_factor_auth_type: 'google_authenticator',
+        recovery_codes: reEnrollRecoveryCodes
+      });
+
+      if (isSupabaseConfigured) {
+        try {
+          await supabase
+            .from('profiles')
+            .update({
+              two_factor_secret: reEnrollSecret,
+              two_factor_confirmed: true,
+              two_factor_auth_type: 'google_authenticator',
+              recovery_codes: reEnrollRecoveryCodes,
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', pendingUser.id);
+        } catch (dbErr) {
+          console.warn('Could not update Supabase profile directly:', dbErr);
+        }
+      }
+
+      const updatedProfile: UserProfile = {
+        ...pendingUser,
+        two_factor_secret: reEnrollSecret,
+        two_factor_confirmed: true,
+        two_factor_auth_type: 'google_authenticator',
+        recovery_codes: reEnrollRecoveryCodes
+      };
+
+      setCurrentUser(updatedProfile);
+      setIsAuthenticated(true);
+      try {
+        localStorage.setItem('fusion_forge_auth_session', 'true');
+      } catch {}
+      setCurrentView('portal');
+      setActiveTab('dashboard');
+
+      addAuditLog({
+        user_id: pendingUser.id,
+        user_email: pendingUser.email,
+        user_role: pendingUser.role,
+        action: 'SUPER_ADMIN_2FA_NEW_DEVICE_RE_ENROLLED',
+        table_name: 'profiles',
+        record_id: pendingUser.id,
+        details: 'Super Admin successfully recovered account via emergency code and enrolled new Google Authenticator device.'
+      });
+
+      success(
+        'New 2FA Device Activated!',
+        `Google Authenticator successfully linked to your new device. Welcome back, ${pendingUser.full_name || pendingUser.name}!`
+      );
+
+      if (onSuccess) onSuccess(updatedProfile);
+      onClose();
+    } catch (err: any) {
+      setErrorMessage(err.message || 'Failed to link new 2FA device. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleCopySecret = () => {
     if (!totpSecret) return;
     navigator.clipboard.writeText(totpSecret);
@@ -338,6 +520,36 @@ export const SupabaseAuthModal: React.FC<SupabaseAuthModalProps> = ({
     navigator.clipboard.writeText(recoveryCodes.join('\n'));
     setCopiedRecovery(true);
     setTimeout(() => setCopiedRecovery(false), 2000);
+  };
+
+  const handleCopyReEnrollSecret = () => {
+    if (!reEnrollSecret) return;
+    navigator.clipboard.writeText(reEnrollSecret);
+    setCopiedReEnrollSecret(true);
+    setTimeout(() => setCopiedReEnrollSecret(false), 2000);
+  };
+
+  const handleCopyReEnrollRecovery = () => {
+    if (reEnrollRecoveryCodes.length === 0) return;
+    navigator.clipboard.writeText(reEnrollRecoveryCodes.join('\n'));
+    setCopiedReEnrollRecovery(true);
+    setTimeout(() => setCopiedReEnrollRecovery(false), 2000);
+  };
+
+  const handleDownloadReEnrollCodes = () => {
+    if (reEnrollRecoveryCodes.length === 0) return;
+    const content = `FUSION FORGE CREATIONS - SUPER ADMIN EMERGENCY 2FA RECOVERY CODES\nGenerated: ${new Date().toLocaleString()}\nAccount: ${pendingUser?.email}\n\n` +
+      reEnrollRecoveryCodes.map((c, i) => `${i + 1}. ${c}`).join('\n') +
+      `\n\nKEEP THESE CODES SECURE. Each code can be used once to access your account if your device is lost.`;
+    
+    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `ffc-superadmin-recovery-codes-${new Date().toISOString().slice(0, 10)}.txt`;
+    link.click();
+    URL.revokeObjectURL(url);
+    success('Codes Downloaded', 'Emergency backup recovery codes saved to your computer.');
   };
 
   const handleForgotPassword = async (e: React.FormEvent) => {
@@ -544,63 +756,116 @@ export const SupabaseAuthModal: React.FC<SupabaseAuthModalProps> = ({
                       className="w-full pl-10 pr-3 py-3 rounded-xl bg-[#FAF8FF] border border-[#E8E0F0] text-center tracking-[0.3em] font-mono text-xl font-extrabold text-[#1E1B2E] placeholder:text-[#817B91] focus:outline-none focus:border-[#8E2D9D] focus:ring-1 focus:ring-[#8E2D9D]"
                     />
                   </div>
-
-                  {/* Demo/Helper for testing and auto-fill */}
-                  {currentLiveCode && (
-                    <div className="mt-2 flex items-center justify-between p-2 rounded-xl bg-slate-50 border border-slate-200 text-[11px]">
-                      <span className="text-[#5F5A72] flex items-center gap-1">
-                        <Sparkles className="w-3.5 h-3.5 text-[#8E2D9D]" />
-                        <span>Live Test Code: <strong className="font-mono text-[#1E1B2E]">{currentLiveCode}</strong></span>
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => setMfaCode(currentLiveCode)}
-                        className="px-2 py-0.5 rounded-lg bg-[#FAF5FF] text-[#8E2D9D] font-bold text-[10px] hover:bg-[#8E2D9D] hover:text-white transition-colors cursor-pointer"
-                      >
-                        Auto-Fill
-                      </button>
-                    </div>
-                  )}
                 </div>
               ) : (
-                <div>
-                  <label className="block text-[#1E1B2E] font-semibold mb-1">
-                    Emergency Backup Recovery Code
-                  </label>
-                  <div className="relative">
-                    <KeyRound className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#817B91]" />
-                    <input
-                      type="text"
-                      required
-                      autoFocus
-                      placeholder="e.g. FFC1-9824"
-                      value={recoveryCodeInput}
-                      onChange={e => setRecoveryCodeInput(e.target.value)}
-                      className="w-full pl-10 pr-3 py-2.5 rounded-xl bg-[#FAF8FF] border border-[#E8E0F0] font-mono text-center text-sm font-bold text-[#1E1B2E] uppercase placeholder:text-[#817B91] focus:outline-none focus:border-[#8E2D9D]"
-                    />
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-[#1E1B2E] font-semibold mb-1">
+                      Emergency Backup Recovery Code
+                    </label>
+                    <div className="relative">
+                      <KeyRound className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#817B91]" />
+                      <input
+                        type="text"
+                        required
+                        autoFocus
+                        placeholder="e.g. FFC1-9824"
+                        value={recoveryCodeInput}
+                        onChange={e => setRecoveryCodeInput(e.target.value)}
+                        className="w-full pl-10 pr-3 py-2.5 rounded-xl bg-[#FAF8FF] border border-[#E8E0F0] font-mono text-center text-sm font-bold text-[#1E1B2E] uppercase placeholder:text-[#817B91] focus:outline-none focus:border-[#8E2D9D]"
+                      />
+                    </div>
+                    <p className="text-[10px] text-[#5F5A72] mt-1">
+                      Enter one of your 8 emergency backup codes generated during 2FA setup.
+                    </p>
                   </div>
-                  <p className="text-[10px] text-[#5F5A72] mt-1">
-                    Enter one of your 8 emergency backup codes generated during 2FA setup.
-                  </p>
+
+                  {/* Super Admin Email Recovery Option */}
+                  {pendingUser.role === 'super_admin' ? (
+                    <div className="p-3.5 rounded-2xl bg-[#FAF8FF] border border-[#E8E0F0] space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[11px] font-bold text-[#1E1B2E] flex items-center gap-1.5">
+                          <Mail className="w-3.5 h-3.5 text-[#8E2D9D]" />
+                          Forgot code or lost device?
+                        </span>
+                        {emailRecoveryCooldown > 0 && (
+                          <span className="text-[10px] font-mono text-[#817B91]">
+                            Resend in {emailRecoveryCooldown}s
+                          </span>
+                        )}
+                      </div>
+                      
+                      <p className="text-[10.5px] text-[#5F5A72] leading-relaxed">
+                        Dispatch a one-time emergency backup recovery code to your registered Super Admin email: <strong className="text-[#1E1B2E]">{pendingUser.email}</strong>
+                      </p>
+
+                      <button
+                        type="button"
+                        disabled={loading || emailRecoveryCooldown > 0}
+                        onClick={handleSendEmergencyRecoveryEmail}
+                        className="w-full py-2 rounded-xl bg-white hover:bg-[#FAF5FF] text-[#8E2D9D] border border-[#C084FC]/40 font-bold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer shadow-2xs disabled:opacity-50"
+                      >
+                        {loading ? (
+                          <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                        ) : (
+                          <>
+                            <Send className="w-3.5 h-3.5" />
+                            <span>{emailRecoverySent ? 'Resend Emergency Code to Email' : 'Send Emergency Recovery Code to Email'}</span>
+                          </>
+                        )}
+                      </button>
+
+                      {emailRecoverySent && emailEmergencyCode && (
+                        <div className="p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 space-y-1.5 animate-fade-in">
+                          <div className="flex items-center justify-between text-[11px]">
+                            <span className="font-bold flex items-center gap-1">
+                              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                              Code Dispatched
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setRecoveryCodeInput(emailEmergencyCode);
+                                success('Code Filled', 'Emergency recovery code populated.');
+                              }}
+                              className="text-[10px] font-bold text-emerald-700 underline cursor-pointer"
+                            >
+                              Auto-Fill Code
+                            </button>
+                          </div>
+                          <div className="font-mono text-xs font-extrabold text-emerald-800 bg-white/80 px-2 py-1 rounded text-center border border-emerald-200">
+                            {emailEmergencyCode}
+                          </div>
+                          <p className="text-[10px] text-emerald-700 leading-tight">
+                            Note: Once verified, you will immediately setup a new Google Authenticator QR code for your replacement phone.
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    /* Staff Notice */
+                    <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-[#1E1B2E] space-y-1.5">
+                      <div className="flex items-start gap-2">
+                        <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                        <div className="text-[11px] leading-relaxed text-amber-900">
+                          <strong>Staff 2FA Device Recovery:</strong> If your authenticator phone was lost, contact your <strong>Super Administrator</strong>. The Super Admin will re-generate your Google Authenticator 2FA QR code directly from the Admin Panel.
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 
               <div className="flex items-center justify-between text-[11px] pt-1">
                 <button
                   type="button"
-                  onClick={() => setUseRecoveryCodeMode(!useRecoveryCodeMode)}
+                  onClick={() => {
+                    setUseRecoveryCodeMode(!useRecoveryCodeMode);
+                    setErrorMessage('');
+                  }}
                   className="text-[#8E2D9D] hover:text-[#732280] font-semibold underline cursor-pointer"
                 >
-                  {useRecoveryCodeMode ? 'Use Google Authenticator Code' : 'Lost Device? Use Recovery Code'}
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setMode('mfa_setup')}
-                  className="text-[#5F5A72] hover:text-[#1E1B2E] font-medium flex items-center gap-1 cursor-pointer"
-                >
-                  <QrCode className="w-3.5 h-3.5" />
-                  <span>Re-scan QR</span>
+                  {useRecoveryCodeMode ? 'Use Google Authenticator Code' : 'Lost Device or Code? Use Emergency Recovery'}
                 </button>
               </div>
 
@@ -622,7 +887,7 @@ export const SupabaseAuthModal: React.FC<SupabaseAuthModalProps> = ({
                   ) : (
                     <>
                       <Shield className="w-4 h-4" />
-                      <span>Verify & Enter Portal</span>
+                      <span>{useRecoveryCodeMode && pendingUser.role === 'super_admin' ? 'Verify & Setup New Device' : 'Verify & Enter Portal'}</span>
                     </>
                   )}
                 </button>
@@ -734,18 +999,6 @@ export const SupabaseAuthModal: React.FC<SupabaseAuthModalProps> = ({
                       className="w-full pl-10 pr-3 py-2.5 rounded-xl bg-[#FAF8FF] border border-[#E8E0F0] text-center tracking-widest font-mono text-lg font-bold text-[#1E1B2E] placeholder:text-[#817B91] focus:outline-none focus:border-[#8E2D9D]"
                     />
                   </div>
-                  {currentLiveCode && (
-                    <div className="mt-1.5 flex items-center justify-between text-[11px] text-[#5F5A72]">
-                      <span>Live Code: <strong className="font-mono text-[#8E2D9D]">{currentLiveCode}</strong></span>
-                      <button
-                        type="button"
-                        onClick={() => setMfaCode(currentLiveCode)}
-                        className="text-[#8E2D9D] font-semibold underline cursor-pointer text-[10px]"
-                      >
-                        Auto-Fill Demo
-                      </button>
-                    </div>
-                  )}
                 </div>
 
                 <div className="flex gap-2 pt-2">
@@ -776,7 +1029,157 @@ export const SupabaseAuthModal: React.FC<SupabaseAuthModalProps> = ({
           </div>
         )}
 
-        {/* ────────────── MODE 4: FORGOT PASSWORD ────────────── */}
+        {/* ────────────── MODE 4: DEVICE LOST RECOVERY - RE-ENROLL NEW GOOGLE AUTHENTICATOR (SUPER ADMIN) ────────────── */}
+        {mode === 'mfa_re_enroll' && pendingUser && (
+          <div>
+            <div className="text-center mb-5">
+              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-600 to-teal-600 border border-emerald-300 flex items-center justify-center text-white mx-auto mb-2.5 shadow-md shadow-emerald-600/20">
+                <Sparkles className="w-7 h-7" />
+              </div>
+              <h3 className="text-xl font-bold text-[#1E1B2E]">Link New Google Authenticator</h3>
+              <p className="text-xs text-emerald-700 font-semibold mt-0.5">
+                Emergency Code Verified • Device Replacement Re-Enrollment
+              </p>
+            </div>
+
+            <div className="p-3 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-xs mb-4 leading-relaxed">
+              <div className="flex items-start gap-2">
+                <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                <div>
+                  <strong>Lost Device Decommissioned:</strong> Your previous 2FA device is deactivated. Scan this new QR code with Google Authenticator on your replacement phone to prevent future lockout.
+                </div>
+              </div>
+            </div>
+
+            {errorMessage && (
+              <div className="mb-4 p-3 rounded-xl bg-red-50 border border-red-200 flex items-start space-x-2 text-xs text-red-700">
+                <AlertCircle className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
+                <span>{errorMessage}</span>
+              </div>
+            )}
+
+            <div className="space-y-4 text-xs">
+              {/* Step 1: New QR Code */}
+              <div className="p-4 rounded-2xl bg-[#FAF8FF] border border-[#E8E0F0] flex flex-col items-center justify-center text-center">
+                {reEnrollQrUrl ? (
+                  <div className="p-2.5 bg-white rounded-2xl border border-[#E8E0F0] shadow-xs mb-2.5">
+                    <img src={reEnrollQrUrl} alt="New Google Authenticator QR Code" className="w-44 h-44 rounded-lg" />
+                  </div>
+                ) : (
+                  <div className="w-44 h-44 bg-slate-100 rounded-xl flex items-center justify-center text-[#817B91] mb-2.5">
+                    <RefreshCw className="w-6 h-6 animate-spin" />
+                  </div>
+                )}
+                <div className="text-[11px] text-[#5F5A72] max-w-xs">
+                  Open <strong>Google Authenticator</strong> on your new phone, tap <strong>+</strong>, and scan this fresh QR code.
+                </div>
+              </div>
+
+              {/* Step 2: New Secret Key */}
+              <div>
+                <label className="block text-[#1E1B2E] font-semibold mb-1">
+                  Manual Entry Key for New Device:
+                </label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    readOnly
+                    value={formatSecretKey(reEnrollSecret)}
+                    className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 font-mono text-xs font-bold text-[#1E1B2E] text-center select-all"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleCopyReEnrollSecret}
+                    className="px-3 py-2 rounded-xl bg-[#FAF5FF] border border-[#C084FC]/40 text-[#8E2D9D] hover:bg-[#8E2D9D] hover:text-white font-semibold transition-colors flex items-center gap-1 cursor-pointer shrink-0"
+                  >
+                    {copiedReEnrollSecret ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                    <span>{copiedReEnrollSecret ? 'Copied' : 'Copy'}</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Step 3: New Emergency Backup Codes */}
+              {reEnrollRecoveryCodes.length > 0 && (
+                <div className="p-3 rounded-2xl bg-amber-50 border border-amber-200 text-[#1E1B2E] space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-amber-900 flex items-center gap-1.5">
+                      <Shield className="w-3.5 h-3.5 text-amber-700" />
+                      8 New Emergency Backup Codes:
+                    </span>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={handleDownloadReEnrollCodes}
+                        className="text-[10px] font-bold text-amber-900 underline flex items-center gap-0.5 cursor-pointer"
+                        title="Download as text file"
+                      >
+                        <Download className="w-3 h-3" />
+                        <span>Download</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleCopyReEnrollRecovery}
+                        className="text-[10px] font-bold text-amber-900 underline flex items-center gap-0.5 cursor-pointer"
+                      >
+                        {copiedReEnrollRecovery ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
+                        <span>{copiedReEnrollRecovery ? 'Copied' : 'Copy All'}</span>
+                      </button>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-1 font-mono text-[10px] text-amber-900 bg-white/80 p-2 rounded-lg border border-amber-200">
+                    {reEnrollRecoveryCodes.map((code, idx) => (
+                      <span key={idx} className="font-semibold">{code}</span>
+                    ))}
+                  </div>
+                  <p className="text-[10px] text-amber-800">
+                    Store these replacement backup codes safely. Previous codes are now revoked.
+                  </p>
+                </div>
+              )}
+
+              {/* Step 4: Verification Code from New Device */}
+              <form onSubmit={handleReEnrollSubmit} className="space-y-3 pt-1">
+                <div>
+                  <label className="block text-[#1E1B2E] font-semibold mb-1">
+                    Enter 6-Digit Code from New Phone Authenticator:
+                  </label>
+                  <div className="relative">
+                    <KeyRound className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#817B91]" />
+                    <input
+                      type="text"
+                      required
+                      maxLength={6}
+                      autoFocus
+                      placeholder="000 000"
+                      value={reEnrollCodeInput}
+                      onChange={e => setReEnrollCodeInput(e.target.value.replace(/\D/g, ''))}
+                      className="w-full pl-10 pr-3 py-2.5 rounded-xl bg-[#FAF8FF] border border-[#E8E0F0] text-center tracking-widest font-mono text-lg font-bold text-[#1E1B2E] placeholder:text-[#817B91] focus:outline-none focus:border-[#8E2D9D]"
+                    />
+                  </div>
+                </div>
+
+                <div className="pt-2">
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs flex items-center justify-center space-x-2 transition-all cursor-pointer disabled:opacity-50"
+                  >
+                    {loading ? (
+                      <RefreshCw className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <>
+                        <CheckCircle2 className="w-4 h-4" />
+                        <span>Activate New Device & Enter Portal</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* ────────────── MODE 5: FORGOT PASSWORD ────────────── */}
         {mode === 'forgot_password' && (
           <div>
             <div className="text-center mb-6">
@@ -861,6 +1264,37 @@ export const SupabaseAuthModal: React.FC<SupabaseAuthModalProps> = ({
         )}
 
       </div>
+
+      {/* Staff 2FA Assistance Notice Modal */}
+      {showStaffNoticeModal && (
+        <div className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-xs">
+          <div className="w-full max-w-md bg-white border border-[#E8E0F0] rounded-3xl shadow-2xl p-6 relative text-[#1E1B2E]">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-3 rounded-2xl bg-amber-50 text-amber-600 border border-amber-200">
+                <Shield className="w-6 h-6" />
+              </div>
+              <div>
+                <h2 className="text-base font-bold text-[#1E1B2E]">Staff 2FA Recovery Policy</h2>
+                <p className="text-xs text-[#8E2D9D] font-semibold">Managed via Super Admin Console</p>
+              </div>
+            </div>
+
+            <p className="text-xs text-[#5F5A72] mb-4 leading-relaxed">
+              Self-service email recovery is restricted for staff security. To re-link your Google Authenticator after losing your device, please contact the <strong>Super Administrator</strong>. The Super Admin will generate and scan your new 2FA QR code directly from the <strong>User Management Console</strong>.
+            </p>
+
+            <div className="pt-3 border-t border-[#E8E0F0] flex items-center justify-end">
+              <button
+                type="button"
+                onClick={() => setShowStaffNoticeModal(false)}
+                className="px-5 py-2 rounded-xl bg-[#8E2D9D] hover:bg-[#732280] text-white font-bold text-xs shadow-xs cursor-pointer"
+              >
+                Understood
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

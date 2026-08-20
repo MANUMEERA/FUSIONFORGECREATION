@@ -13,7 +13,8 @@ import {
   TrendingDown, 
   X,
   DollarSign,
-  ArrowDownRight
+  ArrowDownRight,
+  AlertTriangle
 } from 'lucide-react';
 import { useApp } from '../../../context/AppContext';
 import { Expense, ExpenseStatus } from '../../../types';
@@ -42,6 +43,7 @@ export const ExpensesSection: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [showModal, setShowModal] = useState(false);
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
+  const [expenseToDelete, setExpenseToDelete] = useState<Expense | null>(null);
 
   // Form states
   const [expenseDate, setExpenseDate] = useState(new Date().toISOString().split('T')[0]);
@@ -155,11 +157,8 @@ export const ExpensesSection: React.FC = () => {
     }
   };
 
-  const handleDelete = async (id: string, desc: string) => {
-    if (confirm(`Delete expense "${desc}"?`)) {
-      await deleteExpense(id);
-      success(`Expense deleted.`);
-    }
+  const handleDelete = (exp: Expense) => {
+    setExpenseToDelete(exp);
   };
 
   return (
@@ -302,7 +301,7 @@ export const ExpensesSection: React.FC = () => {
                           <Edit3 className="w-3.5 h-3.5" />
                         </button>
                         <button
-                          onClick={() => handleDelete(exp.id, exp.description)}
+                          onClick={() => handleDelete(exp)}
                           className="p-1.5 rounded-lg bg-slate-100 hover:bg-red-50 text-[#817B91] hover:text-red-600 border border-[#E8E0F0] cursor-pointer transition-colors"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -464,6 +463,49 @@ export const ExpensesSection: React.FC = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Expense Modal */}
+      {expenseToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
+          <div className="w-full max-w-md bg-white border border-red-200 rounded-3xl shadow-2xl p-6 relative text-[#1E1B2E]">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2.5 rounded-2xl bg-red-50 text-red-600 border border-red-200">
+                <AlertTriangle className="w-6 h-6" />
+              </div>
+              <div>
+                <h2 className="text-lg font-bold text-[#1E1B2E]">Delete Expense</h2>
+                <p className="text-xs text-red-600 font-semibold">Confirm removal</p>
+              </div>
+            </div>
+
+            <p className="text-xs text-[#5F5A72] mb-4 leading-relaxed">
+              Are you sure you want to delete expense <strong className="text-[#1E1B2E]">"{expenseToDelete.description}"</strong> (₹{expenseToDelete.amount.toLocaleString('en-IN')})?
+            </p>
+
+            <div className="pt-3 border-t border-[#E8E0F0] flex items-center justify-end space-x-2">
+              <button
+                type="button"
+                onClick={() => setExpenseToDelete(null)}
+                className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-[#5F5A72] font-semibold text-xs cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={async () => {
+                  await deleteExpense(expenseToDelete.id);
+                  success('Expense Deleted', `"${expenseToDelete.description}" removed.`);
+                  setExpenseToDelete(null);
+                }}
+                className="px-5 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs shadow-xs cursor-pointer flex items-center gap-1.5"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>Delete</span>
+              </button>
+            </div>
           </div>
         </div>
       )}

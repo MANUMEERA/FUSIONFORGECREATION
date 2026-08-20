@@ -192,7 +192,7 @@ export const INITIAL_SYSTEM_ROLES: RoleDefinition[] = [
     name: 'Administrator',
     code: 'admin',
     description: 'Senior management with operational write authority across projects, clients, finances, content, and agency settings.',
-    isSystem: true,
+    isSystem: false,
     permissions: [
       'module.dashboard',
       'module.enquiries',
@@ -227,8 +227,8 @@ export const INITIAL_SYSTEM_ROLES: RoleDefinition[] = [
     id: 'role_accountant',
     name: 'Accountant',
     code: 'accountant',
-    description: 'Financial auditor with specialized access to tax invoices, payment receipts, expenses, GST ledgers, and export facilities.',
-    isSystem: true,
+    description: 'Financial auditor with specialized access to tax invoices, payment receipts, credit/debit notes, expenses, GST ledgers, and export facilities.',
+    isSystem: false,
     permissions: [
       'module.dashboard',
       'module.clients',
@@ -252,7 +252,7 @@ export const INITIAL_SYSTEM_ROLES: RoleDefinition[] = [
     name: 'Editor',
     code: 'editor',
     description: 'Content and project coordinator managing portfolio deliverables, services catalog, technologies, testimonials, and FAQs.',
-    isSystem: true,
+    isSystem: false,
     permissions: [
       'module.dashboard',
       'module.enquiries',
@@ -274,7 +274,7 @@ export const INITIAL_SYSTEM_ROLES: RoleDefinition[] = [
     name: 'Project Manager',
     code: 'project_manager',
     description: 'Sprint delivery lead overseeing client communications, lead status progressions, milestones, and project scopes.',
-    isSystem: true,
+    isSystem: false,
     permissions: [
       'module.dashboard',
       'module.enquiries',
@@ -298,7 +298,7 @@ export const INITIAL_SYSTEM_ROLES: RoleDefinition[] = [
     name: 'Staff',
     code: 'staff',
     description: 'Operational team member with read-focused access to active sprint tasks, support tickets, and knowledge bases.',
-    isSystem: true,
+    isSystem: false,
     permissions: [
       'module.dashboard',
       'module.enquiries',
@@ -307,6 +307,21 @@ export const INITIAL_SYSTEM_ROLES: RoleDefinition[] = [
       'module.chatbot',
       'module.notifications',
       'module.database'
+    ],
+    userCount: 1,
+    createdAt: '2026-01-01T00:00:00.000Z',
+    updatedAt: '2026-01-01T00:00:00.000Z'
+  },
+  {
+    id: 'role_peon',
+    name: 'Peon / Office Assistant',
+    code: 'peon',
+    description: 'Office support assistant with entry logging, visitor monitoring, facility errands, and notification access.',
+    isSystem: false,
+    permissions: [
+      'module.dashboard',
+      'module.visitor_monitoring',
+      'module.notifications'
     ],
     userCount: 1,
     createdAt: '2026-01-01T00:00:00.000Z',
