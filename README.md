@@ -1,6 +1,8 @@
 # Fusion Forge Creation
 
-> Official web application for **Fusion Forge Creation** — Where Ideas Fuse with Technology.
+> Official frontend static website for **Fusion Forge Creation** — Where Ideas Fuse with Technology.
+
+This project is a **Frontend-Only Single Page Application (SPA)** built with React, TypeScript, Vite, and Tailwind CSS. It is configured for direct static hosting on **Hostinger (`public_html`)** with Apache / LiteSpeed SPA rewrite support.
 
 ---
 
@@ -10,71 +12,76 @@
 # 1. Install dependencies
 npm install
 
-# 2. Run in development mode
+# 2. Run local development server
 npm run dev
 
 # 3. Build for production
 npm run build
 
-# 4. Preview production build
+# 4. Preview production build locally
 npm run preview
 ```
 
 ---
 
-## 🌐 Deploying to Hostinger via GitHub
+## 📦 Production Build
 
-### Option 1: Hostinger Web Hosting / Cloud (Static SPA with `.htaccess`)
+Running the build command:
 
-1. **Push to GitHub**:
+```bash
+npm run build
+```
+
+generates the production-ready static files in the `dist/` directory.
+
+The build output includes:
+- `dist/index.html` (Main entry point)
+- `dist/assets/` (Optimized CSS, JavaScript, and fonts)
+- `dist/.htaccess` (LiteSpeed & Apache SPA rewrite rules and static asset caching)
+- `dist/logo.svg`, `dist/favicon.svg`, `dist/banner.svg`
+
+---
+
+## 🌐 Deploying to Hostinger
+
+### Method 1: Hostinger File Manager / FTP (Recommended & Fastest)
+
+1. Run the production build locally:
+   ```bash
+   npm install
+   npm run build
+   ```
+2. Log in to your **Hostinger hPanel**.
+3. Go to **Websites** > **Manage** > **File Manager**.
+4. Open the `public_html/` directory.
+5. Upload all the **contents** of the generated `dist/` folder directly into `public_html/` (including `index.html`, `assets/`, `.htaccess`, and media files).
+6. Verify that `.htaccess` is present in `public_html/` so that direct route navigation and page refreshes work seamlessly without 404 errors.
+
+---
+
+### Method 2: Hostinger Git Deployment via GitHub
+
+1. Push this repository to GitHub:
    ```bash
    git init
    git add .
-   git commit -m "Initial commit: Fusion Forge Creation"
+   git commit -m "Deploy: Fusion Forge Creation Frontend"
    git branch -M main
    git remote add origin https://github.com/<YOUR_USERNAME>/<YOUR_REPOSITORY>.git
    git push -u origin main
    ```
-
-2. **Build the Production Dist Folder**:
-   ```bash
-   npm run build
-   ```
-   This generates the optimized client assets in the `dist/` directory, including the pre-configured `.htaccess` file for Hostinger LiteSpeed/Apache routing.
-
-3. **Upload to Hostinger**:
-   - Go to your **Hostinger hPanel** > **File Manager** (or connect via FTP/Git).
-   - Navigate to `public_html/`.
-   - Upload and extract the contents of the `dist/` directory into `public_html/`.
-   - Ensure `.htaccess` is present in `public_html/` so SPA routing handles all page refreshes seamlessly.
-
----
-
-### Option 2: Hostinger Git Deployment / Auto-Deploy
-
-1. In your **Hostinger hPanel**, navigate to **Advanced** > **GIT**.
-2. Connect your GitHub repository:
+2. In **Hostinger hPanel**, navigate to **Advanced** > **GIT**.
+3. Create a new repository link:
    - **Repository URL**: `https://github.com/<YOUR_USERNAME>/<YOUR_REPOSITORY>.git`
    - **Branch**: `main`
-   - **Install path**: `public_html`
-3. If using Hostinger Node.js Application Manager:
-   - Set **Node version** to `18.x` or `20.x`.
-   - **Application root**: `/public_html`
-   - **Application startup file**: `dist/server.cjs`
-   - Run `npm install` and `npm run build`.
+   - **Install Path**: `public_html`
+4. If building directly on Hostinger with Git Auto-Deploy or Webhooks, configure the build script to run `npm install && npm run build` and move `dist/*` to `public_html/`.
 
 ---
 
-## ⚙️ Environment Variables
+## ⚙️ Architecture & Features
 
-Copy `.env.example` to `.env`:
-```bash
-cp .env.example .env
-```
-
-Configure your email and backend credentials:
-- `SMTP_HOST`: `smtp.hostinger.com`
-- `SMTP_PORT`: `465`
-- `SMTP_USER`: `admin@fusionforgecreation.com`
-- `SMTP_PASSWORD`: `<your-hostinger-mailbox-password>`
-- `OFFICIAL_EMAIL`: `admin@fusionforgecreation.com`
+- **Frontend-Only Static SPA**: No backend server, Express, Node.js runtime, Supabase, or InsForge dependency required.
+- **Client-Side Routing & Fallback**: Fully supported with LiteSpeed/Apache `.htaccess`.
+- **Fast Performance**: Bundled and minified with Vite for near-instant load times.
+- **GST Compliance**: Ready with HSN/SAC codes (SAC 998314 for IT & Software Development).

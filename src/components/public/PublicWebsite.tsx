@@ -54,21 +54,15 @@ import { FrontendChatbot } from './FrontendChatbot';
 import { ClientPortalModal } from './ClientPortalModal';
 import { SocialIcon } from '../common/SocialIcon';
 import { formatSocialUrl } from '../../utils/socialPlatforms';
-import { SocialChannelItem, LegalDocument, UserRole } from '../../types';
+import { SocialChannelItem, LegalDocument } from '../../types';
 
 export const PublicWebsite: React.FC = () => {
   const { 
     portfolio, 
     addEnquiry, 
-    setCurrentView, 
-    setActiveTab, 
-    currentUser, 
-    setCurrentUser,
-    users,
     agencyConfig,
     legalDocuments,
-    trackVisitorEvent,
-    setIsAuthenticated
+    trackVisitorEvent
   } = useApp();
 
   const config = agencyConfig || AGENCY_CONFIG;
@@ -105,7 +99,6 @@ export const PublicWebsite: React.FC = () => {
   
   // Navigation active state & mobile menu
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [showLoginModal, setShowLoginModal] = useState(false);
   const [showClientPortalModal, setShowClientPortalModal] = useState(false);
   const [selectedPortfolioModal, setSelectedPortfolioModal] = useState<any | null>(null);
   const [selectedLegalDoc, setSelectedLegalDoc] = useState<LegalDocument | null>(null);
@@ -158,33 +151,6 @@ export const PublicWebsite: React.FC = () => {
     });
     setSubmitted(true);
     success('Project Scope Submitted Successfully!', `Thank you ${form.name}. Our solutions architect will review your submission and contact you within 24 business hours.`);
-  };
-
-  const handleDirectAdminLogin = () => {
-    const adminUser = users.find(u => u.role === 'super_admin') || users[0] || {
-      id: 'user_super_admin',
-      name: 'Super Admin',
-      full_name: 'Super Admin',
-      email: 'admin@fusionforgecreation.com',
-      role: 'super_admin' as UserRole,
-      is_active: true,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    };
-    setCurrentUser(adminUser);
-    setIsAuthenticated(true);
-    setCurrentView('portal');
-    setActiveTab('dashboard');
-    success('Admin Access Granted', 'Logged in as Super Admin (Direct Access - InsForge Paused Mode).');
-  };
-
-  const handleLoginAs = (userObj: any) => {
-    setCurrentUser(userObj);
-    setIsAuthenticated(true);
-    setShowLoginModal(false);
-    setCurrentView('portal');
-    setActiveTab('dashboard');
-    success('Authenticated Session', `Signed in as ${userObj.name || userObj.full_name} (${userObj.role.replace('_', ' ').toUpperCase()}).`);
   };
 
   // FAQs Data
