@@ -6,6 +6,9 @@ coverage/
 *.log
 .env*
 !.env.example
+email-config.php
+public/api/email-config.php
+dist/api/email-config.php
 bun.lock
 
 # InsForge & AI agent skills

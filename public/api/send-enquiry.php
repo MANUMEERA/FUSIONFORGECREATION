@@ -2,6 +2,7 @@
 /**
  * Fusion Forge Creation - Project Scope Enquiry Mail Handler
  * Secure, standalone PHP endpoint for Hostinger Apache/LiteSpeed web hosting.
+ * Supports both Authenticated Hostinger SMTP (Primary) and Enhanced PHP mail() with envelope sender (Fallback).
  */
 
 // 1. Set Security & Response Headers
@@ -10,7 +11,7 @@ header('X-Content-Type-Options: nosniff');
 header('X-Frame-Options: DENY');
 header('X-XSS-Protection: 1; mode=block');
 
-// Allow CORS from the official domain and local dev if needed
+// Allow CORS from the official domain and local development
 $allowedOrigins = [
     'https://fusionforgecreation.com',
     'https://www.fusionforgecreation.com'
@@ -62,19 +63,24 @@ if (json_last_error() !== JSON_ERROR_NONE || !is_array($data)) {
 // Support both direct payload and nested { enquiry: { ... } } payload
 $enquiry = isset($data['enquiry']) && is_array($data['enquiry']) ? $data['enquiry'] : $data;
 
-// 4. Sanitize and Extract Fields Helper
+// 4. Input Sanitization Helpers
 function sanitizeInput($str, $maxLength = 5000) {
     if ($str === null || $str === false) return '';
     $clean = trim((string)$str);
-    // Strip control characters but keep standard whitespace
+    // Strip non-printable control characters except standard whitespace
     $clean = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/u', '', $clean);
     return mb_substr($clean, 0, $maxLength, 'UTF-8');
 }
 
 function cleanHeader($str) {
-    // Header injection prevention: remove \r, \n, and %0A, %0D
+    // Header injection prevention: remove \r, \n, and URL encoded variants
     $str = str_replace(["\r", "\n", "%0a", "%0d", "%0A", "%0D"], '', (string)$str);
     return trim($str);
+}
+
+function encodeMimeSubject($subject) {
+    // RFC 2047 Base64 MIME encoding for email subjects
+    return '=?UTF-8?B?' . base64_encode(cleanHeader($subject)) . '?=';
 }
 
 $name = sanitizeInput($enquiry['name'] ?? '', 100);
@@ -125,7 +131,7 @@ $categoryLabels = [
 ];
 $categoryDisplay = $categoryLabels[$serviceCategory] ?? ucwords(str_replace(['_', '-'], ' ', $serviceCategory));
 
-// 7. Configuration
+// 7. Core Agency Configuration
 $officialEmail = 'admin@fusionforgecreation.com';
 $officialName = 'Fusion Forge Creation';
 $websiteUrl = 'https://fusionforgecreation.com';
@@ -145,7 +151,8 @@ $safeTimeline = htmlspecialchars($timeline, ENT_QUOTES, 'UTF-8');
 $safeDescription = nl2br(htmlspecialchars($projectDescription, ENT_QUOTES, 'UTF-8'));
 
 // 8. Build Admin Notification Email HTML
-$adminSubject = cleanHeader("New Project Scope Enquiry: {$name} [{$categoryDisplay}]");
+$adminSubjectPlain = "New Project Scope Enquiry: {$name} [{$categoryDisplay}]";
+$adminSubject = encodeMimeSubject($adminSubjectPlain);
 
 $adminBody = <<<HTML
 <!DOCTYPE html>
@@ -294,7 +301,8 @@ $adminBody = <<<HTML
 HTML;
 
 // 9. Build Customer Confirmation Email HTML
-$customerSubject = cleanHeader("Project Scope Received — Fusion Forge Creation");
+$customerSubjectPlain = "Project Scope Received — Fusion Forge Creation";
+$customerSubject = encodeMimeSubject($customerSubjectPlain);
 
 $customerBody = <<<HTML
 <!DOCTYPE html>
@@ -404,34 +412,198 @@ $customerBody = <<<HTML
 </html>
 HTML;
 
-// 10. Send Emails via Hostinger Standard Transport (mail)
-function buildMailHeaders($fromEmail, $fromName, $replyToEmail, $replyToName) {
+// 10. Check for Server-Side SMTP Configuration
+$smtpConfig = null;
+
+// Look for optional local config file (e.g., public/api/email-config.php or private server config)
+$configPaths = [
+    __DIR__ . '/email-config.php',
+    __DIR__ . '/config.php',
+    dirname(__DIR__, 2) . '/email-config.php'
+];
+
+foreach ($configPaths as $path) {
+    if (file_exists($path)) {
+        $loaded = include $path;
+        if (is_array($loaded)) {
+            $smtpConfig = $loaded;
+            break;
+        }
+    }
+}
+
+// Or check server environment variables
+if (!$smtpConfig && getenv('SMTP_PASSWORD')) {
+    $smtpConfig = [
+        'host' => getenv('SMTP_HOST') ?: 'smtp.hostinger.com',
+        'port' => (int)(getenv('SMTP_PORT') ?: 465),
+        'user' => getenv('SMTP_USER') ?: 'admin@fusionforgecreation.com',
+        'pass' => getenv('SMTP_PASSWORD') ?: '',
+        'secure' => getenv('SMTP_SECURE') ?: 'ssl'
+    ];
+}
+
+// 11. Native Standalone PHP SMTP Socket Client (Zero Dependencies)
+function sendViaHostingerSmtp($toEmail, $toName, $subject, $htmlBody, $replyToEmail, $replyToName, $config) {
+    $host = $config['host'] ?? 'smtp.hostinger.com';
+    $port = (int)($config['port'] ?? 465);
+    $user = $config['user'] ?? 'admin@fusionforgecreation.com';
+    $pass = $config['pass'] ?? '';
+    $secure = $config['secure'] ?? ($port === 465 ? 'ssl' : 'tls');
+
+    $protocol = ($secure === 'ssl') ? 'ssl://' : '';
+    $socket = @fsockopen($protocol . $host, $port, $errno, $errstr, 12);
+    if (!$socket) {
+        return false;
+    }
+
+    $read = function() use ($socket) {
+        $res = '';
+        while ($line = fgets($socket, 515)) {
+            $res .= $line;
+            if (isset($line[3]) && $line[3] === ' ') break;
+        }
+        return $res;
+    };
+
+    $write = function($cmd) use ($socket) {
+        fputs($socket, $cmd . "\r\n");
+    };
+
+    $initial = $read();
+    if (substr($initial, 0, 3) !== '220') {
+        fclose($socket);
+        return false;
+    }
+
+    $write('EHLO ' . ($_SERVER['SERVER_NAME'] ?? 'fusionforgecreation.com'));
+    $ehlo = $read();
+
+    if ($secure === 'tls' && $port === 587) {
+        $write('STARTTLS');
+        $read();
+        stream_socket_enable_crypto($socket, true, STREAM_CRYPTO_METHOD_TLS_CLIENT);
+        $write('EHLO ' . ($_SERVER['SERVER_NAME'] ?? 'fusionforgecreation.com'));
+        $read();
+    }
+
+    $write('AUTH LOGIN');
+    $authResp = $read();
+    if (substr($authResp, 0, 3) !== '334') {
+        fclose($socket);
+        return false;
+    }
+
+    $write(base64_encode($user));
+    $read();
+    $write(base64_encode($pass));
+    $loginResp = $read();
+    if (substr($loginResp, 0, 3) !== '235') {
+        fclose($socket);
+        return false;
+    }
+
+    $write('MAIL FROM:<' . $user . '>');
+    $fromResp = $read();
+    if (substr($fromResp, 0, 3) !== '250') {
+        fclose($socket);
+        return false;
+    }
+
+    $write('RCPT TO:<' . $toEmail . '>');
+    $rcptResp = $read();
+    if (substr($rcptResp, 0, 3) !== '250' && substr($rcptResp, 0, 3) !== '251') {
+        fclose($socket);
+        return false;
+    }
+
+    $write('DATA');
+    $dataResp = $read();
+    if (substr($dataResp, 0, 3) !== '354') {
+        fclose($socket);
+        return false;
+    }
+
+    $msgId = '<' . time() . '.' . bin2hex(random_bytes(8)) . '@fusionforgecreation.com>';
+    $date = date('r');
+
+    $cleanToName = cleanHeader($toName);
+    $cleanReplyName = cleanHeader($replyToName);
+    $cleanReplyEmail = cleanHeader($replyToEmail);
+
+    $raw = [];
+    $raw[] = "Date: {$date}";
+    $raw[] = "To: =?UTF-8?B?" . base64_encode($cleanToName) . "?= <{$toEmail}>";
+    $raw[] = "From: =?UTF-8?B?" . base64_encode('Fusion Forge Creation') . "?= <{$user}>";
+    $raw[] = "Reply-To: =?UTF-8?B?" . base64_encode($cleanReplyName) . "?= <{$cleanReplyEmail}>";
+    $raw[] = "Subject: {$subject}";
+    $raw[] = "Message-ID: {$msgId}";
+    $raw[] = 'MIME-Version: 1.0';
+    $raw[] = 'Content-Type: text/html; charset=UTF-8';
+    $raw[] = 'Content-Transfer-Encoding: 8bit';
+    $raw[] = 'X-Mailer: FusionForge-SMTP-Engine/1.0';
+    $raw[] = '';
+    $raw[] = $htmlBody;
+    $raw[] = '.';
+
+    $write(implode("\r\n", $raw));
+    $finalResp = $read();
+
+    $write('QUIT');
+    fclose($socket);
+
+    return (substr($finalResp, 0, 3) === '250');
+}
+
+// 12. Enhanced RFC 2822 PHP Mail with Envelope Sender
+function sendViaPhpMailWithEnvelope($toEmail, $toName, $subject, $htmlBody, $fromEmail, $fromName, $replyToEmail, $replyToName) {
     $cleanFrom = cleanHeader($fromEmail);
     $cleanFromName = cleanHeader($fromName);
     $cleanReplyTo = cleanHeader($replyToEmail);
     $cleanReplyToName = cleanHeader($replyToName);
+    $msgId = '<' . time() . '.' . bin2hex(random_bytes(8)) . '@fusionforgecreation.com>';
+    $date = date('r');
 
+    // On Linux/Hostinger, use standard \n or \r\n
     $headers = [];
+    $headers[] = 'Date: ' . $date;
     $headers[] = 'MIME-Version: 1.0';
     $headers[] = 'Content-Type: text/html; charset=UTF-8';
-    $headers[] = "From: {$cleanFromName} <{$cleanFrom}>";
-    $headers[] = "Reply-To: {$cleanReplyToName} <{$cleanReplyTo}>";
-    $headers[] = 'X-Mailer: PHP/' . phpversion();
-    $headers[] = 'X-Originating-IP: ' . ($_SERVER['SERVER_ADDR'] ?? '127.0.0.1');
+    $headers[] = 'Content-Transfer-Encoding: 8bit';
+    $headers[] = 'From: =?UTF-8?B?' . base64_encode($cleanFromName) . "?= <{$cleanFrom}>";
+    $headers[] = 'Reply-To: =?UTF-8?B?' . base64_encode($cleanReplyToName) . "?= <{$cleanReplyTo}>";
+    $headers[] = 'Return-Path: <' . $cleanFrom . '>';
+    $headers[] = 'Message-ID: ' . $msgId;
+    $headers[] = 'X-Mailer: FusionForge-LiteSpeed/1.0';
 
-    return implode("\r\n", $headers);
+    $headerStr = implode("\r\n", $headers);
+
+    // CRITICAL: The 5th parameter "-f" sets the envelope sender (Return-Path) to match the From domain,
+    // which prevents Hostinger's local anti-spoofing filter from rejecting internal emails to admin@fusionforgecreation.com!
+    $additionalParams = '-f' . $cleanFrom;
+
+    return @mail($toEmail, $subject, $htmlBody, $headerStr, $additionalParams);
 }
 
-$adminHeaders = buildMailHeaders($officialEmail, $officialName, $email, $name);
-$customerHeaders = buildMailHeaders($officialEmail, $officialName, $officialEmail, $officialName);
+// 13. Execute Dispatches
+$adminSent = false;
+$customerSent = false;
 
-// Dispatch Admin Notification Email
-$adminSent = @mail($officialEmail, $adminSubject, $adminBody, $adminHeaders);
+// Try Authenticated SMTP First if credentials available
+if (!empty($smtpConfig['pass'])) {
+    $adminSent = sendViaHostingerSmtp($officialEmail, 'Fusion Forge Admin Desk', $adminSubject, $adminBody, $email, $name, $smtpConfig);
+    $customerSent = sendViaHostingerSmtp($email, $name, $customerSubject, $customerBody, $officialEmail, $officialName, $smtpConfig);
+}
 
-// Dispatch Customer Auto-Confirmation Email
-$customerSent = @mail($email, $customerSubject, $customerBody, $customerHeaders);
+// If SMTP was not configured or failed, fallback to enhanced PHP mail() with -f envelope sender
+if (!$adminSent) {
+    $adminSent = sendViaPhpMailWithEnvelope($officialEmail, 'Fusion Forge Admin Desk', $adminSubject, $adminBody, $officialEmail, $officialName, $email, $name);
+}
+if (!$customerSent) {
+    $customerSent = sendViaPhpMailWithEnvelope($email, $name, $customerSubject, $customerBody, $officialEmail, $officialName, $officialEmail, $officialName);
+}
 
-// 11. Evaluate Outcome and Return Response
+// 14. Evaluate Outcome and Return Structured Response
 if ($adminSent || $customerSent) {
     http_response_code(200);
     echo json_encode([
@@ -447,10 +619,9 @@ if ($adminSent || $customerSent) {
         ]
     ]);
 } else {
-    // If local mail() failed to enqueue, report error
     http_response_code(500);
     echo json_encode([
         'success' => false,
-        'error' => 'Mail dispatch service encountered an issue. Please contact admin@fusionforgecreation.com directly.'
+        'error' => 'Mail delivery service encountered a temporary error. Please email us directly at admin@fusionforgecreation.com.'
     ]);
 }

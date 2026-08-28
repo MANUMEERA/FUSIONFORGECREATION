@@ -1,7 +1,28 @@
 # Hostinger Apache / LiteSpeed Configuration for Single Page Application (SPA)
+
+# 1. Block Direct HTTP Web Access to any config or sensitive PHP files
+<FilesMatch "^(email-config.*\.php|config.*\.php|\.env.*)$">
+  <IfModule mod_authz_core.c>
+    Require all denied
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+  </IfModule>
+</FilesMatch>
+
+# 2. Prevent Directory Browsing
+Options -Indexes
+
+# 3. SPA Routing & Fallback
 <IfModule mod_rewrite.c>
   RewriteEngine On
   RewriteBase /
+  
+  # Allow direct execution of API scripts
+  RewriteRule ^api/.*$ - [L]
+
+  # Standard SPA routing
   RewriteRule ^index\.html$ - [L]
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteCond %{REQUEST_FILENAME} !-d
@@ -9,12 +30,15 @@
   RewriteRule . /index.html [L]
 </IfModule>
 
-# Caching & Security Headers
+# 4. Security & Caching Headers
 <IfModule mod_headers.c>
   # Prevent MIME-type sniffing
   Header set X-Content-Type-Options "nosniff"
   # Enable XSS protection
   Header set X-XSS-Protection "1; mode=block"
+  # Prevent Clickjacking
+  Header set X-Frame-Options "SAMEORIGIN"
+
   # Cache static assets for 1 year
   <FilesMatch "\.(ico|pdf|flv|jpg|jpeg|png|gif|js|css|swf|svg|webp|woff|woff2|ttf|otf)$">
     Header set Cache-Control "max-age=31536000, public"
