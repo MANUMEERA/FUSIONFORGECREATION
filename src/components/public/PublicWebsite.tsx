@@ -44,7 +44,9 @@ import {
   Instagram,
   Youtube,
   MessageCircle,
-  Share2
+  Share2,
+  Loader2,
+  AlertCircle
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { AGENCY_CONFIG } from '../../mockData';
@@ -95,7 +97,7 @@ export const PublicWebsite: React.FC = () => {
     });
   }, []);
 
-  const { success, info } = useToast();
+  const { success, error, info } = useToast();
   
   // Navigation active state & mobile menu
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -122,9 +124,11 @@ export const PublicWebsite: React.FC = () => {
     budgetRange: '₹50,000 - ₹1,00,000'
   });
   const [submitted, setSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const [gstinError, setGstinError] = useState<string | null>(null);
 
-  const handleEnquirySubmit = (e: React.FormEvent) => {
+  const handleEnquirySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     // GSTIN format check if provided
@@ -134,23 +138,43 @@ export const PublicWebsite: React.FC = () => {
       return;
     }
     setGstinError(null);
+    setSubmitError(null);
+    setIsSubmitting(true);
 
-    addEnquiry({
-      name: form.name.trim(),
-      email: form.email.trim(),
-      phone: form.phone.trim(),
-      company: form.company.trim(),
-      gstin: cleanGstin,
-      address: form.address.trim(),
-      serviceCategory: form.serviceCategory,
-      budgetRange: form.budgetRange,
-      estimatedTimeline: '3-6 Weeks',
-      projectDescription: form.projectDescription.trim(),
-      featuresRequired: [form.serviceCategory],
-      source: 'website_form'
-    });
-    setSubmitted(true);
-    success('Project Scope Submitted Successfully!', `Thank you ${form.name}. Our solutions architect will review your submission and contact you within 24 business hours.`);
+    try {
+      const res = await addEnquiry({
+        name: form.name.trim(),
+        email: form.email.trim(),
+        phone: form.phone.trim(),
+        company: form.company.trim(),
+        gstin: cleanGstin,
+        address: form.address.trim(),
+        serviceCategory: form.serviceCategory,
+        budgetRange: form.budgetRange,
+        estimatedTimeline: '3-6 Weeks',
+        projectDescription: form.projectDescription.trim(),
+        featuresRequired: [form.serviceCategory],
+        source: 'website_form'
+      });
+
+      if (res.success) {
+        setSubmitted(true);
+        success(
+          'Project Scope Submitted Successfully!',
+          `Thank you ${form.name}. Our solutions architect will review your submission and contact you within 24 business hours. A confirmation email has been sent to ${form.email}.`
+        );
+      } else {
+        const errorMsg = res.error || 'Email dispatch failed. Please try again or email us directly at admin@fusionforgecreation.com.';
+        setSubmitError(errorMsg);
+        error('Enquiry Submission Failed', errorMsg);
+      }
+    } catch (err: any) {
+      const errorMsg = err.message || 'An unexpected error occurred. Please try again.';
+      setSubmitError(errorMsg);
+      error('Submission Error', errorMsg);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   // FAQs Data
@@ -1171,6 +1195,8 @@ export const PublicWebsite: React.FC = () => {
                     <button
                       onClick={() => {
                         setSubmitted(false);
+                        setIsSubmitting(false);
+                        setSubmitError(null);
                         setGstinError(null);
                         setForm({
                           name: '',
@@ -1348,12 +1374,32 @@ export const PublicWebsite: React.FC = () => {
                     />
                   </div>
 
+                  {submitError && (
+                    <div className="p-3.5 rounded-xl bg-rose-500/15 border border-rose-500/30 flex items-start space-x-2.5 text-xs text-rose-300">
+                      <AlertCircle className="w-4 h-4 text-rose-400 flex-shrink-0 mt-0.5" />
+                      <div className="space-y-1">
+                        <div className="font-bold text-rose-200">Enquiry Notification Not Delivered</div>
+                        <div className="text-[11px] leading-relaxed">{submitError}</div>
+                      </div>
+                    </div>
+                  )}
+
                   <button
                     type="submit"
-                    className="w-full py-4 rounded-2xl bg-blue-600 hover:bg-blue-500 text-white font-black text-sm transition-all shadow-xl shadow-blue-600/30 hover:scale-[1.01] flex items-center justify-center space-x-2 cursor-pointer"
+                    disabled={isSubmitting}
+                    className="w-full py-4 rounded-2xl bg-blue-600 hover:bg-blue-500 text-white font-black text-sm transition-all shadow-xl shadow-blue-600/30 hover:scale-[1.01] flex items-center justify-center space-x-2 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
                   >
-                    <Send className="w-4 h-4" />
-                    <span>Submit Project Scope for Quotation</span>
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <span>Sending Scope & Notifications...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Send className="w-4 h-4" />
+                        <span>Submit Project Scope for Quotation</span>
+                      </>
+                    )}
                   </button>
                 </motion.form>
               )}

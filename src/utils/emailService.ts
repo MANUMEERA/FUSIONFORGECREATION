@@ -406,7 +406,7 @@ export async function sendProjectScopeEnquiryEmailsBackend(
   };
 
   try {
-    const response = await fetch('/api/send-scope-enquiry-alert', {
+    const response = await fetch('/api/send-enquiry.php', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)

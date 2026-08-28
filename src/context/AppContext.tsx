@@ -182,7 +182,7 @@ interface AppContextType {
   updateSalary: (id: string, salary: Partial<SalaryRecord>) => Promise<void>;
   deleteSalary: (id: string) => Promise<void>;
 
-  addEnquiry: (enquiry: Omit<ProjectEnquiry, 'id' | 'createdAt' | 'created_at' | 'status'> & { status?: ProjectEnquiry['status'] }) => Promise<ProjectEnquiry>;
+  addEnquiry: (enquiry: Omit<ProjectEnquiry, 'id' | 'createdAt' | 'created_at' | 'status'> & { status?: ProjectEnquiry['status'] }) => Promise<{ success: boolean; enquiry: ProjectEnquiry; error?: string }>;
   updateEnquiryStatus: (id: string, status: ProjectEnquiry['status']) => Promise<void>;
   deleteEnquiry: (id: string) => Promise<void>;
 
@@ -476,7 +476,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
   const deleteSalary = async (id: string) => setSalaries(prev => prev.filter(i => i.id !== id));
 
-  const addEnquiry = async (enq: Omit<ProjectEnquiry, 'id' | 'createdAt' | 'created_at' | 'status'> & { status?: ProjectEnquiry['status'] }): Promise<ProjectEnquiry> => {
+  const addEnquiry = async (
+    enq: Omit<ProjectEnquiry, 'id' | 'createdAt' | 'created_at' | 'status'> & { status?: ProjectEnquiry['status'] }
+  ): Promise<{ success: boolean; enquiry: ProjectEnquiry; error?: string }> => {
     const newEnq: ProjectEnquiry = {
       ...enq,
       id: `enq_${Date.now()}`,
@@ -484,17 +486,21 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       createdAt: new Date().toISOString(),
       created_at: new Date().toISOString()
     };
-    setEnquiries(prev => [newEnq, ...prev]);
-    setLatestLeadAlert(newEnq);
 
-    // Send email alert in background
-    try {
-      await sendProjectScopeEnquiryEmailsBackend(newEnq, agencyConfig);
-    } catch {
-      // Non-blocking
+    // Dispatch emails via Hostinger PHP endpoint
+    const result = await sendProjectScopeEnquiryEmailsBackend(newEnq, agencyConfig);
+
+    if (result.success) {
+      setEnquiries(prev => [newEnq, ...prev]);
+      setLatestLeadAlert(newEnq);
+      return { success: true, enquiry: newEnq };
+    } else {
+      return { 
+        success: false, 
+        enquiry: newEnq, 
+        error: result.error || 'Failed to dispatch enquiry notification emails.' 
+      };
     }
-
-    return newEnq;
   };
   const updateEnquiryStatus = async (id: string, status: ProjectEnquiry['status']) => {
     setEnquiries(prev => prev.map(item => item.id === id ? { ...item, status } : item));
