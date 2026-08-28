@@ -14,23 +14,36 @@
 # 2. Prevent Directory Browsing
 Options -Indexes
 
-# 3. SPA Routing & Fallback
+# 3. SPA Routing & Direct File Serving
 <IfModule mod_rewrite.c>
   RewriteEngine On
   RewriteBase /
   
-  # Allow direct execution of API scripts
-  RewriteRule ^api/.*$ - [L]
+  # Allow direct execution of API scripts without SPA rewriting
+  RewriteRule ^api/ - [L]
 
-  # Standard SPA routing
+  # Allow direct serving of SEO and root static files
+  RewriteRule ^(robots\.txt|sitemap\.xml|favicon\.svg|banner\.svg|logo\.svg)$ - [L]
+
+  # If requested file or directory exists on filesystem, serve directly
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d [OR]
+  RewriteCond %{REQUEST_FILENAME} -l
+  RewriteRule ^ - [L]
+
+  # Fallback to index.html for Single Page Application (SPA) client-side routes
   RewriteRule ^index\.html$ - [L]
-  RewriteCond %{REQUEST_FILENAME} !-f
-  RewriteCond %{REQUEST_FILENAME} !-d
-  RewriteCond %{REQUEST_FILENAME} !-l
   RewriteRule . /index.html [L]
 </IfModule>
 
-# 4. Security & Caching Headers
+# 4. Correct MIME Types & Charsets
+<IfModule mod_mime.c>
+  AddType text/plain .txt
+  AddType application/xml .xml
+  AddType image/svg+xml .svg
+</IfModule>
+
+# 5. Security & Caching Headers
 <IfModule mod_headers.c>
   # Prevent MIME-type sniffing
   Header set X-Content-Type-Options "nosniff"
@@ -43,6 +56,12 @@ Options -Indexes
   <FilesMatch "\.(ico|pdf|flv|jpg|jpeg|png|gif|js|css|swf|svg|webp|woff|woff2|ttf|otf)$">
     Header set Cache-Control "max-age=31536000, public"
   </FilesMatch>
+  
+  # SEO & Config files should be freshly validated
+  <FilesMatch "(robots\.txt|sitemap\.xml)">
+    Header set Cache-Control "max-age=3600, public, must-revalidate"
+  </FilesMatch>
+
   # HTML files should not be cached aggressively
   <FilesMatch "\.(html|htm)$">
     Header set Cache-Control "no-cache, no-store, must-revalidate"
