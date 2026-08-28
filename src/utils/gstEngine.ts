@@ -169,7 +169,7 @@ export interface GstCalculationResult {
 /**
  * AUTHORITATIVE GST ENGINE
  * 
- * Implements the authoritative GST calculation rules matching Supabase database triggers & RPCs.
+ * Implements the authoritative GST calculation rules matching InsForge database triggers & RPCs.
  * 
  * Rules:
  * 1. Intra-State (Seller State Code === Buyer State Code):
@@ -322,7 +322,7 @@ export function calculateGstInvoiceTotals(params: GstCalculationParams): GstCalc
     totalTaxAmount,
     grandTotal,
     amountInWords,
-    authoritativeSource: 'Supabase Database Engine (public.calculate_invoice_totals)',
+    authoritativeSource: 'InsForge Database Engine (public.calculate_invoice_totals)',
     generatedAt: new Date().toISOString()
   };
 }

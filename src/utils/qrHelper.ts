@@ -49,7 +49,7 @@ export function buildUpiPaymentUrl(details: UpiPaymentDetails): string {
  */
 export function buildEinvoiceQrString(payload: EinvoiceQrPayload): string {
   return JSON.stringify({
-    SellerGstin: payload.sellerGstin || '21AAACF1234M1Z5',
+    SellerGstin: payload.sellerGstin || '',
     BuyerGstin: payload.buyerGstin && payload.buyerGstin !== '—' ? payload.buyerGstin : 'URP',
     DocNo: payload.docNo || '',
     DocTyp: payload.docType || 'INV',

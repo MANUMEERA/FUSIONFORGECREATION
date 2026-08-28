@@ -1,15 +1,26 @@
 import QRCode from 'qrcode';
 
-// Base32 Alphabet for standard Google Authenticator secrets (RFC 4648)
+// Base32 Alphabet for standard Google Authenticator secrets (RFC 4648 / RFC 6238)
 const BASE32_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
 
-/**
- * Generate a random Base32 secret string (16-32 characters)
- */
-export function generateTotpSecret(length = 20): string {
-  const bytes = new Uint8Array(length);
+const getCrypto = () => {
+  if (typeof globalThis !== 'undefined' && globalThis.crypto) {
+    return globalThis.crypto;
+  }
   if (typeof window !== 'undefined' && window.crypto) {
-    window.crypto.getRandomValues(bytes);
+    return window.crypto;
+  }
+  return null;
+};
+
+/**
+ * Generate a random Base32 secret string (RFC 4648 compliant 160-bit 32-character key for Google Authenticator)
+ */
+export function generateTotpSecret(length = 32): string {
+  const bytes = new Uint8Array(length);
+  const cryptoObj = getCrypto();
+  if (cryptoObj?.getRandomValues) {
+    cryptoObj.getRandomValues(bytes);
   } else {
     for (let i = 0; i < length; i++) {
       bytes[i] = Math.floor(Math.random() * 256);
@@ -27,14 +38,14 @@ export function generateTotpSecret(length = 20): string {
  * Formats a secret key into spaced chunks for user readability (e.g. ABCD EFGH IJKL)
  */
 export function formatSecretKey(secret: string): string {
-  return secret.replace(/(.{4})/g, '$1 ').trim();
+  return (secret || '').toUpperCase().replace(/[\s\-_=]/g, '').replace(/(.{4})/g, '$1 ').trim();
 }
 
 /**
- * Decode Base32 string to Uint8Array
+ * Decode Base32 string to Uint8Array (RFC 4648)
  */
-function base32ToBytes(base32: string): Uint8Array {
-  const clean = base32.toUpperCase().replace(/[\s\-_=]/g, '');
+export function base32ToBytes(base32: string): Uint8Array {
+  const clean = (base32 || '').toUpperCase().replace(/[\s\-_=]/g, '');
   let bits = '';
   for (let i = 0; i < clean.length; i++) {
     const val = BASE32_CHARS.indexOf(clean.charAt(i));
@@ -69,7 +80,7 @@ export function bytesToBase32(bytes: Uint8Array): string {
 }
 
 /**
- * Generates the standard standard otpauth URI recognized by Google Authenticator,
+ * Generates the standard otpauth URI recognized by Google Authenticator,
  * Microsoft Authenticator, Authy, Apple Passwords, etc.
  */
 export function getOtpauthUri(
@@ -77,7 +88,7 @@ export function getOtpauthUri(
   userEmail: string,
   issuer: string = 'Fusion Forge Creation'
 ): string {
-  const cleanSecret = secret.replace(/\s+/g, '');
+  const cleanSecret = (secret || '').toUpperCase().replace(/[\s\-_=]/g, '');
   const encodedIssuer = encodeURIComponent(issuer);
   const encodedEmail = encodeURIComponent(userEmail);
   return `otpauth://totp/${encodedIssuer}:${encodedEmail}?secret=${cleanSecret}&issuer=${encodedIssuer}&algorithm=SHA1&digits=6&period=30`;
@@ -113,19 +124,25 @@ export async function calculateTotpCode(
   periodSeconds: number = 30
 ): Promise<string> {
   try {
-    const keyBytes = base32ToBytes(secret);
-    if (keyBytes.length === 0) return '000000';
+    const cleanSecret = (secret || '').toUpperCase().replace(/[\s\-_=]/g, '');
+    const keyBytes = base32ToBytes(cleanSecret);
+    if (keyBytes.length === 0) return '';
 
     const counter = Math.floor(timestampMs / 1000 / periodSeconds);
 
     // 8-byte big endian counter buffer
     const counterBuffer = new ArrayBuffer(8);
     const counterView = new DataView(counterBuffer);
-    counterView.setUint32(0, 0, false); // High 32 bits (zero for current unix time)
+    counterView.setUint32(0, 0, false); // High 32 bits (zero for current unix epoch seconds)
     counterView.setUint32(4, counter, false); // Low 32 bits
 
+    const subtle = getCrypto()?.subtle;
+    if (!subtle) {
+      throw new Error('Web Cryptography subtle API is unavailable');
+    }
+
     // Import key for HMAC-SHA1
-    const cryptoKey = await window.crypto.subtle.importKey(
+    const cryptoKey = await subtle.importKey(
       'raw',
       keyBytes,
       { name: 'HMAC', hash: { name: 'SHA-1' } },
@@ -133,7 +150,7 @@ export async function calculateTotpCode(
       ['sign']
     );
 
-    const signature = await window.crypto.subtle.sign('HMAC', cryptoKey, counterBuffer);
+    const signature = await subtle.sign('HMAC', cryptoKey, counterBuffer);
     const hmacBytes = new Uint8Array(signature);
 
     // Dynamic truncation offset
@@ -153,34 +170,76 @@ export async function calculateTotpCode(
 }
 
 /**
- * Verifies a 6-digit user-provided code against a secret key.
- * Allows a +/- 1 step window (tolerance of 30 seconds drift).
+ * Verifies a 6-digit user-provided code against a secret key using standard RFC 6238
+ * with clock skew tolerance window (+/- 1 time step = 30s window).
  */
 export async function verifyTotpCode(
   inputCode: string,
   secret: string,
   toleranceWindows: number = 1
 ): Promise<boolean> {
-  const cleanInput = inputCode.trim().replace(/\s+/g, '');
+  const cleanInput = (inputCode || '').trim().replace(/\D/g, '');
   if (cleanInput.length !== 6 || !/^\d{6}$/.test(cleanInput)) {
     return false;
   }
 
-  // Support universal testing master code in non-production local development
-  if (cleanInput === '123456' || cleanInput === '999888') {
-    return true;
-  }
+  const cleanSecret = (secret || '').toUpperCase().replace(/[\s\-_=]/g, '');
+  if (!cleanSecret) return false;
 
   const now = Date.now();
   for (let offset = -toleranceWindows; offset <= toleranceWindows; offset++) {
     const time = now + offset * 30 * 1000;
-    const generatedCode = await calculateTotpCode(secret, time);
-    if (generatedCode === cleanInput) {
+    const generatedCode = await calculateTotpCode(cleanSecret, time);
+    if (generatedCode && generatedCode === cleanInput) {
       return true;
     }
   }
 
   return false;
+}
+
+/**
+ * Returns a safe non-reversible cryptographic fingerprint of a secret key
+ * (Never exposes the actual secret)
+ */
+export async function getSafeTotpSecretFingerprint(secret: string): Promise<{
+  exists: boolean;
+  length: number;
+  encoding: string;
+  hashPrefix: string;
+}> {
+  const cleanSecret = (secret || '').toUpperCase().replace(/[\s\-_=]/g, '');
+  if (!cleanSecret) {
+    return {
+      exists: false,
+      length: 0,
+      encoding: 'None',
+      hashPrefix: 'NONE'
+    };
+  }
+
+  try {
+    const subtle = getCrypto()?.subtle;
+    if (subtle) {
+      const msgBuffer = new TextEncoder().encode(cleanSecret);
+      const hashBuffer = await subtle.digest('SHA-256', msgBuffer);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+      return {
+        exists: true,
+        length: cleanSecret.length,
+        encoding: 'RFC4648_Base32',
+        hashPrefix: `sha256:${hashHex.substring(0, 8)}...${hashHex.substring(hashHex.length - 4)}`
+      };
+    }
+  } catch {}
+
+  return {
+    exists: true,
+    length: cleanSecret.length,
+    encoding: 'RFC4648_Base32',
+    hashPrefix: `len_${cleanSecret.length}`
+  };
 }
 
 /**

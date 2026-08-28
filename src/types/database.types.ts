@@ -8,7 +8,7 @@ export type Json =
 
 /**
  * FUSION FORGE CREATIONS
- * AUTHORITATIVE SUPABASE DATABASE SCHEMA TYPES
+ * AUTHORITATIVE INSFORGE DATABASE SCHEMA TYPES
  * Production Source of Truth
  */
 export interface Database {

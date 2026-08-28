@@ -133,6 +133,9 @@ export interface SellerProfile {
   id?: string;
   company_name: string;
   tagline: string;
+  website_url?: string;
+  website?: string;
+  websiteUrl?: string;
   email: string;
   phone: string;
   address: string;
@@ -160,6 +163,8 @@ export interface SellerProfile {
   default_quotation_validity_days?: number;
   upi_id?: string;
   upiId?: string;
+  gst_compliance_active?: boolean;
+  gstComplianceActive?: boolean;
   
   // Phase 11: LUT & SEZ Compliance Config
   lut_arn?: string;
@@ -312,15 +317,33 @@ export interface Client {
   updatedAt: string;
 }
 
+export type ItemCategoryType = 
+  | 'Hardware & Office Equipment' 
+  | 'Cloud Infrastructure & Servers' 
+  | 'Software Licenses & Subscriptions' 
+  | 'Networking & Telecom' 
+  | 'Office Supplies & Consumables' 
+  | 'Professional Services' 
+  | 'Contract Labor' 
+  | string;
+
 export interface LineItem {
   id: string;
   invoice_id?: string;
+  goodsItemId?: string;
   description: string;
   sacCode?: string;
+  hsnSacCode?: string;
+  unit?: string;
   quantity: number;
   rate: number;
   unit_price?: number;
+  gstRate?: number;
+  cgstAmount?: number;
+  sgstAmount?: number;
+  igstAmount?: number;
   amount: number;
+  totalAmount?: number;
   total_price?: number;
   created_at?: string;
   updated_at?: string;
@@ -408,6 +431,10 @@ export interface Quotation {
   emailSentBy?: string;
   status: QuoteStatus;
   convertedInvoiceId?: string;
+  isIncompleteLeadDraft?: boolean;
+  sourceEnquiryId?: string;
+  sourceLeadName?: string;
+  sourceLeadBudget?: string;
   createdBy: string;
   createdAt: string;
   updatedAt: string;
@@ -757,6 +784,22 @@ export interface CompletedWorkRecord {
   updated_at?: string;
 }
 
+export type ProjectServiceType = 'hostinger' | 'supabase' | 'resend' | 'aws' | 'cloudflare' | 'github' | 'firebase' | 'vercel' | 'custom' | string;
+
+export type ProjectCategory = 'custom_software' | 'web_application' | 'mobile_app' | 'enterprise_erp' | 'ai_integration' | 'ecommerce' | 'cloud_infrastructure' | string;
+
+export interface ProjectServiceCredential {
+  id: string;
+  serviceName: string; // e.g. 'Hostinger SMTP Mailbox', 'Supabase Database & Auth', 'Resend Transactional'
+  serviceType: ProjectServiceType;
+  userOrEmail: string; // Email, username, or client account ID
+  passwordOrSecret?: string; // Password, secret key, or token
+  serverOrHost?: string; // Host/URL (e.g. smtp.hostinger.com:465, https://xxx.supabase.co)
+  notes?: string; // Additional documentation, port, or recovery notes
+  created_at?: string;
+  updated_at?: string;
+}
+
 export interface ManagedProject {
   id: string;
   title: string;
@@ -772,6 +815,9 @@ export interface ManagedProject {
   clientId?: string;
   clientName?: string;
   clientEmail?: string;
+  contactPerson?: string; // Primary contact person
+  contactMobile?: string; // Mobile / WhatsApp phone number
+  domainName?: string; // Primary domain name / URL
   category?: string;
   status: ProjectStatus;
   startDate?: string;
@@ -782,11 +828,14 @@ export interface ManagedProject {
   techStack: string[];
   deliverables: string[];
   isPublic?: boolean;
+  showInPortfolio?: boolean;
   notes?: string;
   publicUrl?: string;
   webAppUrl?: string;
   softwareUrl?: string;
   mobileAppInfo?: string;
+  credentialsVault?: ProjectServiceCredential[]; // Secure credentials vault synced to Supabase
+  features?: string[]; // Flexible dynamic feature integrations (e.g. Hostinger, Supabase, Resend, Auth, WhatsApp, AI)
   statusHistory?: ProjectStatusHistoryItem[];
   lastEmailSentAt?: string;
   lastEmailStatus?: string;
@@ -884,13 +933,106 @@ export interface ChatbotSettings {
 }
 
 // =============================================================================
-// PHASE 10: PURCHASES, EXPENSES, SALARY AND ACCOUNTING TYPES
+// PHASE 10: PURCHASES, EXPENSES, MASTERS, SALARY AND ACCOUNTING TYPES
 // =============================================================================
+
+export interface SupplierVendor {
+  id: string;
+  supplierCode?: string; // e.g. "VEN-001"
+  name: string; // Trade / Company Name (e.g. "Amazon Web Services India Pvt Ltd")
+  legalName?: string;
+  contactPerson?: string;
+  category?: string;
+  email: string;
+  phone: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  stateCode: string; // e.g. "27"
+  pincode?: string;
+  gstin?: string; // 15-char GSTIN or empty
+  pan?: string;
+  panNumber?: string;
+  isGstRegistered?: boolean;
+  isReverseCharge?: boolean;
+  msmeNumber?: string;
+  msmeRegistrationNumber?: string;
+  bankName?: string;
+  bankAccountNumber?: string;
+  bankIfsc?: string;
+  bankBranch?: string;
+  upiId?: string;
+  paymentTerms?: string;
+  paymentTermsDays?: number;
+  notes?: string;
+  status: 'active' | 'inactive';
+  isActive?: boolean;
+  totalPurchases?: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface UnitMasterItem {
+  id: string;
+  code: string; // e.g. "NOS", "PCS", "KGS", "MTR", "BOX", "SET", "HRS", "DAY", "MON", "SQF"
+  name: string; // e.g. "Numbers", "Pieces", "Kilograms", "Meters", "Boxes", "Sets", "Hours", "Days", "Months", "Square Feet"
+  uqc: string; // GST portal code, e.g. "NOS-NUMBERS", "PCS-PIECES", "KGS-KILOGRAMS", "MTR-METERS", "BOX-BOX", "SET-SETS", "HRS-HOURS", "DAY-DAYS", "MON-MONTHS", "SQF-SQUARE FEET", "OTH-OTHERS"
+  symbol?: string; // e.g. "nos", "pcs", "kg", "m", "box", "hrs"
+  decimalPlaces: number; // 0 or 2
+  isDefault?: boolean;
+  isActive: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface HsnMasterItem {
+  id: string;
+  code: string; // 4, 6, 8 digit HSN/SAC code (e.g. "998313", "847130", "851762")
+  description: string; // e.g. "IT Infrastructure & Cloud Services", "Laptops & Portable Computers"
+  type: 'goods_hsn' | 'services_sac';
+  gstRate: number; // 0, 5, 12, 18, 28
+  cgstRate: number; // half rate for intra-state
+  sgstRate: number; // half rate for intra-state
+  igstRate: number; // full rate for inter-state
+  cessRate?: number;
+  itcEligibility?: 'Inputs' | 'Capital Goods' | 'Input Services' | 'Ineligible - Section 17(5)' | string;
+  defaultUnit?: string; // e.g. "NOS", "PCS", "OTH"
+  notes?: string;
+  isActive: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface GoodsItem {
+  id: string;
+  itemCode: string; // SKU e.g. "ITM-SRV-01", "ITM-LAP-02"
+  itemName: string; // e.g. "Dell PowerEdge Server 16-Core", "Apple MacBook Pro M3"
+  itemType?: 'goods' | 'services' | string;
+  category: 'Hardware & Office Equipment' | 'Cloud Infrastructure & Servers' | 'Software Licenses & Subscriptions' | 'Networking & Telecom' | 'Office Supplies & Consumables' | 'Professional Services' | 'Contract Labor' | string;
+  hsnSacCode: string; // ref to HSN code
+  unitCode?: string; // ref to Unit code
+  unit?: string;
+  purchasePrice: number;
+  salesPrice?: number;
+  sellingPrice?: number;
+  gstRate: number;
+  description?: string;
+  currentStock?: number;
+  openingStock?: number;
+  reorderLevel?: number;
+  isItcEligible?: boolean;
+  preferredSupplierId?: string;
+  preferredSupplierName?: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
 
 export type PurchasePaymentStatus = 'paid' | 'pending' | 'partially_paid' | 'overdue';
 
 export interface Purchase {
   id: string;
+  supplierId?: string; // Reference to SupplierVendor
   supplierName: string;
   supplierGstin?: string;
   supplierEmail?: string;
@@ -903,6 +1045,10 @@ export interface Purchase {
   description: string;
   hsnSacCode?: string; // HSN / SAC where applicable (e.g. 998313, 998314, 8471)
   category?: string;
+  unitCode?: string; // UOM from Unit Master (e.g. NOS, PCS, BOX, HRS)
+  quantity?: number;
+  unitPrice?: number;
+  items?: LineItem[]; // Multiple line items support
   taxableAmount: number;
   gstRate: number; // 0, 5, 12, 18, 28
   cgstAmount: number;
@@ -916,9 +1062,15 @@ export interface Purchase {
   paymentRef?: string;
   attachmentUrl?: string; // Bill / Invoice receipt attachment
   attachmentName?: string;
+  attachmentSize?: number | string;
+  attachmentType?: string;
   notes?: string;
   isItcClaimable?: boolean; // Input Tax Credit claimable in GSTR-2B / GSTR-3B
+  itcCategory?: 'Inputs' | 'Capital Goods' | 'Input Services' | 'Ineligible';
   isReverseCharge?: boolean;
+  creditDebitNoteIds?: string[];
+  isDeleted?: boolean;
+  deletedAt?: string;
   created_at?: string;
   updated_at?: string;
 }
@@ -1048,6 +1200,7 @@ export interface AccountingReportFilter {
 // =============================================================================
 
 export type NoteType = 'credit' | 'debit';
+export type NoteCategory = 'sales' | 'purchase';
 export type NoteStatus = 'issued' | 'applied' | 'cancelled' | 'draft';
 
 export type NoteReason = 
@@ -1057,32 +1210,57 @@ export type NoteReason =
   | '04-Correction in Invoice'
   | '05-Change in POS'
   | '06-Final Price Hike / Adjustment'
+  | '07-Purchase Return / Rejection'
+  | '08-Post Purchase Rebate / Discount'
+  | '09-Purchase Quantity Shortage'
+  | '10-Rate Difference in Purchase Bill'
   | string;
 
 export interface CreditDebitNote {
   id: string;
-  noteNumber: string; // e.g. "CN-2026-0001" or "DN-2026-0001"
+  noteNumber: string; // e.g. "CN-2026-0001", "DN-2026-0001", "PCN-2026-0001", "PDN-2026-0001"
   noteType: NoteType; // 'credit' | 'debit'
-  invoiceId?: string; // Reference to parent invoice
-  invoiceNumber?: string; // e.g. "FFC-2026-0001"
-  invoiceDate?: string; // Original invoice date (YYYY-MM-DD)
-  clientId: string;
-  clientName: string;
-  clientCompany: string;
+  noteCategory?: NoteCategory; // 'sales' | 'purchase' (default: 'sales')
+  partyType?: 'client' | 'supplier'; // 'client' for sales, 'supplier' for purchases
+  
+  // Reference to parent Sales Invoice (for Sales CN/DN)
+  invoiceId?: string;
+  invoiceNumber?: string;
+  invoiceDate?: string;
+  clientId?: string;
+  clientName?: string;
+  clientCompany?: string;
   clientGstin?: string;
   clientAddress?: string;
+
+  // Reference to parent Purchase Bill (for Purchase CN/DN)
+  purchaseId?: string;
+  purchaseBillNumber?: string;
+  purchaseBillDate?: string;
+  supplierId?: string;
+  supplierName?: string;
+  supplierGstin?: string;
+  supplierAddress?: string;
+  supplierStateCode?: string;
+
+  // Seller Details
   sellerName?: string;
   sellerGstin?: string;
   sellerState?: string;
   sellerStateCode?: string;
   buyerState?: string;
   buyerStateCode?: string;
-  placeOfSupply?: string; // e.g. "24-Gujarat", "27-Maharashtra", "26-Dadra and Nagar Haveli and Daman and Diu"
+  placeOfSupply?: string; // e.g. "24-Gujarat", "27-Maharashtra", "26-Dadra and Nagar Haveli"
   issueDate: string; // YYYY-MM-DD
   reason: NoteReason;
   reasonNotes?: string;
   reverseCharge?: 'Yes' | 'No' | boolean;
   reverse_charge?: 'Yes' | 'No' | boolean;
+
+  // Statutory Tax & ITC Accounting Impact
+  itcImpact?: 'reduce_itc' | 'increase_itc' | 'reduce_output_tax' | 'increase_output_tax';
+  gstr3bSection?: '3.1(a)' | '3.1(b)' | '4(A)(5)' | '4(B)(2)' | string;
+
   items: LineItem[];
   subtotal: number;
   taxableAmount: number;
@@ -1107,10 +1285,14 @@ export interface CreditDebitNote {
   // DB snake_case parity
   note_number?: string;
   note_type?: string;
+  note_category?: string;
   invoice_id?: string;
   invoice_number?: string;
   invoice_date?: string;
+  purchase_id?: string;
+  purchase_bill_number?: string;
   client_id?: string;
+  supplier_id?: string;
   place_of_supply?: string;
   issue_date?: string;
   taxable_amount?: number;

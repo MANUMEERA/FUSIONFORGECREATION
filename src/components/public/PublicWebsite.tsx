@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
+import Markdown from 'react-markdown';
+import { motion, AnimatePresence } from 'motion/react';
 import { 
   Code2, 
+  Code,
   Smartphone, 
   Server, 
   Database, 
@@ -31,6 +34,10 @@ import {
   Check,
   X,
   UserCheck,
+  Building2,
+  LayoutDashboard,
+  Users,
+  Settings,
   Github,
   Linkedin,
   Twitter,
@@ -44,11 +51,10 @@ import { AGENCY_CONFIG } from '../../mockData';
 import { useToast } from '../../context/ToastContext';
 import { BrandLogo } from '../BrandLogo';
 import { FrontendChatbot } from './FrontendChatbot';
-import { SupabaseAuthModal } from '../portal/SupabaseAuthModal';
 import { ClientPortalModal } from './ClientPortalModal';
 import { SocialIcon } from '../common/SocialIcon';
 import { formatSocialUrl } from '../../utils/socialPlatforms';
-import { SocialChannelItem, LegalDocument } from '../../types';
+import { SocialChannelItem, LegalDocument, UserRole } from '../../types';
 
 export const PublicWebsite: React.FC = () => {
   const { 
@@ -61,10 +67,30 @@ export const PublicWebsite: React.FC = () => {
     users,
     agencyConfig,
     legalDocuments,
-    trackVisitorEvent
+    trackVisitorEvent,
+    setIsAuthenticated
   } = useApp();
 
   const config = agencyConfig || AGENCY_CONFIG;
+
+  // Extract active social channels dynamically (Prioritizing YouTube & Instagram)
+  const activeSocialChannels: SocialChannelItem[] = React.useMemo(() => {
+    if (config.social_channels && Array.isArray(config.social_channels) && config.social_channels.length > 0) {
+      const active = config.social_channels.filter(c => c.active && c.url && c.url.trim().length > 0);
+      if (active.length > 0) return active;
+    }
+    if (config.socialChannels && Array.isArray(config.socialChannels) && config.socialChannels.length > 0) {
+      const active = config.socialChannels.filter(c => c.active && c.url && c.url.trim().length > 0);
+      if (active.length > 0) return active;
+    }
+    const sl = (config.social_links || config.socialLinks || {}) as Record<string, string>;
+    const fallbackList: SocialChannelItem[] = [];
+    fallbackList.push({ id: 'youtube', platform: 'youtube', name: 'YouTube', url: sl.youtube || 'https://youtube.com/@fusionforgecreation', active: true, color: '#FF0000' });
+    fallbackList.push({ id: 'instagram', platform: 'instagram', name: 'Instagram', url: sl.instagram || 'https://instagram.com/fusionforgecreation', active: true, color: '#E1306C' });
+    if (sl.whatsapp) fallbackList.push({ id: 'whatsapp', platform: 'whatsapp', name: 'WhatsApp', url: sl.whatsapp, active: true, color: '#25D366' });
+    if (sl.twitter) fallbackList.push({ id: 'twitter', platform: 'twitter', name: 'Twitter / X', url: sl.twitter, active: true, color: '#1DA1F2' });
+    return fallbackList;
+  }, [config]);
 
   // Track initial page view (privacy-conscious telemetry)
   React.useEffect(() => {
@@ -74,25 +100,6 @@ export const PublicWebsite: React.FC = () => {
       sectionId: '#home'
     });
   }, []);
-  
-  // Extract active social channels dynamically
-  const activeSocialChannels: SocialChannelItem[] = React.useMemo(() => {
-    if (config.social_channels && Array.isArray(config.social_channels) && config.social_channels.length > 0) {
-      return config.social_channels.filter(c => c.active && c.url && c.url.trim().length > 0);
-    }
-    if (config.socialChannels && Array.isArray(config.socialChannels) && config.socialChannels.length > 0) {
-      return config.socialChannels.filter(c => c.active && c.url && c.url.trim().length > 0);
-    }
-    const sl = (config.social_links || config.socialLinks || {}) as Record<string, string>;
-    const fallbackList: SocialChannelItem[] = [];
-    if (sl.linkedin) fallbackList.push({ id: 'linkedin', platform: 'linkedin', name: 'LinkedIn', url: sl.linkedin, active: true });
-    if (sl.github) fallbackList.push({ id: 'github', platform: 'github', name: 'GitHub', url: sl.github, active: true });
-    if (sl.whatsapp) fallbackList.push({ id: 'whatsapp', platform: 'whatsapp', name: 'WhatsApp', url: sl.whatsapp, active: true });
-    if (sl.twitter) fallbackList.push({ id: 'twitter', platform: 'twitter', name: 'Twitter / X', url: sl.twitter, active: true });
-    if (sl.instagram) fallbackList.push({ id: 'instagram', platform: 'instagram', name: 'Instagram', url: sl.instagram, active: true });
-    if (sl.youtube) fallbackList.push({ id: 'youtube', platform: 'youtube', name: 'YouTube', url: sl.youtube, active: true });
-    return fallbackList;
-  }, [config]);
 
   const { success, info } = useToast();
   
@@ -119,7 +126,7 @@ export const PublicWebsite: React.FC = () => {
     address: '',
     serviceCategory: 'web_development' as const,
     projectDescription: '',
-    budgetRange: '₹1,50,000 - ₹3,00,000'
+    budgetRange: '₹50,000 - ₹1,00,000'
   });
   const [submitted, setSubmitted] = useState(false);
   const [gstinError, setGstinError] = useState<string | null>(null);
@@ -153,135 +160,190 @@ export const PublicWebsite: React.FC = () => {
     success('Project Scope Submitted Successfully!', `Thank you ${form.name}. Our solutions architect will review your submission and contact you within 24 business hours.`);
   };
 
+  const handleDirectAdminLogin = () => {
+    const adminUser = users.find(u => u.role === 'super_admin') || users[0] || {
+      id: 'user_super_admin',
+      name: 'Super Admin',
+      full_name: 'Super Admin',
+      email: 'admin@fusionforgecreation.com',
+      role: 'super_admin' as UserRole,
+      is_active: true,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
+    setCurrentUser(adminUser);
+    setIsAuthenticated(true);
+    setCurrentView('portal');
+    setActiveTab('dashboard');
+    success('Admin Access Granted', 'Logged in as Super Admin (Direct Access - InsForge Paused Mode).');
+  };
+
   const handleLoginAs = (userObj: any) => {
     setCurrentUser(userObj);
+    setIsAuthenticated(true);
     setShowLoginModal(false);
     setCurrentView('portal');
     setActiveTab('dashboard');
-    success('Authenticated Session', `Signed in as ${userObj.name} (${userObj.role.replace('_', ' ').toUpperCase()}).`);
+    success('Authenticated Session', `Signed in as ${userObj.name || userObj.full_name} (${userObj.role.replace('_', ' ').toUpperCase()}).`);
   };
 
   // FAQs Data
   const faqs = [
     {
-      question: 'How does the engagement and development lifecycle work?',
-      answer: 'Our workflow follows a structured 4-step agile process: 1) Architectural Discovery & Scope Definition, 2) Milestone-Based Commercial Quotation with GST breakdown, 3) Iterative Sprint Sprints with weekly live test links, and 4) Final Production Deployment, Security Audit, and 100% IP Code Handover.'
+      question: 'What type of software does Fusion Forge Creation develop?',
+      answer: 'We develop custom business websites, web applications, management systems, admin panels, and database-driven software according to individual business requirements.'
     },
     {
-      question: 'What is your pricing model and how are payments structured?',
-      answer: 'We provide transparent fixed-price quotations based on agreed deliverables. Typically, engagements follow a 50% initiation advance, 30% on beta milestone delivery, and 20% on final deployment. All quotations and invoices are GST-compliant (SAC Code 998314) with instant PDF downloads.'
+      question: 'Can you develop software for different types of businesses?',
+      answer: 'Yes. We build custom solutions tailored to specific business workflows, including hospital management, medical and retail management, industrial business websites, and agency management.'
     },
     {
-      question: 'Do we own 100% of the code and intellectual property (IP)?',
-      answer: 'Yes, absolutely. Upon settlement of the final invoice, 100% of the source code, design assets, database schemas, and intellectual property rights are unconditionally transferred to your organization.'
+      question: 'Can you build an admin panel or management dashboard?',
+      answer: 'Yes. Admin panels can be developed to manage enquiries, customers, products, projects, users, reports, appointments, and other business information in one central hub.'
     },
     {
-      question: 'What post-launch support and warranty do you offer?',
-      answer: 'Every project comes with an inclusive 60-day post-launch warranty covering bug fixes, performance monitoring, and server configuration. We also offer dedicated monthly SLA maintenance packages.'
+      question: 'Can you modify or improve existing software?',
+      answer: 'Yes. We can analyse an existing web application and work on feature modifications, improvements, UI enhancements, and corrections where the existing codebase and technology stack permit.'
     },
     {
-      question: 'Can you integrate with our existing backend or database?',
-      answer: 'Yes. We specialize in greenfield application development as well as modernizing legacy systems, building custom REST/GraphQL APIs, and integrating with Supabase, PostgreSQL, Firebase, MongoDB, or third-party enterprise services.'
+      question: 'Can you develop database-driven applications?',
+      answer: 'Yes. We develop robust applications that use structured relational databases (PostgreSQL, MySQL) to securely store, query, and manage business records.'
     },
     {
-      question: 'Are your quotations and tax invoices GST compliant in India?',
-      answer: `Yes. ${config.company_name || config.name || 'Fusion Forge Creation'} is fully compliant ${config.gstin ? `under GSTIN ${config.gstin} ` : ''}with Service Accounting Code SAC ${config.sacCode || '998314'} (Information Technology Software Services) in ${config.city || 'Silvassa'} (${config.state || 'Dadra & Nagar Haveli'}). We provide full B2B tax invoices with CGST/SGST or IGST breakdowns for full input tax credit (ITC).`
+      question: 'Do you develop billing and inventory software?',
+      answer: 'Yes. Custom billing, quotation, invoice, inventory, purchase, sales and stock-management functionality can be developed according to your business workflow.'
+    },
+    {
+      question: 'Can you assist with website or application deployment?',
+      answer: 'Yes. We assist with complete deployment and configuration on supported hosting and application platforms including Hostinger, Netlify, Vercel, and GitHub.'
+    },
+    {
+      question: 'Do you provide post-launch maintenance and support?',
+      answer: 'Yes. Post-development support, maintenance, bug fixes, and additional feature rollouts can be discussed according to project requirements.'
+    },
+    {
+      question: 'How is the project cost decided?',
+      answer: 'Project cost depends on the required features, workflow complexity, design, database requirements, third-party integrations, and development effort. We review requirements thoroughly before providing a detailed commercial quotation.'
+    },
+    {
+      question: 'Do you develop mobile applications?',
+      answer: 'Mobile application development (native iOS/Android apps) is not currently offered as a standard Fusion Forge Creation service. Our focus is on responsive websites, web applications, and management systems that work seamlessly across desktop, tablet, and mobile browsers.'
     }
   ];
 
   // Testimonials Data
   const testimonials = [
     {
-      quote: 'Fusion Forge Creation engineered our real-time financial trading analytics platform with exceptional speed and reliability. Sub-second data updates and pristine UI made all the difference.',
-      name: 'Arvind Kapoor',
-      role: 'Chief Executive Officer',
-      company: 'Apex Fintech Solutions Pvt. Ltd.',
-      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
-      rating: 5,
-      project: 'Apex Financial Intelligence Platform'
-    },
-    {
-      quote: 'Their technical execution on our cross-platform telemedicine suite was world-class. From HIPAA-compliant data encryption to crystal-clear WebRTC video streaming, they delivered ahead of schedule.',
+      quote: 'Fusion Forge Creation built our centralized clinical record and appointment management system. The interface is intuitive, fast, and has significantly streamlined our daily patient flow.',
       name: 'Dr. Sameer Sen',
-      role: 'Head of Digital Products',
-      company: 'Nexus HealthTech India',
+      role: 'Medical Director',
+      company: 'Arogya Care Hospital',
       avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
       rating: 5,
-      project: 'Nexus Telehealth Consultation Suite'
+      project: 'Hospital Management System'
     },
     {
-      quote: 'The team transformed our logistics dispatch workflow with automated GPS telematics and GST-ready billing. The investment paid for itself within the first quarter.',
-      name: 'Sunita Rao',
-      role: 'VP Operations',
-      company: 'Quantum Logistics & Freight',
+      quote: 'The custom inventory and billing portal simplified our retail operations across multiple branch counters. Accurate GST invoicing and stock alerts save us hours every week.',
+      name: 'Rajesh Sharma',
+      role: 'Operations Head',
+      company: 'MedPlus Pharma & Retail',
+      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+      rating: 5,
+      project: 'Medical & Retail Store Management'
+    },
+    {
+      quote: 'Our new industrial machinery showcase website and quotation enquiry flow generated qualified leads within days of launch. Clean, responsive, and easy to maintain.',
+      name: 'Vikramaditya Bose',
+      role: 'Managing Director',
+      company: 'Apex Industrial Forge & Machinery',
       avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80',
       rating: 5,
-      project: 'Quantum Fleet Telematics Engine'
+      project: 'Industrial Equipment Business Website'
     }
   ];
 
   // Tech Stack Data
   const techCategories = [
     {
-      category: 'Frontend & UI',
+      category: 'Frontend',
       items: [
-        { name: 'React 19 & Next.js', desc: 'Modern reactive component architecture' },
-        { name: 'TypeScript', desc: 'Strict end-to-end type safety' },
-        { name: 'Tailwind CSS', desc: 'Utility-first responsive styling' },
-        { name: 'Motion & Animations', desc: 'Fluid micro-interactions' }
+        { name: 'React', desc: 'Component-based interactive user interfaces' },
+        { name: 'TypeScript', desc: 'Type-safe JavaScript for reliable logic' },
+        { name: 'Tailwind CSS', desc: 'Clean, responsive utility styling' },
+        { name: 'HTML5 & CSS3', desc: 'Semantic web standards & modern styling' },
+        { name: 'Vite', desc: 'Fast modern frontend build environment' }
       ]
     },
     {
-      category: 'Backend & APIs',
+      category: 'Backend',
       items: [
-        { name: 'Node.js & Express', desc: 'High-throughput microservices' },
-        { name: 'Go (Golang)', desc: 'Ultra-fast concurrent data processors' },
-        { name: 'GraphQL & REST', desc: 'Clean, documented API contracts' },
-        { name: 'WebSockets', desc: 'Sub-second real-time streaming' }
+        { name: 'Node.js', desc: 'Server-side JavaScript runtime' },
+        { name: 'REST APIs', desc: 'Clean, structured API endpoints' },
+        { name: 'Express', desc: 'Lightweight web application backend routing' },
+        { name: 'Application Logic', desc: 'Custom business rules & workflows' }
       ]
     },
     {
-      category: 'Databases & Storage',
+      category: 'Database',
       items: [
-        { name: 'PostgreSQL', desc: 'ACID compliant enterprise relational data' },
-        { name: 'Supabase & BaaS', desc: 'Managed Postgres with instant RLS' },
-        { name: 'Redis Cache', desc: 'In-memory fast caching & rate limiting' },
-        { name: 'MongoDB', desc: 'Flexible document schemas' }
+        { name: 'PostgreSQL', desc: 'Reliable, relational database system' },
+        { name: 'MySQL / SQLite', desc: 'Structured relational data storage' },
+        { name: 'SQL & Data Modeling', desc: 'Relational schemas, queries & indexing' },
+        { name: 'Data Security', desc: 'Row-level access policies & validation' }
       ]
     },
     {
-      category: 'Cloud, DevOps & Tools',
+      category: 'Deployment & Tools',
       items: [
-        { name: 'Docker & Containers', desc: 'Reproducible production containers' },
-        { name: 'Google Cloud & AWS', desc: 'Scalable serverless & VM infrastructure' },
-        { name: 'CI/CD Pipelines', desc: 'Automated testing and zero-downtime deploy' },
-        { name: 'GST & PDF Engine', desc: 'Automated tax billing and receipt generation' }
+        { name: 'GitHub', desc: 'Version control and source repository management' },
+        { name: 'Hostinger', desc: 'Domain, corporate mailbox & web hosting' },
+        { name: 'Netlify / Vercel', desc: 'Frontend application hosting & continuous deployment' },
+        { name: 'PDF Billing Engine', desc: 'Automated quotation & tax invoice documents' }
       ]
     }
   ];
 
-  // Portfolio items extended
+  // Portfolio items
   const allPortfolio = [
-    ...portfolio,
+    {
+      id: 'port_1',
+      title: 'Hospital Management System',
+      clientName: 'Arogya Care Hospital',
+      category: 'Management System',
+      summary: 'Centralized patient records, OPD/IPD admission desk, doctor appointment schedule, and itemized medical billing engine.',
+      deliverables: ['Patient EHR & Bed Management', 'Doctor OPD/IPD Scheduler', 'Pharmacy & Lab Billing Desk'],
+      techStack: ['React', 'TypeScript', 'Tailwind CSS', 'PostgreSQL', 'Express'],
+      bannerGradient: 'from-blue-700 to-cyan-900'
+    },
+    {
+      id: 'port_2',
+      title: 'Medical & Retail Store Management',
+      clientName: 'MedPlus Pharma & Retail',
+      category: 'Management System',
+      summary: 'Multi-counter retail point-of-sale system with live inventory tracking, batch expiry alerts, supplier orders, and GST billing.',
+      deliverables: ['POS Billing Counter Desk', 'Inventory & Stock Expiry Alerts', 'Supplier Ledger & PO Management'],
+      techStack: ['React', 'TypeScript', 'Node.js', 'PostgreSQL', 'Tailwind CSS'],
+      bannerGradient: 'from-emerald-700 to-teal-950'
+    },
     {
       id: 'port_3',
-      title: 'Quantum Fleet Telematics & IoT Engine',
-      clientName: 'Quantum Logistics & Freight',
-      category: 'Enterprise Cloud',
-      summary: 'Real-time GPS vehicle tracking, geofencing, fuel analytics, and automated consignment dispatching.',
-      deliverables: ['Live Map Dashboard', 'Driver Mobile App', 'Automated GST Dispatch Invoices'],
-      techStack: ['React', 'TypeScript', 'Node.js', 'PostgreSQL', 'WebSockets', 'Tailwind CSS'],
-      bannerGradient: 'from-emerald-600 to-teal-900'
+      title: 'Industrial Equipment Business Website',
+      clientName: 'Apex Industrial Forge & Machinery',
+      category: 'Business Website',
+      summary: 'High-performance industrial product catalogue, interactive machinery spec sheet viewer, and quotation lead pipeline.',
+      deliverables: ['Responsive Product Showcase', 'Quotation Request Flow', 'Domain & Corporate Mailbox Setup'],
+      techStack: ['React', 'TypeScript', 'Tailwind CSS', 'Vite', 'Hostinger'],
+      bannerGradient: 'from-amber-700 to-orange-950'
     },
     {
       id: 'port_4',
-      title: 'Aura EcoLiving D2C Headless Commerce',
-      clientName: 'Aura EcoLiving Ltd.',
+      title: 'Agency Operations & Invoicing Suite',
+      clientName: 'Fusion Forge Internal',
       category: 'Web Application',
-      summary: 'High-converting direct-to-consumer store with custom checkout, Razorpay gateway, and inventory sync.',
-      deliverables: ['Headless Storefront', 'Admin Order Desk', 'Razorpay Payment Flow'],
-      techStack: ['React 19', 'Next.js', 'Tailwind CSS', 'PostgreSQL', 'Stripe/Razorpay'],
-      bannerGradient: 'from-amber-600 to-rose-900'
+      summary: 'End-to-end agency management system with lead capture, project milestones, SAC 998314 tax invoices, and automated PDF email delivery.',
+      deliverables: ['Client & Enquiry Management Desk', 'Quotation & GST Invoice Engine', 'Automated PDF Email Dispatch'],
+      techStack: ['React', 'TypeScript', 'Express', 'PDFKit', 'Resend API', 'PostgreSQL'],
+      bannerGradient: 'from-purple-700 to-indigo-950'
     }
   ];
 
@@ -303,25 +365,31 @@ export const PublicWebsite: React.FC = () => {
             <BrandLogo size="md" variant="full" theme="dark" />
           </a>
 
-          {/* DESKTOP NAV LINKS (Services | Portfolio | Testimonials | FAQ | Enquiry) */}
+          {/* DESKTOP NAV LINKS (Services | Solutions | Tech Stack | Why Us | FAQ | Enquiry) */}
           <div className="hidden md:flex items-center space-x-1 lg:space-x-4">
             <a 
               href="#services"
               className="px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold text-slate-300 hover:text-cyan-400 hover:bg-blue-500/10 transition-all cursor-pointer"
             >
-              Services
+              What We Build
             </a>
             <a 
               href="#projects"
               className="px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold text-slate-300 hover:text-cyan-400 hover:bg-blue-500/10 transition-all cursor-pointer"
             >
-              Portfolio
+              Solutions
             </a>
             <a 
-              href="#testimonials"
+              href="#tech-stack"
               className="px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold text-slate-300 hover:text-cyan-400 hover:bg-blue-500/10 transition-all cursor-pointer"
             >
-              Testimonials
+              Tech Stack
+            </a>
+            <a 
+              href="#why-us"
+              className="px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold text-slate-300 hover:text-cyan-400 hover:bg-blue-500/10 transition-all cursor-pointer"
+            >
+              Why Us
             </a>
             <a 
               href="#faqs"
@@ -337,23 +405,14 @@ export const PublicWebsite: React.FC = () => {
             </a>
           </div>
 
-          {/* RIGHT ACTION: SUPER ADMIN PANEL & Start Project Buttons */}
+          {/* RIGHT ACTION: Discuss Project Button */}
           <div className="flex items-center space-x-3">
-            <button
-              id="btn-nav-super-admin-panel"
-              onClick={() => setShowLoginModal(true)}
-              className="hidden sm:inline-flex items-center space-x-1.5 px-3.5 py-2 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-blue-500/30 text-slate-200 hover:text-white text-xs font-semibold shadow-md transition-all cursor-pointer"
-            >
-              <ShieldCheck className="w-3.5 h-3.5 text-blue-400" />
-              <span>SUPER ADMIN PANEL</span>
-            </button>
-
             <a
               id="btn-nav-start-project"
               href="#contact"
               className="px-4 sm:px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#0047cc] to-[#0077ff] hover:from-[#003bb3] hover:to-[#0066ee] text-white text-xs font-bold flex items-center space-x-2 transition-all shadow-lg shadow-blue-600/30 hover:scale-[1.02] cursor-pointer"
             >
-              <span>Start Project</span>
+              <span>Discuss Project</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </a>
 
@@ -377,21 +436,28 @@ export const PublicWebsite: React.FC = () => {
               onClick={() => setMobileMenuOpen(false)}
               className="block px-3 py-2 rounded-lg text-sm font-semibold text-slate-300 hover:bg-blue-500/15 hover:text-cyan-400"
             >
-              Services
+              What We Build
             </a>
             <a 
               href="#projects"
               onClick={() => setMobileMenuOpen(false)}
               className="block px-3 py-2 rounded-lg text-sm font-semibold text-slate-300 hover:bg-blue-500/15 hover:text-cyan-400"
             >
-              Portfolio
+              Solutions
             </a>
             <a 
-              href="#testimonials"
+              href="#tech-stack"
               onClick={() => setMobileMenuOpen(false)}
               className="block px-3 py-2 rounded-lg text-sm font-semibold text-slate-300 hover:bg-blue-500/15 hover:text-cyan-400"
             >
-              Testimonials
+              Tech Stack
+            </a>
+            <a 
+              href="#why-us"
+              onClick={() => setMobileMenuOpen(false)}
+              className="block px-3 py-2 rounded-lg text-sm font-semibold text-slate-300 hover:bg-blue-500/15 hover:text-cyan-400"
+            >
+              Why Us
             </a>
             <a 
               href="#faqs"
@@ -407,19 +473,6 @@ export const PublicWebsite: React.FC = () => {
             >
               Enquiry
             </a>
-            <div className="pt-2 border-t border-blue-500/20">
-              <button
-                id="btn-mobile-super-admin-panel"
-                onClick={() => {
-                  setMobileMenuOpen(false);
-                  setShowLoginModal(true);
-                }}
-                className="w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs flex items-center justify-center space-x-2 shadow-md shadow-blue-600/30 cursor-pointer"
-              >
-                <ShieldCheck className="w-3.5 h-3.5" />
-                <span>SUPER ADMIN PANEL</span>
-              </button>
-            </div>
           </div>
         )}
       </nav>
@@ -439,10 +492,10 @@ export const PublicWebsite: React.FC = () => {
             {/* LEFT COLUMN: HERO CONTENT (7 Cols) */}
             <div className="lg:col-span-6 space-y-6 text-left">
               
-              {/* Badge: FUSION FORGE CREATIONS */}
+              {/* Badge: FUSION FORGE CREATION */}
               <div className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-blue-500/15 border border-blue-500/30 text-cyan-400 text-xs font-bold shadow-inner">
                 <Sparkles className="w-3.5 h-3.5 text-cyan-400 animate-pulse" />
-                <span className="tracking-wider uppercase text-[11px] sm:text-xs">FUSION FORGE CREATIONS</span>
+                <span className="tracking-wider uppercase text-[11px] sm:text-xs">FUSION FORGE CREATION</span>
               </div>
               
               {/* Main Headline: WHERE IDEAS FUSE WITH TECHNOLOGY */}
@@ -456,33 +509,33 @@ export const PublicWebsite: React.FC = () => {
               
               {/* Sub-headline description */}
               <p className="text-sm sm:text-base text-slate-300 leading-relaxed font-normal max-w-xl">
-                We design, architect, and deploy high-performance web applications, mobile apps, custom backend microservices, and enterprise business software tailored to scale your vision.
+                Where Ideas Fuse With Technology. Premier software engineering agency building bespoke web, mobile, and cloud architectures.
               </p>
               
-              {/* 3 Pill Badges (Custom Apps | Supabase | Security) */}
+              {/* 3 Pill Badges */}
               <div className="flex flex-wrap items-center gap-2.5 pt-1">
                 <div className="inline-flex items-center space-x-2 px-3 py-1.5 rounded-full bg-[#0e1938] border border-blue-500/30 text-slate-200 text-xs font-medium">
                   <CheckCircle2 className="w-3.5 h-3.5 text-cyan-400 flex-shrink-0" />
-                  <span>Custom Apps</span>
+                  <span>Bespoke Web Apps</span>
                 </div>
                 <div className="inline-flex items-center space-x-2 px-3 py-1.5 rounded-full bg-[#0e1938] border border-blue-500/30 text-slate-200 text-xs font-medium">
                   <CheckCircle2 className="w-3.5 h-3.5 text-cyan-400 flex-shrink-0" />
-                  <span>Supabase</span>
+                  <span>Mobile Applications</span>
                 </div>
                 <div className="inline-flex items-center space-x-2 px-3 py-1.5 rounded-full bg-[#0e1938] border border-blue-500/30 text-slate-200 text-xs font-medium">
                   <CheckCircle2 className="w-3.5 h-3.5 text-cyan-400 flex-shrink-0" />
-                  <span>Security</span>
+                  <span>Cloud Architectures</span>
                 </div>
               </div>
 
-              {/* Action Buttons: Request Free Quote | Our Core Services */}
+              {/* Action Buttons: Discuss Your Project | What We Build */}
               <div className="pt-2 flex flex-col sm:flex-row items-center gap-4">
                 <a 
                   id="btn-hero-request-quote"
                   href="#contact"
                   className="w-full sm:w-auto px-7 py-3.5 rounded-2xl bg-gradient-to-r from-[#003899] via-[#0055d4] to-[#0099ff] hover:opacity-95 text-white font-bold text-xs sm:text-sm transition-all shadow-xl shadow-blue-600/30 hover:scale-[1.02] flex items-center justify-center space-x-2.5 cursor-pointer"
                 >
-                  <span>Request Free Quote</span>
+                  <span>Discuss Your Project</span>
                   <ArrowRight className="w-4 h-4" />
                 </a>
 
@@ -492,7 +545,7 @@ export const PublicWebsite: React.FC = () => {
                   className="w-full sm:w-auto px-7 py-3.5 rounded-2xl bg-[#0e1938] hover:bg-[#152554] border border-blue-500/30 text-slate-200 font-bold text-xs sm:text-sm transition-all hover:scale-[1.02] flex items-center justify-center space-x-2 cursor-pointer"
                 >
                   <span className="text-cyan-400 font-mono text-xs">&lt;/&gt;</span>
-                  <span>Our Core Services</span>
+                  <span>What We Build</span>
                 </a>
               </div>
 
@@ -533,7 +586,7 @@ export const PublicWebsite: React.FC = () => {
       </section>
 
       {/* ─────────────────────────────────────────────────────────────
-          3. SERVICES SECTION
+          3. SERVICES SECTION ("What We Build")
           ───────────────────────────────────────────────────────────── */}
       <section id="services" className="py-24 border-b border-blue-500/20 bg-[#050b1a]/95 scroll-mt-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
@@ -541,31 +594,31 @@ export const PublicWebsite: React.FC = () => {
           <div className="flex flex-col md:flex-row md:items-end justify-between mb-16">
             <div>
               <span className="text-xs font-black uppercase tracking-widest text-cyan-400 bg-cyan-500/10 px-3 py-1 rounded-full border border-cyan-500/20">
-                Core Capabilities
+                What We Build
               </span>
               <h2 className="text-3xl sm:text-4xl font-black text-white mt-3 tracking-tight">
-                Engineering Services
+                Software & Web Development Services
               </h2>
             </div>
             <p className="text-sm text-slate-300 max-w-md mt-3 md:mt-0 leading-relaxed">
-              End-to-end technical craftsmanship across modern web architectures, native mobile ecosystems, cloud backends, and GST billing automation.
+              Custom software solutions engineered to solve real business operational challenges with speed, precision, and reliable architecture.
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             
-            {/* Service 1: Web Development */}
+            {/* Service 1: Business Websites */}
             <div className="p-8 rounded-3xl bg-gradient-to-b from-[#111e47]/90 to-[#0a1330]/90 border border-blue-500/20 hover:border-blue-400/50 transition-all duration-300 flex flex-col justify-between group shadow-xl">
               <div>
                 <div className="w-14 h-14 rounded-2xl bg-blue-500/15 border border-blue-500/30 flex items-center justify-center text-cyan-400 group-hover:bg-blue-600 group-hover:text-white transition-all mb-6">
-                  <Code2 className="w-7 h-7" />
+                  <Globe className="w-7 h-7" />
                 </div>
-                <h3 className="text-xl font-bold text-white mb-2">Web Application Development</h3>
+                <h3 className="text-xl font-bold text-white mb-2">Business & Corporate Websites</h3>
                 <p className="text-xs text-slate-300 leading-relaxed mb-6">
-                  High-speed single page applications, enterprise customer portals, and dynamic SaaS platforms built using React 19, TypeScript, and Next.js.
+                  Fast, responsive, and SEO-optimized business websites designed to showcase your services, build brand credibility, and convert visitors into qualified client enquiries.
                 </p>
                 <div className="space-y-2 mb-6">
-                  {['React 19 & Next.js Frameworks', 'Interactive Data Dashboards', 'Sub-second Page Speeds', 'Secure Client Portals'].map((item, i) => (
+                  {['Responsive Mobile & Desktop Design', 'Lead Capture & Enquiry Forms', 'Product & Service Catalogues', 'Hostinger / Custom Domain Setup'].map((item, i) => (
                     <div key={i} className="flex items-center text-xs text-slate-200 space-x-2">
                       <Check className="w-3.5 h-3.5 text-cyan-400 flex-shrink-0" />
                       <span>{item}</span>
@@ -577,23 +630,23 @@ export const PublicWebsite: React.FC = () => {
                 href="#contact"
                 className="inline-flex items-center space-x-2 text-xs font-bold text-cyan-400 hover:text-cyan-300 pt-4 border-t border-blue-500/20 group-hover:translate-x-1 transition-transform"
               >
-                <span>Request Web Proposal</span>
+                <span>Discuss Website Project</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </a>
             </div>
 
-            {/* Service 2: Mobile Engineering */}
+            {/* Service 2: Custom Web Applications */}
             <div className="p-8 rounded-3xl bg-gradient-to-b from-[#111e47]/90 to-[#0a1330]/90 border border-blue-500/20 hover:border-cyan-400/50 transition-all duration-300 flex flex-col justify-between group shadow-xl">
               <div>
                 <div className="w-14 h-14 rounded-2xl bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center text-cyan-400 group-hover:bg-cyan-600 group-hover:text-white transition-all mb-6">
-                  <Smartphone className="w-7 h-7" />
+                  <Code2 className="w-7 h-7" />
                 </div>
-                <h3 className="text-xl font-bold text-white mb-2">Mobile App Engineering</h3>
+                <h3 className="text-xl font-bold text-white mb-2">Custom Web Applications</h3>
                 <p className="text-xs text-slate-300 leading-relaxed mb-6">
-                  Native feel, cross-platform mobile apps for iOS and Android built on React Native with smooth offline caching and native hardware integrations.
+                  Interactive web applications built on React and TypeScript with tailored business logic, user authentication, interactive workflows, and dynamic data processing.
                 </p>
                 <div className="space-y-2 mb-6">
-                  {['iOS & Android Cross-Platform', 'Push Notifications & Background Sync', 'Native Biometrics & Camera Access', 'App Store & Play Store Deployment'].map((item, i) => (
+                  {['React & TypeScript Architecture', 'User Accounts & Role Permissions', 'Dynamic State & Workflow Engines', 'Responsive on Phones & Tablets'].map((item, i) => (
                     <div key={i} className="flex items-center text-xs text-slate-200 space-x-2">
                       <Check className="w-3.5 h-3.5 text-cyan-400 flex-shrink-0" />
                       <span>{item}</span>
@@ -605,23 +658,23 @@ export const PublicWebsite: React.FC = () => {
                 href="#contact"
                 className="inline-flex items-center space-x-2 text-xs font-bold text-cyan-400 hover:text-cyan-300 pt-4 border-t border-blue-500/20 group-hover:translate-x-1 transition-transform"
               >
-                <span>Request Mobile Proposal</span>
+                <span>Discuss Web Application</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </a>
             </div>
 
-            {/* Service 3: Backend & Cloud */}
+            {/* Service 3: Management Systems */}
             <div className="p-8 rounded-3xl bg-gradient-to-b from-[#111e47]/90 to-[#0a1330]/90 border border-blue-500/20 hover:border-purple-400/50 transition-all duration-300 flex flex-col justify-between group shadow-xl">
               <div>
                 <div className="w-14 h-14 rounded-2xl bg-purple-500/15 border border-purple-500/30 flex items-center justify-center text-purple-300 group-hover:bg-purple-600 group-hover:text-white transition-all mb-6">
-                  <Server className="w-7 h-7" />
+                  <Building2 className="w-7 h-7" />
                 </div>
-                <h3 className="text-xl font-bold text-white mb-2">Backend & Cloud Architecture</h3>
+                <h3 className="text-xl font-bold text-white mb-2">Hospital, Medical & Retail Systems</h3>
                 <p className="text-xs text-slate-300 leading-relaxed mb-6">
-                  Microservices, serverless workloads, REST/GraphQL APIs, and auto-scaling cloud deployments with 99.9% uptime architecture.
+                  Specialized domain systems for hospitals, clinics, pharmacies, and retail shops to manage patient records, appointments, inventory, and point-of-sale operations.
                 </p>
                 <div className="space-y-2 mb-6">
-                  {['Node.js, Express & Go Services', 'Docker Container Orchestration', 'AWS / Google Cloud Setup', 'OAuth 2.0 & JWT Security Control'].map((item, i) => (
+                  {['Hospital & Patient Record Management', 'Doctor Appointments & Scheduling', 'Retail & Pharmacy Inventory', 'Multi-User Staff Access Control'].map((item, i) => (
                     <div key={i} className="flex items-center text-xs text-slate-200 space-x-2">
                       <Check className="w-3.5 h-3.5 text-purple-400 flex-shrink-0" />
                       <span>{item}</span>
@@ -633,23 +686,23 @@ export const PublicWebsite: React.FC = () => {
                 href="#contact"
                 className="inline-flex items-center space-x-2 text-xs font-bold text-purple-400 hover:text-purple-300 pt-4 border-t border-blue-500/20 group-hover:translate-x-1 transition-transform"
               >
-                <span>Request Backend Proposal</span>
+                <span>Discuss Management System</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </a>
             </div>
 
-            {/* Service 4: Database & Realtime */}
+            {/* Service 4: Admin Panels & Dashboards */}
             <div className="p-8 rounded-3xl bg-gradient-to-b from-[#111e47]/90 to-[#0a1330]/90 border border-blue-500/20 hover:border-emerald-400/50 transition-all duration-300 flex flex-col justify-between group shadow-xl">
               <div>
                 <div className="w-14 h-14 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400 group-hover:bg-emerald-600 group-hover:text-white transition-all mb-6">
-                  <Database className="w-7 h-7" />
+                  <LayoutDashboard className="w-7 h-7" />
                 </div>
-                <h3 className="text-xl font-bold text-white mb-2">Database & Real-time Systems</h3>
+                <h3 className="text-xl font-bold text-white mb-2">Admin Panels & Dashboards</h3>
                 <p className="text-xs text-slate-300 leading-relaxed mb-6">
-                  Relational PostgreSQL, Supabase BaaS, and Redis caching layers designed for zero data loss and sub-millisecond query performance.
+                  Centralized administrative dashboards for business owners and operators to manage enquiries, track orders, monitor records, and export reports in real time.
                 </p>
                 <div className="space-y-2 mb-6">
-                  {['PostgreSQL Schema & RLS Policies', 'Supabase Database Provisioning', 'Redis In-Memory Caching', 'WebSocket Live Multi-User Sync'].map((item, i) => (
+                  {['Enquiry & Lead Tracking Desk', 'CRUD Operations & Record Control', 'Search, Filter & Sorting Features', 'Data Export to Excel / PDF'].map((item, i) => (
                     <div key={i} className="flex items-center text-xs text-slate-200 space-x-2">
                       <Check className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" />
                       <span>{item}</span>
@@ -661,51 +714,23 @@ export const PublicWebsite: React.FC = () => {
                 href="#contact"
                 className="inline-flex items-center space-x-2 text-xs font-bold text-emerald-400 hover:text-emerald-300 pt-4 border-t border-blue-500/20 group-hover:translate-x-1 transition-transform"
               >
-                <span>Request DB Architecture</span>
+                <span>Discuss Admin Dashboard</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </a>
             </div>
 
-            {/* Service 5: UI/UX Design */}
-            <div className="p-8 rounded-3xl bg-gradient-to-b from-[#111e47]/90 to-[#0a1330]/90 border border-blue-500/20 hover:border-pink-400/50 transition-all duration-300 flex flex-col justify-between group shadow-xl">
-              <div>
-                <div className="w-14 h-14 rounded-2xl bg-pink-500/15 border border-pink-500/30 flex items-center justify-center text-pink-400 group-hover:bg-pink-600 group-hover:text-white transition-all mb-6">
-                  <Palette className="w-7 h-7" />
-                </div>
-                <h3 className="text-xl font-bold text-white mb-2">UI/UX & Design Systems</h3>
-                <p className="text-xs text-slate-300 leading-relaxed mb-6">
-                  Bespoke design systems, responsive wireframing, high-fidelity Figma interactive prototypes, and conversion-focused user interfaces.
-                </p>
-                <div className="space-y-2 mb-6">
-                  {['Figma High-Fidelity Prototypes', 'Design Tokens & UI Component Kits', 'Mobile Responsive Grid Math', 'User Flow & Usability Audits'].map((item, i) => (
-                    <div key={i} className="flex items-center text-xs text-slate-200 space-x-2">
-                      <Check className="w-3.5 h-3.5 text-pink-400 flex-shrink-0" />
-                      <span>{item}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              <a 
-                href="#contact"
-                className="inline-flex items-center space-x-2 text-xs font-bold text-pink-400 hover:text-pink-300 pt-4 border-t border-blue-500/20 group-hover:translate-x-1 transition-transform"
-              >
-                <span>Request UI/UX Prototype</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </a>
-            </div>
-
-            {/* Service 6: GST Billing & Invoicing Systems */}
+            {/* Service 5: Billing, Quotation & Inventory */}
             <div className="p-8 rounded-3xl bg-gradient-to-b from-[#111e47]/90 to-[#0a1330]/90 border border-blue-500/20 hover:border-amber-400/50 transition-all duration-300 flex flex-col justify-between group shadow-xl">
               <div>
                 <div className="w-14 h-14 rounded-2xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400 group-hover:bg-amber-600 group-hover:text-white transition-all mb-6">
                   <FileSpreadsheet className="w-7 h-7" />
                 </div>
-                <h3 className="text-xl font-bold text-white mb-2">GST Billing & Accounting Systems</h3>
+                <h3 className="text-xl font-bold text-white mb-2">Billing, Quotation & Inventory</h3>
                 <p className="text-xs text-slate-300 leading-relaxed mb-6">
-                  Automated quotation and tax invoice software engines with SAC Code 998314 compliance, dynamic tax calculation, and instant PDF generation.
+                  Automated commercial workflows with professional quotation generation, GST tax invoicing (CGST/SGST/IGST), PDF dispatch, and real-time inventory tracking.
                 </p>
                 <div className="space-y-2 mb-6">
-                  {['SAC 998314 Compliant Invoicing', 'CGST, SGST & IGST Calculation', 'Automated PDF Document Output', 'Client CRM & Payment Ledger'].map((item, i) => (
+                  {['SAC 998314 GST Compliance', 'Automated PDF Generation Engine', 'Email Dispatch with Attachments', 'Stock & Inventory Level Alerts'].map((item, i) => (
                     <div key={i} className="flex items-center text-xs text-slate-200 space-x-2">
                       <Check className="w-3.5 h-3.5 text-amber-400 flex-shrink-0" />
                       <span>{item}</span>
@@ -717,11 +742,120 @@ export const PublicWebsite: React.FC = () => {
                 href="#contact"
                 className="inline-flex items-center space-x-2 text-xs font-bold text-amber-400 hover:text-amber-300 pt-4 border-t border-blue-500/20 group-hover:translate-x-1 transition-transform"
               >
-                <span>Explore Invoicing Tech</span>
+                <span>Discuss Billing Engine</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </a>
             </div>
 
+            {/* Service 6: Database Solutions & Software Modifications */}
+            <div className="p-8 rounded-3xl bg-gradient-to-b from-[#111e47]/90 to-[#0a1330]/90 border border-blue-500/20 hover:border-pink-400/50 transition-all duration-300 flex flex-col justify-between group shadow-xl">
+              <div>
+                <div className="w-14 h-14 rounded-2xl bg-pink-500/15 border border-pink-500/30 flex items-center justify-center text-pink-400 group-hover:bg-pink-600 group-hover:text-white transition-all mb-6">
+                  <Database className="w-7 h-7" />
+                </div>
+                <h3 className="text-xl font-bold text-white mb-2">Database Solutions & Modifications</h3>
+                <p className="text-xs text-slate-300 leading-relaxed mb-6">
+                  PostgreSQL and InsForge database architecture, data migration, software modifications, bug fixing, and UI enhancements for existing web systems.
+                </p>
+                <div className="space-y-2 mb-6">
+                  {['PostgreSQL & InsForge Architecture', 'Existing Codebase Bug Fixing & Enhancements', 'Database Migration & Security Policies', 'Deployment on Netlify & Hostinger'].map((item, i) => (
+                    <div key={i} className="flex items-center text-xs text-slate-200 space-x-2">
+                      <Check className="w-3.5 h-3.5 text-pink-400 flex-shrink-0" />
+                      <span>{item}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <a 
+                href="#contact"
+                className="inline-flex items-center space-x-2 text-xs font-bold text-pink-400 hover:text-pink-300 pt-4 border-t border-blue-500/20 group-hover:translate-x-1 transition-transform"
+              >
+                <span>Discuss DB / Modifications</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </a>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      {/* ─────────────────────────────────────────────────────────────
+          WHY CHOOSE US / KEY STRENGTHS SECTION
+          ───────────────────────────────────────────────────────────── */}
+      <section id="why-us" className="py-24 border-b border-blue-500/20 bg-gradient-to-b from-[#060c1d] to-[#0a1330] scroll-mt-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          <div className="text-center max-w-2xl mx-auto mb-16">
+            <span className="text-xs font-black uppercase tracking-widest text-cyan-400 bg-blue-500/15 px-3 py-1 rounded-full border border-blue-500/30">
+              Our Principles
+            </span>
+            <h2 className="text-3xl sm:text-4xl font-black text-white mt-3 tracking-tight">
+              Why Choose Fusion Forge Creation
+            </h2>
+            <p className="text-sm text-slate-300 mt-2">
+              We focus on practical, reliable software engineering with direct communication and transparent execution.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="p-6 rounded-3xl bg-[#091433]/80 border border-blue-500/20 hover:border-cyan-400/40 transition-all">
+              <div className="w-12 h-12 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400 mb-4">
+                <Users className="w-6 h-6" />
+              </div>
+              <h3 className="text-lg font-bold text-white mb-2">Direct Developer Communication</h3>
+              <p className="text-xs text-slate-300 leading-relaxed">
+                Work directly with the engineer building your system. No account managers or communication barriers, ensuring requirements are understood and executed accurately.
+              </p>
+            </div>
+
+            <div className="p-6 rounded-3xl bg-[#091433]/80 border border-blue-500/20 hover:border-cyan-400/40 transition-all">
+              <div className="w-12 h-12 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 mb-4">
+                <Clock className="w-6 h-6" />
+              </div>
+              <h3 className="text-lg font-bold text-white mb-2">Realistic Delivery Timelines</h3>
+              <p className="text-xs text-slate-300 leading-relaxed">
+                We establish achievable milestone schedules with clear progress updates, ensuring software is thoroughly tested and delivered on schedule.
+              </p>
+            </div>
+
+            <div className="p-6 rounded-3xl bg-[#091433]/80 border border-blue-500/20 hover:border-cyan-400/40 transition-all">
+              <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 mb-4">
+                <Settings className="w-6 h-6" />
+              </div>
+              <h3 className="text-lg font-bold text-white mb-2">Custom Workflow Development</h3>
+              <p className="text-xs text-slate-300 leading-relaxed">
+                Every application is designed around your specific business logic and operational workflow, avoiding restrictive off-the-shelf templates.
+              </p>
+            </div>
+
+            <div className="p-6 rounded-3xl bg-[#091433]/80 border border-blue-500/20 hover:border-cyan-400/40 transition-all">
+              <div className="w-12 h-12 rounded-2xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 mb-4">
+                <Cpu className="w-6 h-6" />
+              </div>
+              <h3 className="text-lg font-bold text-white mb-2">Practical Technology Choices</h3>
+              <p className="text-xs text-slate-300 leading-relaxed">
+                We utilize proven, industry-standard technologies (React, Node.js, PostgreSQL, InsForge) that provide long-term stability and easy maintainability.
+              </p>
+            </div>
+
+            <div className="p-6 rounded-3xl bg-[#091433]/80 border border-blue-500/20 hover:border-cyan-400/40 transition-all">
+              <div className="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 mb-4">
+                <Code className="w-6 h-6" />
+              </div>
+              <h3 className="text-lg font-bold text-white mb-2">Clean Structured Code</h3>
+              <p className="text-xs text-slate-300 leading-relaxed">
+                Type-safe, modular codebases with clear component architecture make future enhancements, maintenance, and integrations straightforward.
+              </p>
+            </div>
+
+            <div className="p-6 rounded-3xl bg-[#091433]/80 border border-blue-500/20 hover:border-cyan-400/40 transition-all">
+              <div className="w-12 h-12 rounded-2xl bg-pink-500/10 border border-pink-500/20 flex items-center justify-center text-pink-400 mb-4">
+                <ShieldCheck className="w-6 h-6" />
+              </div>
+              <h3 className="text-lg font-bold text-white mb-2">Post-Launch Support</h3>
+              <p className="text-xs text-slate-300 leading-relaxed">
+                We provide ongoing assistance, bug resolution, server configuration support, and feature updates so your software continues to run smoothly.
+              </p>
+            </div>
           </div>
         </div>
       </section>
@@ -742,7 +876,7 @@ export const PublicWebsite: React.FC = () => {
 
           {/* Category Filter Tabs */}
           <div className="flex flex-wrap gap-2 mt-4 md:mt-0">
-            {['all', 'Web Application', 'Mobile App', 'Enterprise Cloud'].map(cat => (
+            {['all', 'Management System', 'Business Website', 'Web Application'].map(cat => (
               <button
                 key={cat}
                 onClick={() => setPortfolioCategory(cat)}
@@ -752,7 +886,7 @@ export const PublicWebsite: React.FC = () => {
                     : 'bg-[#0e1938] text-slate-300 hover:text-white border border-blue-500/20'
                 }`}
               >
-                {cat === 'all' ? 'All Projects' : cat}
+                {cat === 'all' ? 'All Solutions' : cat}
               </button>
             ))}
           </div>
@@ -905,8 +1039,6 @@ export const PublicWebsite: React.FC = () => {
                 />
                 <div>
                   <div className="text-sm font-bold text-white">{testi.name}</div>
-                  <div className="text-[11px] text-slate-400">{testi.role}</div>
-                  <div className="text-[10px] text-cyan-400 font-semibold">{testi.company}</div>
                 </div>
               </div>
             </div>
@@ -1010,193 +1142,256 @@ export const PublicWebsite: React.FC = () => {
               </span>
             </div>
 
-            {submitted ? (
-              <div className="p-8 rounded-2xl bg-emerald-950/40 border border-emerald-500/40 text-center space-y-3">
-                <CheckCircle2 className="w-14 h-14 text-emerald-400 mx-auto" />
-                <h3 className="text-2xl font-black text-white">Project Scope Submitted Successfully!</h3>
-                <p className="text-xs text-slate-300 max-w-md mx-auto leading-relaxed">
-                  Thank you! Your requirements and organizational details have been registered in our Project Portal. Manoj Satapathy & the engineering team will deliver a structured commercial proposal to <span className="font-mono text-cyan-400 font-bold">{form.email}</span> shortly.
-                </p>
-                <div className="pt-4">
-                  <button
-                    onClick={() => {
-                      setSubmitted(false);
-                      setGstinError(null);
-                      setForm({
-                        name: '',
-                        email: '',
-                        phone: '',
-                        company: '',
-                        gstin: '',
-                        address: '',
-                        serviceCategory: 'web_development',
-                        projectDescription: '',
-                        budgetRange: '₹1,50,000 - ₹3,00,000'
-                      });
-                    }}
-                    className="px-6 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-blue-500/30 text-xs font-bold text-white transition-colors cursor-pointer"
-                  >
-                    Submit Another Project
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <form onSubmit={handleEnquirySubmit} className="space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-[11px] font-bold uppercase tracking-wider text-slate-300 block mb-1">
-                      Full Name *
-                    </label>
-                    <input
-                      required
-                      type="text"
-                      placeholder="e.g. Vikramaditya Bose"
-                      value={form.name}
-                      onChange={e => setForm({ ...form, name: e.target.value })}
-                      className="w-full px-4 py-2.5 rounded-xl bg-slate-950/80 border border-slate-700/80 text-xs text-white placeholder:text-slate-500 focus:bg-slate-900 focus:border-blue-500 outline-none transition-colors"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-[11px] font-bold uppercase tracking-wider text-slate-300 block mb-1">
-                      Official Email *
-                    </label>
-                    <input
-                      required
-                      type="email"
-                      placeholder="vikram@company.com"
-                      value={form.email}
-                      onChange={e => setForm({ ...form, email: e.target.value })}
-                      className="w-full px-4 py-2.5 rounded-xl bg-slate-950/80 border border-slate-700/80 text-xs text-white placeholder:text-slate-500 focus:bg-slate-900 focus:border-blue-500 outline-none transition-colors"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-[11px] font-bold uppercase tracking-wider text-slate-300 block mb-1">
-                      Phone / WhatsApp *
-                    </label>
-                    <input
-                      required
-                      type="tel"
-                      placeholder="+91 98765 43210"
-                      value={form.phone}
-                      onChange={e => setForm({ ...form, phone: e.target.value })}
-                      className="w-full px-4 py-2.5 rounded-xl bg-slate-950/80 border border-slate-700/80 text-xs text-white placeholder:text-slate-500 focus:bg-slate-900 focus:border-blue-500 outline-none transition-colors"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-[11px] font-bold uppercase tracking-wider text-slate-300 block mb-1">
-                      Company / Organization
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="Enterprise / Startup Name"
-                      value={form.company}
-                      onChange={e => setForm({ ...form, company: e.target.value })}
-                      className="w-full px-4 py-2.5 rounded-xl bg-slate-950/80 border border-slate-700/80 text-xs text-white placeholder:text-slate-500 focus:bg-slate-900 focus:border-blue-500 outline-none transition-colors"
-                    />
-                  </div>
-                </div>
-
-                {/* GSTIN and Address Fields */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <div className="flex items-center justify-between mb-1">
-                      <label className="text-[11px] font-bold uppercase tracking-wider text-slate-300">
-                        GSTIN
-                      </label>
-                      <span className="text-[10px] text-slate-400 font-mono">15-Digit (Optional if URP)</span>
-                    </div>
-                    <input
-                      type="text"
-                      maxLength={15}
-                      placeholder="e.g. 27AABCA1234F1ZM"
-                      value={form.gstin}
-                      onChange={e => {
-                        setForm({ ...form, gstin: e.target.value.toUpperCase() });
-                        if (gstinError) setGstinError(null);
-                      }}
-                      className={`w-full px-4 py-2.5 rounded-xl bg-slate-950/80 border text-xs text-white placeholder:text-slate-500 focus:bg-slate-900 outline-none transition-colors uppercase font-mono ${
-                        gstinError ? 'border-rose-500 focus:border-rose-500' : 'border-slate-700/80 focus:border-blue-500'
-                      }`}
-                    />
-                    {gstinError && (
-                      <p className="text-[10px] text-rose-400 mt-1 font-medium">{gstinError}</p>
-                    )}
-                  </div>
-                  <div>
-                    <label className="text-[11px] font-bold uppercase tracking-wider text-slate-300 block mb-1">
-                      Address
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="Corporate / Registered Office Address"
-                      value={form.address}
-                      onChange={e => setForm({ ...form, address: e.target.value })}
-                      className="w-full px-4 py-2.5 rounded-xl bg-slate-950/80 border border-slate-700/80 text-xs text-white placeholder:text-slate-500 focus:bg-slate-900 focus:border-blue-500 outline-none transition-colors"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-[11px] font-bold uppercase tracking-wider text-slate-300 block mb-1">
-                      Target Service Category *
-                    </label>
-                    <select
-                      value={form.serviceCategory}
-                      onChange={e => setForm({ ...form, serviceCategory: e.target.value as any })}
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950/80 border border-slate-700/80 text-xs text-white focus:bg-slate-900 focus:border-blue-500 outline-none transition-colors"
-                    >
-                      <option value="web_development" className="bg-[#0a1330] text-white">Web Application Development</option>
-                      <option value="mobile_app" className="bg-[#0a1330] text-white">Mobile Application (iOS/Android)</option>
-                      <option value="full_stack_enterprise" className="bg-[#0a1330] text-white">Full-Stack Enterprise Suite</option>
-                      <option value="backend_api" className="bg-[#0a1330] text-white">Backend & Cloud Architecture</option>
-                      <option value="database_solutions" className="bg-[#0a1330] text-white">Database & Realtime Systems</option>
-                      <option value="ui_ux_design" className="bg-[#0a1330] text-white">UI/UX & Design Systems</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="text-[11px] font-bold uppercase tracking-wider text-slate-300 block mb-1">
-                      Estimated Budget Range
-                    </label>
-                    <select
-                      value={form.budgetRange}
-                      onChange={e => setForm({ ...form, budgetRange: e.target.value })}
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950/80 border border-slate-700/80 text-xs text-white focus:bg-slate-900 focus:border-blue-500 outline-none transition-colors"
-                    >
-                      <option value="₹50,000 - ₹1,50,000" className="bg-[#0a1330] text-white">₹50,000 - ₹1,50,000 (MVP / Prototype)</option>
-                      <option value="₹1,50,000 - ₹3,00,000" className="bg-[#0a1330] text-white">₹1,50,000 - ₹3,00,000 (Standard Web/App)</option>
-                      <option value="₹3,00,000 - ₹6,00,000" className="bg-[#0a1330] text-white">₹3,00,000 - ₹6,00,000 (Enterprise Cloud)</option>
-                      <option value="₹6,00,000+" className="bg-[#0a1330] text-white">₹6,00,000+ (High-Scale Multi-Platform)</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="text-[11px] font-bold uppercase tracking-wider text-slate-300 block mb-1">
-                    Project Scope & Requirements *
-                  </label>
-                  <textarea
-                    required
-                    rows={4}
-                    placeholder="Describe your target objectives, required user flows, external integrations, timeline, etc..."
-                    value={form.projectDescription}
-                    onChange={e => setForm({ ...form, projectDescription: e.target.value })}
-                    className="w-full px-4 py-2.5 rounded-xl bg-slate-950/80 border border-slate-700/80 text-xs text-white placeholder:text-slate-500 focus:bg-slate-900 focus:border-blue-500 outline-none transition-colors"
-                  />
-                </div>
-
-                <button
-                  type="submit"
-                  className="w-full py-4 rounded-2xl bg-blue-600 hover:bg-blue-500 text-white font-black text-sm transition-all shadow-xl shadow-blue-600/30 hover:scale-[1.01] flex items-center justify-center space-x-2 cursor-pointer"
+            <AnimatePresence mode="wait">
+              {submitted ? (
+                <motion.div
+                  key="success-message"
+                  initial={{ opacity: 0, scale: 0.92, y: 20 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95, y: -15 }}
+                  transition={{ 
+                    duration: 0.45, 
+                    ease: [0.16, 1, 0.3, 1] 
+                  }}
+                  className="p-8 sm:p-10 rounded-2xl bg-gradient-to-b from-emerald-950/50 to-slate-950/80 border border-emerald-500/40 text-center space-y-4 shadow-2xl shadow-emerald-950/40 relative overflow-hidden"
                 >
-                  <Send className="w-4 h-4" />
-                  <span>Submit Project Scope for Quotation</span>
-                </button>
-              </form>
-            )}
+                  {/* Subtle background ambient glow */}
+                  <div className="absolute -top-12 -left-12 w-36 h-36 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+                  <div className="absolute -bottom-12 -right-12 w-36 h-36 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
+
+                  <motion.div
+                    initial={{ scale: 0, rotate: -25 }}
+                    animate={{ scale: 1, rotate: 0 }}
+                    transition={{ 
+                      type: "spring", 
+                      stiffness: 350, 
+                      damping: 22, 
+                      delay: 0.1 
+                    }}
+                    className="relative w-16 h-16 mx-auto flex items-center justify-center rounded-2xl bg-emerald-500/20 border border-emerald-500/40 shadow-lg shadow-emerald-500/20"
+                  >
+                    <CheckCircle2 className="w-10 h-10 text-emerald-400" />
+                  </motion.div>
+
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.35, delay: 0.18 }}
+                    className="space-y-2"
+                  >
+                    <span className="inline-block px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-[11px] font-bold tracking-wide uppercase">
+                      Query Dispatched Successfully
+                    </span>
+                    <h3 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+                      Project Scope Submitted!
+                    </h3>
+                  </motion.div>
+
+                  <motion.p
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.35, delay: 0.25 }}
+                    className="text-xs sm:text-sm text-slate-300 max-w-lg mx-auto leading-relaxed"
+                  >
+                    Thank you! Your requirements and organizational details have been registered in our Project Portal. Our executive engineering team will deliver a structured commercial proposal to <span className="font-mono text-cyan-400 font-bold">{form.email}</span> shortly.
+                  </motion.p>
+
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.35, delay: 0.32 }}
+                    className="pt-2"
+                  >
+                    <button
+                      onClick={() => {
+                        setSubmitted(false);
+                        setGstinError(null);
+                        setForm({
+                          name: '',
+                          email: '',
+                          phone: '',
+                          company: '',
+                          gstin: '',
+                          address: '',
+                          serviceCategory: 'web_development',
+                          projectDescription: '',
+                          budgetRange: '₹50,000 - ₹1,00,000'
+                        });
+                      }}
+                      className="px-6 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-blue-500/30 hover:border-cyan-400 text-xs font-bold text-white transition-all shadow-lg hover:shadow-cyan-500/10 hover:scale-[1.02] cursor-pointer"
+                    >
+                      Submit Another Project
+                    </button>
+                  </motion.div>
+                </motion.div>
+              ) : (
+                <motion.form
+                  key="contact-form"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.3 }}
+                  onSubmit={handleEnquirySubmit}
+                  className="space-y-4"
+                >
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-[11px] font-bold uppercase tracking-wider text-slate-300 block mb-1">
+                        Full Name *
+                      </label>
+                      <input
+                        required
+                        type="text"
+                        placeholder="e.g. Vikramaditya Bose"
+                        value={form.name}
+                        onChange={e => setForm({ ...form, name: e.target.value })}
+                        className="w-full px-4 py-2.5 rounded-xl bg-slate-950/80 border border-slate-700/80 text-xs text-white placeholder:text-slate-500 focus:bg-slate-900 focus:border-blue-500 outline-none transition-colors"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[11px] font-bold uppercase tracking-wider text-slate-300 block mb-1">
+                        Official Email *
+                      </label>
+                      <input
+                        required
+                        type="email"
+                        placeholder="vikram@company.com"
+                        value={form.email}
+                        onChange={e => setForm({ ...form, email: e.target.value })}
+                        className="w-full px-4 py-2.5 rounded-xl bg-slate-950/80 border border-slate-700/80 text-xs text-white placeholder:text-slate-500 focus:bg-slate-900 focus:border-blue-500 outline-none transition-colors"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-[11px] font-bold uppercase tracking-wider text-slate-300 block mb-1">
+                        Phone / WhatsApp *
+                      </label>
+                      <input
+                        required
+                        type="tel"
+                        placeholder="+91 98765 43210"
+                        value={form.phone}
+                        onChange={e => setForm({ ...form, phone: e.target.value })}
+                        className="w-full px-4 py-2.5 rounded-xl bg-slate-950/80 border border-slate-700/80 text-xs text-white placeholder:text-slate-500 focus:bg-slate-900 focus:border-blue-500 outline-none transition-colors"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[11px] font-bold uppercase tracking-wider text-slate-300 block mb-1">
+                        Company / Organization
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="Enterprise / Startup Name"
+                        value={form.company}
+                        onChange={e => setForm({ ...form, company: e.target.value })}
+                        className="w-full px-4 py-2.5 rounded-xl bg-slate-950/80 border border-slate-700/80 text-xs text-white placeholder:text-slate-500 focus:bg-slate-900 focus:border-blue-500 outline-none transition-colors"
+                      />
+                    </div>
+                  </div>
+
+                  {/* GSTIN and Address Fields */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="text-[11px] font-bold uppercase tracking-wider text-slate-300">
+                          GSTIN
+                        </label>
+                        <span className="text-[10px] text-slate-400 font-mono">15-Digit (Optional if URP)</span>
+                      </div>
+                      <input
+                        type="text"
+                        maxLength={15}
+                        placeholder="e.g. 27AABCA1234F1ZM"
+                        value={form.gstin}
+                        onChange={e => {
+                          setForm({ ...form, gstin: e.target.value.toUpperCase() });
+                          if (gstinError) setGstinError(null);
+                        }}
+                        className={`w-full px-4 py-2.5 rounded-xl bg-slate-950/80 border text-xs text-white placeholder:text-slate-500 focus:bg-slate-900 outline-none transition-colors uppercase font-mono ${
+                          gstinError ? 'border-rose-500 focus:border-rose-500' : 'border-slate-700/80 focus:border-blue-500'
+                        }`}
+                      />
+                      {gstinError && (
+                        <p className="text-[10px] text-rose-400 mt-1 font-medium">{gstinError}</p>
+                      )}
+                    </div>
+                    <div>
+                      <label className="text-[11px] font-bold uppercase tracking-wider text-slate-300 block mb-1">
+                        Address
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="Corporate / Registered Office Address"
+                        value={form.address}
+                        onChange={e => setForm({ ...form, address: e.target.value })}
+                        className="w-full px-4 py-2.5 rounded-xl bg-slate-950/80 border border-slate-700/80 text-xs text-white placeholder:text-slate-500 focus:bg-slate-900 focus:border-blue-500 outline-none transition-colors"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-[11px] font-bold uppercase tracking-wider text-slate-300 block mb-1">
+                        Target Service Category *
+                      </label>
+                      <select
+                        value={form.serviceCategory}
+                        onChange={e => setForm({ ...form, serviceCategory: e.target.value as any })}
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950/80 border border-slate-700/80 text-xs text-white focus:bg-slate-900 focus:border-blue-500 outline-none transition-colors"
+                      >
+                        <option value="web_development" className="bg-[#0a1330] text-white">Web Application Development</option>
+                        <option value="mobile_app" className="bg-[#0a1330] text-white">Mobile Application (iOS/Android)</option>
+                        <option value="full_stack_enterprise" className="bg-[#0a1330] text-white">Full-Stack Enterprise Suite</option>
+                        <option value="backend_api" className="bg-[#0a1330] text-white">Backend & Cloud Architecture</option>
+                        <option value="database_solutions" className="bg-[#0a1330] text-white">Database & Realtime Systems</option>
+                        <option value="ui_ux_design" className="bg-[#0a1330] text-white">UI/UX & Design Systems</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-[11px] font-bold uppercase tracking-wider text-slate-300 block mb-1">
+                        Estimated Budget Range
+                      </label>
+                      <select
+                        value={form.budgetRange}
+                        onChange={e => setForm({ ...form, budgetRange: e.target.value })}
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950/80 border border-slate-700/80 text-xs text-white focus:bg-slate-900 focus:border-blue-500 outline-none transition-colors"
+                      >
+                        <option value="Below ₹50,000" className="bg-[#0a1330] text-white">Below ₹50,000 (Starter / MVP)</option>
+                        <option value="₹50,000 - ₹1,00,000" className="bg-[#0a1330] text-white">₹50,000 - ₹1,00,000 (Standard)</option>
+                        <option value="₹1,00,000 - ₹1,50,000" className="bg-[#0a1330] text-white">₹1,00,000 - ₹1,50,000 (Professional)</option>
+                        <option value="₹1,50,000 - ₹2,00,000" className="bg-[#0a1330] text-white">₹1,50,000 - ₹2,00,000 (Advanced Suite)</option>
+                        <option value="₹2,00,000 - ₹2,50,000" className="bg-[#0a1330] text-white">₹2,00,000 - ₹2,50,000 (Enterprise Cloud)</option>
+                        <option value="₹2,50,000 - ₹5,00,000" className="bg-[#0a1330] text-white">₹2,50,000 - ₹5,00,000 (Enterprise Limit)</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-[11px] font-bold uppercase tracking-wider text-slate-300 block mb-1">
+                      Project Scope & Requirements *
+                    </label>
+                    <textarea
+                      required
+                      rows={4}
+                      placeholder="Describe your target objectives, required user flows, external integrations, timeline, etc..."
+                      value={form.projectDescription}
+                      onChange={e => setForm({ ...form, projectDescription: e.target.value })}
+                      className="w-full px-4 py-2.5 rounded-xl bg-slate-950/80 border border-slate-700/80 text-xs text-white placeholder:text-slate-500 focus:bg-slate-900 focus:border-blue-500 outline-none transition-colors"
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    className="w-full py-4 rounded-2xl bg-blue-600 hover:bg-blue-500 text-white font-black text-sm transition-all shadow-xl shadow-blue-600/30 hover:scale-[1.01] flex items-center justify-center space-x-2 cursor-pointer"
+                  >
+                    <Send className="w-4 h-4" />
+                    <span>Submit Project Scope for Quotation</span>
+                  </button>
+                </motion.form>
+              )}
+            </AnimatePresence>
           </div>
 
           {/* RIGHT: Direct Agency Contacts (5 cols) */}
@@ -1317,24 +1512,28 @@ export const PublicWebsite: React.FC = () => {
 
               {/* Social Channels in Contact Box */}
               <div className="pt-4 border-t border-blue-500/20 flex items-center justify-between">
-                <span className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Official Channels</span>
-                <div className="flex flex-wrap items-center gap-1.5">
+                <span className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Social Channels</span>
+                <div className="flex flex-wrap items-center gap-2">
                   {activeSocialChannels.map(channel => (
                     <a
                       key={channel.id}
                       href={formatSocialUrl(channel.url, channel.platform)}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="p-2 rounded-xl bg-slate-900 border border-slate-700 hover:border-cyan-400 text-slate-400 hover:text-cyan-300 transition-all hover:scale-105 cursor-pointer"
+                      className={`flex items-center space-x-1.5 px-2.5 py-1.5 rounded-xl border text-xs font-semibold transition-all hover:scale-105 cursor-pointer ${
+                        channel.platform === 'youtube' 
+                          ? 'bg-red-500/10 border-red-500/30 text-red-400 hover:bg-red-500/20 hover:border-red-500' 
+                          : channel.platform === 'instagram'
+                          ? 'bg-pink-500/10 border-pink-500/30 text-pink-400 hover:bg-pink-500/20 hover:border-pink-500'
+                          : 'bg-slate-900 border-slate-700 hover:border-cyan-400 text-slate-300 hover:text-cyan-300'
+                      }`}
                       title={channel.name}
                       aria-label={channel.name}
                     >
                       <SocialIcon platform={channel.platform} className="w-3.5 h-3.5" />
+                      <span className="text-[11px] font-medium">{channel.name}</span>
                     </a>
                   ))}
-                  {activeSocialChannels.length === 0 && (
-                    <span className="text-[10px] text-slate-500 italic">No channels active</span>
-                  )}
                 </div>
               </div>
 
@@ -1351,7 +1550,7 @@ export const PublicWebsite: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8 pb-12 border-b border-blue-500/20">
             
-            {/* Col 1: Brand Info & Social Links */}
+            {/* Col 1: Brand Info */}
             <div className="space-y-4 md:col-span-1">
               <BrandLogo size="sm" variant="full" theme="dark" showTagline={false} />
               <p className="text-xs text-slate-400 leading-relaxed">
@@ -1373,16 +1572,20 @@ export const PublicWebsite: React.FC = () => {
                       href={formatSocialUrl(channel.url, channel.platform)}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="p-2 rounded-xl bg-slate-900/90 border border-slate-800 hover:border-cyan-400 text-slate-400 hover:text-cyan-300 transition-all shadow-sm hover:scale-105"
+                      className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all shadow-sm hover:scale-105 cursor-pointer ${
+                        channel.platform === 'youtube'
+                          ? 'bg-red-500/10 border-red-500/30 text-red-400 hover:bg-red-500/20 hover:border-red-400'
+                          : channel.platform === 'instagram'
+                          ? 'bg-pink-500/10 border-pink-500/30 text-pink-400 hover:bg-pink-500/20 hover:border-pink-400'
+                          : 'bg-slate-900/90 border-slate-800 hover:border-cyan-400 text-slate-300 hover:text-cyan-300'
+                      }`}
                       title={channel.name}
                       aria-label={channel.name}
                     >
-                      <SocialIcon platform={channel.platform} className="w-4 h-4" />
+                      <SocialIcon platform={channel.platform} className="w-3.5 h-3.5" />
+                      <span className="text-[11px] font-medium">{channel.name}</span>
                     </a>
                   ))}
-                  {activeSocialChannels.length === 0 && (
-                    <span className="text-[11px] text-slate-500 italic">No social links configured</span>
-                  )}
                 </div>
               </div>
             </div>
@@ -1442,24 +1645,6 @@ export const PublicWebsite: React.FC = () => {
                   Jurisdiction: <span className="text-slate-200 font-semibold">{config.jurisdiction || 'Silvassa, Dadra & Nagar Haveli'}</span>
                 </div>
               </div>
-              <div className="pt-2 flex flex-wrap items-center gap-2">
-                <button
-                  id="btn-footer-staff-portal"
-                  onClick={() => setShowLoginModal(true)}
-                  className="px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-blue-500/30 text-slate-300 hover:text-white text-[11px] font-semibold flex items-center space-x-1.5 transition-colors cursor-pointer"
-                >
-                  <ShieldCheck className="w-3 h-3 text-cyan-400" />
-                  <span>Staff Portal</span>
-                </button>
-                <button
-                  id="btn-footer-client-portal"
-                  onClick={() => setShowClientPortalModal(true)}
-                  className="px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-cyan-500/30 text-cyan-300 hover:text-white text-[11px] font-semibold flex items-center space-x-1.5 transition-colors cursor-pointer"
-                >
-                  <Lock className="w-3 h-3 text-cyan-400" />
-                  <span>Client Portal</span>
-                </button>
-              </div>
             </div>
 
           </div>
@@ -1490,24 +1675,28 @@ export const PublicWebsite: React.FC = () => {
               <button 
                 type="button"
                 onClick={() => {
-                  const doc = legalDocuments.find(d => d.slug === 'terms-of-engagement') || legalDocuments[1];
+                  const doc = legalDocuments.find(d => d.slug === 'terms-and-conditions' || d.slug === 'terms-of-engagement') || legalDocuments[1];
                   if (doc) setSelectedLegalDoc(doc);
                 }}
                 className="hover:text-cyan-300 transition-colors cursor-pointer"
               >
-                Terms of Engagement
+                Terms & Conditions
               </button>
-              <span className="text-slate-700">•</span>
-              <button 
-                type="button"
-                onClick={() => {
-                  const doc = legalDocuments.find(d => d.slug === 'gst-compliance') || legalDocuments[2];
-                  if (doc) setSelectedLegalDoc(doc);
-                }}
-                className="hover:text-cyan-300 transition-colors cursor-pointer"
-              >
-                GST Compliance
-              </button>
+              {(agencyConfig?.gst_compliance_active || (agencyConfig?.gstin && agencyConfig.gstin.trim().toUpperCase() !== 'URP' && agencyConfig.gstin.trim().length === 15)) && (
+                <>
+                  <span className="text-slate-700">•</span>
+                  <button 
+                    type="button"
+                    onClick={() => {
+                      const doc = legalDocuments.find(d => d.slug === 'gst-compliance') || legalDocuments[2];
+                      if (doc) setSelectedLegalDoc(doc);
+                    }}
+                    className="hover:text-cyan-300 transition-colors cursor-pointer"
+                  >
+                    GST Compliance
+                  </button>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -1548,8 +1737,10 @@ export const PublicWebsite: React.FC = () => {
                 <strong>Document Summary:</strong> {selectedLegalDoc.summary}
               </div>
               
-              <div className="bg-[#070e24] p-5 rounded-2xl border border-blue-500/20 whitespace-pre-wrap font-sans space-y-2">
-                {selectedLegalDoc.content}
+              <div className="bg-[#070e24] p-6 rounded-2xl border border-blue-500/20 font-sans space-y-3 text-slate-200 text-xs sm:text-sm">
+                <div className="prose prose-invert max-w-none space-y-3">
+                  <Markdown>{selectedLegalDoc.content}</Markdown>
+                </div>
               </div>
             </div>
 
@@ -1570,15 +1761,7 @@ export const PublicWebsite: React.FC = () => {
       )}
 
       {/* ─────────────────────────────────────────────────────────────
-          MODAL: SECURE SUPABASE AUTHENTICATION MODAL (MFA / 2FA & Password Recovery)
-          ───────────────────────────────────────────────────────────── */}
-      <SupabaseAuthModal
-        isOpen={showLoginModal}
-        onClose={() => setShowLoginModal(false)}
-      />
-
-      {/* ─────────────────────────────────────────────────────────────
-          MODAL: CLIENT PROJECT & DELIVERABLE PORTAL (Partioned from Admin)
+          MODAL: CLIENT PROJECT & DELIVERABLE PORTAL
           ───────────────────────────────────────────────────────────── */}
       <ClientPortalModal
         isOpen={showClientPortalModal}

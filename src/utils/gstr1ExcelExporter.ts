@@ -620,21 +620,21 @@ export function exportGstr1Workbook(
   const netGstr3bTax = totalTax - totalCnTax + totalDnTax;
 
   const summaryRawData = [
-    ['FUSION FORGE CREATIONS — STATUTORY GST REPORTING SUMMARY', ''],
+    ['FUSION FORGE CREATION — STATUTORY GST REPORTING SUMMARY', ''],
     ['Generated Under Authority of Goods & Services Tax Rules, India', ''],
     ['', ''],
     ['Report Attribute', 'Configuration / Value'],
-    ['Taxpayer Legal Name', agency?.legal_name || 'Fusion Forge Creations Private Limited'],
-    ['Taxpayer Trade Name', agency?.trade_name || agency?.name || 'Fusion Forge Creations'],
-    ['GSTIN of Supplier', agency?.gstin || '26AABCF1234F1Z5'],
-    ['PAN of Supplier', agency?.pan || 'AABCF1234F'],
+    ['Taxpayer Legal Name', agency?.legal_name || agency?.legalName || 'Fusion Forge Creation'],
+    ['Taxpayer Trade Name', agency?.trade_name || agency?.name || 'Fusion Forge Creation'],
+    ['GSTIN of Supplier', agency?.gstin || 'Not Registered / Unregistered'],
+    ['PAN of Supplier', agency?.pan || '—'],
     ['Place of Business / POS', '26-Dadra and Nagar Haveli and Daman and Diu'],
     ['Reporting Date Range', options.periodLabel],
     ['Date Range Filter Type', options.dateRangeType.toUpperCase()],
     ['Filter Start Date', options.startDate],
     ['Filter End Date', options.endDate],
     ['Report Generation Timestamp', `${generationTimestamp} IST`],
-    ['Active LUT ARN for SEZ/Export', agency?.lutNumber || 'AD260426001234F (Valid FY 2026-27)'],
+    ['Active LUT ARN for SEZ/Export', agency?.lutNumber || agency?.lut_number || agency?.lutArn || '—'],
     ['', ''],
     ['STATUTORY OUTWARD SUMMARY (GSTR-1 RECONCILIATION)', ''],
     ['Metric', 'Count / Value (₹ INR)'],
@@ -668,7 +668,7 @@ export function exportGstr1Workbook(
   ];
 
   // Generate File Name: GSTR1_<GSTIN>_<Period>_<Timestamp>.xlsx
-  const safeGstin = (agency?.gstin || '26AABCF1234F1Z5').replace(/[^a-zA-Z0-9]/g, '');
+  const safeGstin = (agency?.gstin || 'UNREGISTERED').replace(/[^a-zA-Z0-9]/g, '');
   const safePeriod = options.periodLabel.replace(/[^a-zA-Z0-9_-]/g, '_');
   const fileName = `GSTR1_${safeGstin}_${safePeriod}.xlsx`;
 

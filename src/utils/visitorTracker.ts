@@ -6,7 +6,7 @@
  * 1. Anonymized, ephemeral session identifier (rotated periodically or per-session)
  * 2. Zero PII collection (no passwords, no form keystrokes, no exact GPS coordinates, no personal IPs)
  * 3. Only aggregates non-sensitive structural metrics (section viewed, device category, screen resolution, duration)
- * 4. Stored persistently in Supabase PostgreSQL visitor_events table with Super Admin monitoring controls
+ * 4. Stored persistently in InsForge PostgreSQL visitor_events table with Super Admin monitoring controls
  */
 
 import { VisitorEvent } from '../types';

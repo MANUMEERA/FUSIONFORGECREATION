@@ -1,193 +1,220 @@
 import express from 'express';
 import path from 'path';
+import { createServer as createViteServer } from 'vite';
+import nodemailer from 'nodemailer';
+import { Resend } from 'resend';
+import { generateAdminLeadAlertEmailHtml, generateCustomerAutoReplyEmailHtml } from './server/emailTemplates';
 
-const app = express();
-const PORT = Number(process.env.PORT) || 3000;
+// Official Business Email Configuration Defaults
+const OFFICIAL_EMAIL = process.env.OFFICIAL_EMAIL || 'admin@fusionforgecreation.com';
+const SENDER_NAME = process.env.SENDER_NAME || 'Fusion Forge Creation';
+const EMAIL_FROM = process.env.EMAIL_FROM || `${SENDER_NAME} <${OFFICIAL_EMAIL}>`;
 
-// Body parser
-app.use(express.json());
+// Resend API Configuration
+const RESEND_API_KEY = (process.env.RESEND_API_KEY || '').trim();
+const RESEND_FROM = process.env.RESEND_FROM || `${SENDER_NAME} <${OFFICIAL_EMAIL}>`;
+const RESEND_SANDBOX_FROM = `${SENDER_NAME} <onboarding@resend.dev>`;
+const RESEND_ACCOUNT_OWNER = process.env.ADMIN_NOTIFY_EMAIL || 'manojsatapathy.jp@gmail.com';
+const resendClient = RESEND_API_KEY ? new Resend(RESEND_API_KEY) : null;
 
-// API health endpoint
-app.get('/api/health', (req, res) => {
-  res.json({
-    status: 'ok',
-    app: 'Fusion Forge Creation',
-    timestamp: new Date().toISOString()
+// Hostinger SMTP Configuration (Direct Mailbox Transport Fallback)
+const SMTP_HOST = process.env.SMTP_HOST || 'smtp.hostinger.com';
+const SMTP_PORT = Number(process.env.SMTP_PORT) || 465;
+const SMTP_SECURE = process.env.SMTP_SECURE !== undefined ? process.env.SMTP_SECURE === 'true' : SMTP_PORT === 465;
+const SMTP_USER = process.env.SMTP_USER || OFFICIAL_EMAIL;
+const SMTP_PASSWORD = process.env.SMTP_PASSWORD || process.env.SMTP_PASS || process.env.EMAIL_PASSWORD;
+
+export interface EmailAttachment {
+  filename: string;
+  content: Buffer | string;
+  contentType?: string;
+}
+
+async function dispatchEmail(options: {
+  to: string;
+  subject: string;
+  html: string;
+  text?: string;
+  replyTo?: string;
+  category?: string;
+  attachments?: EmailAttachment[];
+}): Promise<{ success: boolean; messageId: string; sender: string; provider: string; error?: string; note?: string }> {
+  const recipient = options.to;
+  const replyTo = options.replyTo || OFFICIAL_EMAIL;
+
+  if (!recipient || !recipient.includes('@')) {
+    return {
+      success: false,
+      messageId: '',
+      sender: OFFICIAL_EMAIL,
+      provider: 'none',
+      error: 'Invalid recipient email address.'
+    };
+  }
+
+  // 1. Primary Engine: RESEND API
+  if (resendClient) {
+    try {
+      const resendAttachments = options.attachments?.map(att => ({
+        filename: att.filename,
+        content: Buffer.isBuffer(att.content) ? att.content : (typeof att.content === 'string' ? Buffer.from(att.content, 'base64') : att.content),
+        contentType: att.contentType || 'application/pdf'
+      }));
+
+      const primaryResendResponse = await resendClient.emails.send({
+        from: RESEND_FROM,
+        to: [recipient],
+        replyTo: replyTo,
+        subject: options.subject,
+        html: options.html,
+        text: options.text,
+        attachments: resendAttachments
+      });
+
+      if (primaryResendResponse.data && primaryResendResponse.data.id) {
+        return {
+          success: true,
+          messageId: primaryResendResponse.data.id,
+          sender: RESEND_FROM,
+          provider: 'resend_custom_domain'
+        };
+      }
+    } catch (resendErr: any) {
+      console.warn('[RESEND WARNING]', resendErr.message);
+    }
+  }
+
+  // 2. Fallback Engine: HOSTINGER SMTP
+  if (SMTP_PASSWORD) {
+    try {
+      const transporter = nodemailer.createTransport({
+        host: SMTP_HOST,
+        port: SMTP_PORT,
+        secure: SMTP_SECURE,
+        auth: {
+          user: SMTP_USER,
+          pass: SMTP_PASSWORD
+        },
+        connectionTimeout: 10000,
+        greetingTimeout: 10000
+      });
+
+      const smtpAttachments = options.attachments?.map(att => ({
+        filename: att.filename,
+        content: Buffer.isBuffer(att.content) ? att.content : (typeof att.content === 'string' ? Buffer.from(att.content, 'base64') : att.content),
+        contentType: att.contentType || 'application/pdf'
+      }));
+
+      const smtpInfo = await transporter.sendMail({
+        from: EMAIL_FROM,
+        to: recipient,
+        replyTo: replyTo,
+        subject: options.subject,
+        html: options.html,
+        text: options.text,
+        attachments: smtpAttachments
+      });
+
+      return {
+        success: true,
+        messageId: smtpInfo.messageId,
+        sender: EMAIL_FROM,
+        provider: 'hostinger_smtp'
+      };
+    } catch (smtpErr: any) {
+      console.warn('[SMTP WARNING]', smtpErr.message);
+    }
+  }
+
+  return {
+    success: false,
+    messageId: '',
+    sender: OFFICIAL_EMAIL,
+    provider: 'none',
+    error: 'Email delivery providers unconfigured or failed.'
+  };
+}
+
+async function startServer() {
+  const app = express();
+  const PORT = 3000;
+
+  app.use(express.json({ limit: '15mb' }));
+  app.use(express.urlencoded({ extended: true, limit: '15mb' }));
+
+  // API: Health check
+  app.get('/api/health', (req, res) => {
+    res.json({
+      status: 'ok',
+      service: 'Fusion Forge Creation Web Application',
+      timestamp: new Date().toISOString()
+    });
   });
-});
 
-// Phase 6: Secure Official Email Dispatch for Quotations
-app.post('/api/send-quotation-email', (req, res) => {
-  try {
-    const { to, clientName, quotationNumber, subject, totalAmount, issueDate, validUntil } = req.body;
-    console.log(`[EMAIL DISPATCH] Sent Commercial Quotation ${quotationNumber} from admin@fusionforgecreation.com to ${to} (${clientName}) for amount ₹${totalAmount}`);
-    
-    res.json({
-      success: true,
-      messageId: `msg_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
-      sender: 'admin@fusionforgecreation.com',
-      recipient: to,
-      timestamp: new Date().toISOString()
+  // API: Send Project Scope Enquiry Alert
+  app.post('/api/send-scope-enquiry-alert', async (req, res) => {
+    try {
+      const { enquiry, senderEmail } = req.body;
+      if (!enquiry || !enquiry.email) {
+        return res.status(400).json({ success: false, error: 'Enquiry details with valid email required.' });
+      }
+
+      const adminNotificationHtml = generateAdminLeadAlertEmailHtml(enquiry, OFFICIAL_EMAIL);
+      const customerAutoReplyHtml = generateCustomerAutoReplyEmailHtml(enquiry, OFFICIAL_EMAIL);
+
+      const adminAlertResult = await dispatchEmail({
+        to: senderEmail || OFFICIAL_EMAIL,
+        subject: `⚡ [NEW LEAD] Project Enquiry: ${enquiry.name}${enquiry.company ? ` (${enquiry.company})` : ''}`,
+        html: adminNotificationHtml,
+        category: 'lead_alert'
+      });
+
+      const customerReplyResult = await dispatchEmail({
+        to: enquiry.email,
+        subject: `Thank you for contacting Fusion Forge Creation - Project Scope Received`,
+        html: customerAutoReplyHtml,
+        category: 'customer_reply'
+      });
+
+      res.json({
+        success: true,
+        adminNotification: { sent: adminAlertResult.success, messageId: adminAlertResult.messageId },
+        customerAutoReply: { sent: customerReplyResult.success, messageId: customerReplyResult.messageId }
+      });
+    } catch (err: any) {
+      res.status(500).json({ success: false, error: err.message });
+    }
+  });
+
+  // Generic Email Dispatch Route
+  app.post('/api/send-generic-email', async (req, res) => {
+    try {
+      const { to, subject, html, text, replyTo } = req.body;
+      const result = await dispatchEmail({ to, subject, html, text, replyTo });
+      res.json(result);
+    } catch (err: any) {
+      res.status(500).json({ success: false, error: err.message });
+    }
+  });
+
+  // Vite middleware setup
+  if (process.env.NODE_ENV !== 'production') {
+    const vite = await createViteServer({
+      server: { middlewareMode: true },
+      appType: 'spa'
     });
-  } catch (error: any) {
-    console.error('Email dispatch error:', error);
-    res.status(500).json({ success: false, error: error.message || 'Failed to dispatch email' });
-  }
-});
-
-// Phase 8: Secure Official Email Dispatch for Payment Receipts
-app.post('/api/send-payment-receipt-email', (req, res) => {
-  try {
-    const { 
-      to, 
-      clientName, 
-      clientCompany, 
-      receiptNumber, 
-      invoiceNumber, 
-      amount, 
-      paymentMethod, 
-      paymentDate, 
-      transactionReference, 
-      notes, 
-      senderEmail,
-      subject 
-    } = req.body;
-
-    const sender = senderEmail || 'admin@fusionforgecreation.com';
-    console.log(`[RECEIPT EMAIL DISPATCH] Sent Payment Receipt ${receiptNumber} from ${sender} to ${to} (${clientCompany || clientName}) for amount ₹${amount} (Ref: ${transactionReference || 'N/A'})`);
-    
-    res.json({
-      success: true,
-      messageId: `rec_msg_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
-      sender,
-      recipient: to,
-      receiptNumber,
-      amount,
-      timestamp: new Date().toISOString()
+    app.use(vite.middlewares);
+  } else {
+    const distPath = path.join(process.cwd(), 'dist');
+    app.use(express.static(distPath));
+    app.get('*', (req, res) => {
+      res.sendFile(path.join(distPath, 'index.html'));
     });
-  } catch (error: any) {
-    console.error('Payment Receipt email dispatch error:', error);
-    res.status(500).json({ success: false, error: error.message || 'Failed to dispatch payment receipt email' });
   }
-});
 
-// Phase 12: Secure Official Email Dispatch for Tax Invoices
-app.post('/api/send-invoice-email', (req, res) => {
-  try {
-    const { 
-      to, 
-      clientName, 
-      clientCompany, 
-      invoiceNumber, 
-      amount, 
-      dueDate, 
-      issueDate,
-      items, 
-      notes, 
-      subject,
-      senderEmail 
-    } = req.body;
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`Server running on http://0.0.0.0:${PORT}`);
+  });
+}
 
-    const sender = senderEmail || 'admin@fusionforgecreation.com';
-    console.log(`[INVOICE EMAIL DISPATCH] Sent Tax Invoice ${invoiceNumber} from ${sender} to ${to} (${clientCompany || clientName}) for total ₹${amount}`);
-    
-    res.json({
-      success: true,
-      messageId: `inv_msg_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
-      sender,
-      recipient: to,
-      invoiceNumber,
-      amount,
-      timestamp: new Date().toISOString()
-    });
-  } catch (error: any) {
-    console.error('Tax Invoice email dispatch error:', error);
-    res.status(500).json({ success: false, error: error.message || 'Failed to dispatch tax invoice email' });
-  }
-});
-
-// Phase 12: Universal Central Email Dispatcher
-app.post('/api/send-email', (req, res) => {
-  try {
-    const { 
-      to, 
-      subject, 
-      category, 
-      bodyText, 
-      clientName, 
-      metadata, 
-      senderEmail 
-    } = req.body;
-
-    const sender = senderEmail || 'admin@fusionforgecreation.com';
-    console.log(`[CENTRAL EMAIL SYSTEM] Dispatched ${category || 'general'} email from ${sender} to ${to} (Subject: "${subject}")`);
-    
-    res.json({
-      success: true,
-      messageId: `eml_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
-      sender,
-      recipient: to,
-      subject,
-      category: category || 'general',
-      timestamp: new Date().toISOString()
-    });
-  } catch (error: any) {
-    console.error('Universal email dispatch error:', error);
-    res.status(500).json({ success: false, error: error.message || 'Failed to dispatch email' });
-  }
-});
-
-// Phase 9: Secure Official Email Dispatch for Project Status Changes & Completion
-app.post('/api/send-project-status-email', (req, res) => {
-  try {
-    const { 
-      to, 
-      clientName, 
-      clientCompany, 
-      projectTitle, 
-      category, 
-      newStatus, 
-      previousStatus,
-      progressPercentage, 
-      completionDate,
-      deliverables, 
-      notes, 
-      subject,
-      publicUrl,
-      webAppUrl,
-      senderEmail 
-    } = req.body;
-
-    const sender = senderEmail || 'admin@fusionforgecreation.com';
-    console.log(`[PROJECT STATUS EMAIL] Project "${projectTitle}" transitioned to ${newStatus} (${progressPercentage}%). Official notification dispatched from ${sender} to ${to} (${clientCompany || clientName})`);
-    
-    res.json({
-      success: true,
-      messageId: `proj_msg_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
-      sender,
-      recipient: to,
-      projectTitle,
-      status: newStatus,
-      progressPercentage: progressPercentage ?? 100,
-      timestamp: new Date().toISOString()
-    });
-  } catch (error: any) {
-    console.error('Project status email dispatch error:', error);
-    res.status(500).json({ success: false, error: error.message || 'Failed to dispatch project status email' });
-  }
-});
-
-// Serve static assets from the dist directory
-const distPath = path.join(process.cwd(), 'dist');
-app.use(express.static(distPath));
-
-// Fallback SPA routing for all other requests
-app.get('*', (req, res) => {
-  res.sendFile(path.join(distPath, 'index.html'));
-});
-
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Fusion Forge Production Server running on port ${PORT}`);
-  console.log(`Serving static files from: ${distPath}`);
-});
-
+startServer();

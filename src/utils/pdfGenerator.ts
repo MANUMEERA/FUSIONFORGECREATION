@@ -215,8 +215,8 @@ export function generateQuotationPDF(quote: Quotation, customAgencyConfig?: any)
           <div>
             ${BRAND_LOGO_SVG_HTML}
             <div style="font-size: 11px; color: #64748b; margin-top: 8px; line-height: 1.45;">
-              ${cfg.address || 'H2/203, Yogi Milan, Near Ring Road, Silvassa'}, ${cfg.city || 'Silvassa'}, ${cfg.state || 'Dadra & Nagar Haveli'} - ${cfg.postalCode || '396230'}<br/>
-              ${cfg.gstin ? `GSTIN: <strong>${cfg.gstin}</strong> | ` : ''}PAN: <strong>${cfg.pan || 'AALFF1234F'}</strong> | SAC: <strong>${cfg.sacCode || '998314'}</strong>${msmeText ? ` | MSME: <strong>${msmeText}</strong>` : ''} | Email: ${cfg.email || 'admin@fusionforgecreation.com'}
+              ${cfg.address || 'Yogi Milan, Near Ring Road, Amli, Silvassa'}, ${cfg.city || 'Silvassa'}, ${cfg.state || 'Dadra & Nagar Haveli'} - ${cfg.postalCode || '396230'}<br/>
+              ${cfg.gstin ? `GSTIN: <strong>${cfg.gstin}</strong> | ` : ''}${cfg.pan ? `PAN: <strong>${cfg.pan}</strong> | ` : ''}SAC: <strong>${cfg.sacCode || '998314'}</strong>${msmeText ? ` | MSME: <strong>${msmeText}</strong>` : ''} | Email: ${cfg.email || 'admin@fusionforgecreation.com'}${cfg.website_url || cfg.website || cfg.websiteUrl ? ` | Web: <strong>${(cfg.website_url || cfg.website || cfg.websiteUrl).replace(/^https?:\/\//, '')}</strong>` : ''}
             </div>
           </div>
           <div class="meta-box">
@@ -400,11 +400,11 @@ export async function generateInvoicePDF(invoice: Invoice, customAgencyConfig?: 
 
   // Seller values (dynamically from cfg and invoice)
   const sellerName = cfg.company_name || cfg.name || invoice.sellerName || 'Fusion Forge Creation';
-  const sellerAddress = `${cfg.address || 'H2/203, Yogi Milan, Near Ring Road, Silvassa'}, ${cfg.city || 'Silvassa'}, ${cfg.state || 'Dadra & Nagar Haveli'} - ${cfg.postalCode || '396230'}`;
+  const sellerAddress = `${cfg.address || 'Yogi Milan, Near Ring Road, Amli, Silvassa'}, ${cfg.city || 'Silvassa'}, ${cfg.state || 'Dadra and Nagar Haveli and Daman and Diu'} - ${cfg.postalCode || '396230'}`;
   const sellerGstin = cfg.gstin || invoice.sellerGstin || '';
-  const sellerPan = cfg.pan || (sellerGstin && sellerGstin.length >= 12 ? sellerGstin.slice(2, 12) : 'AALFF1234F');
+  const sellerPan = cfg.pan || (sellerGstin && sellerGstin.length >= 12 ? sellerGstin.slice(2, 12) : '');
   const sellerEmail = cfg.email || 'admin@fusionforgecreation.com';
-  const sellerPhone = cfg.phone || '+91 90040 77126';
+  const sellerPhone = cfg.phone || '+91 63588 55524';
   const msmeNumber = cfg.msme_number || cfg.msmeNumber || '';
 
   // Dates (Formatted strictly as DD-MM-YYYY)
@@ -412,13 +412,13 @@ export async function generateInvoicePDF(invoice: Invoice, customAgencyConfig?: 
   const dueDateStr = formatDateDDMMYYYY(invoice.dueDate || new Date().toISOString());
 
   // Buyer / Billed To values
-  const buyerCompany = invoice.buyerCompany || invoice.clientCompany || invoice.clientName || 'JP MODATEX LLP';
+  const buyerCompany = invoice.buyerCompany || invoice.clientCompany || invoice.clientName || 'Valued Client';
   const buyerContactPerson = invoice.buyerName || invoice.clientName || '';
   const buyerAddress = invoice.buyerAddress || invoice.clientAddress || '';
   const rawBuyerGstin = invoice.buyerGstin || invoice.clientGstin || '';
   const isUrp = !rawBuyerGstin || rawBuyerGstin === '—' || rawBuyerGstin.trim().toUpperCase() === 'URP';
   const buyerGstin = isUrp ? 'URP' : rawBuyerGstin;
-  const buyerState = invoice.buyerState || (invoice.buyerStateCode ? `${invoice.buyerStateCode}-State` : '24-Gujarat');
+  const buyerState = invoice.buyerState || (invoice.buyerStateCode ? `${invoice.buyerStateCode}-State` : '26-Dadra & Nagar Haveli');
   const placeOfSupply = invoice.placeOfSupply || invoice.buyerStateCode || buyerState;
   const clientEmail = invoice.clientEmail || '';
 
@@ -438,15 +438,17 @@ export async function generateInvoicePDF(invoice: Invoice, customAgencyConfig?: 
     : (invoice.reverseCharge === 'No' || invoice.reverseCharge === false ? 'No' : (cfg.reverse_charge_default || (sellerGstin ? 'No' : 'Yes')));
 
   // Bank & Payment Details
-  const bankName = invoice.bankDetails?.bankName || cfg.bank_name || cfg.bankDetails?.bankName || 'HDFC Bank Ltd';
+  const bankName = invoice.bankDetails?.bankName || cfg.bank_name || cfg.bankDetails?.bankName || '';
   const accountName = invoice.bankDetails?.accountName || cfg.account_name || cfg.bankDetails?.accountName || sellerName;
-  const accountNumber = invoice.bankDetails?.accountNumber || cfg.account_number || cfg.bankDetails?.accountNumber || '50200012345678';
-  const ifscCode = invoice.bankDetails?.ifscCode || cfg.ifsc_code || cfg.bankDetails?.ifscCode || 'HDFC0001234';
-  const branch = invoice.bankDetails?.branch || cfg.branch_name || cfg.bankDetails?.branch || 'Silvassa Branch';
-  const upiId = invoice.bankDetails?.upiId || cfg.upi_id || cfg.bankDetails?.upiId || 'fusionforge@hdfcbank';
+  const accountNumber = invoice.bankDetails?.accountNumber || cfg.account_number || cfg.bankDetails?.accountNumber || '';
+  const ifscCode = invoice.bankDetails?.ifscCode || cfg.ifsc_code || cfg.bankDetails?.ifscCode || '';
+  const branch = invoice.bankDetails?.branch || cfg.branch_name || cfg.bankDetails?.branch || '';
+  const upiId = invoice.bankDetails?.upiId || cfg.upi_id || cfg.bankDetails?.upiId || '';
 
   // Generate UPI payment URL & QR Code
-  const upiUrl = `upi://pay?pa=${encodeURIComponent(upiId)}&pn=${encodeURIComponent(sellerName)}&am=${invoice.totalAmount.toFixed(2)}&tn=${encodeURIComponent(`Invoice ${invoice.invoiceNumber}`)}&cu=INR`;
+  const upiUrl = upiId 
+    ? `upi://pay?pa=${encodeURIComponent(upiId)}&pn=${encodeURIComponent(sellerName)}&am=${invoice.totalAmount.toFixed(2)}&tn=${encodeURIComponent(`Invoice ${invoice.invoiceNumber}`)}&cu=INR`
+    : '';
   
   let paymentQrSvg = '';
   try {
@@ -845,7 +847,7 @@ export async function generateInvoicePDF(invoice: Invoice, customAgencyConfig?: 
               ${BRAND_LOGO_SVG_HTML}
               <div class="seller-meta-line">
                 ${sellerAddress}<br/>
-                ${sellerGstin ? `GSTIN: <strong>${sellerGstin}</strong> | ` : ''}PAN: <strong>${sellerPan}</strong> | Email: <strong>${sellerEmail}</strong> | Contact: <strong>${sellerPhone}</strong>
+                ${sellerGstin ? `GSTIN: <strong>${sellerGstin}</strong> | ` : ''}PAN: <strong>${sellerPan}</strong> | Email: <strong>${sellerEmail}</strong> | Contact: <strong>${sellerPhone}</strong>${(cfg.website_url || cfg.website || cfg.websiteUrl) ? ` | Web: <strong>${(cfg.website_url || cfg.website || cfg.websiteUrl).replace(/^https?:\/\//, '')}</strong>` : ''}
                 ${msmeNumber ? `<br/>MSME / Udyam Reg: <strong>${msmeNumber}</strong>` : ''}
               </div>
             </div>
@@ -1107,18 +1109,18 @@ export function generatePaymentReceiptPDF(
   }
 
   const sellerCompanyName = cfg.company_name || cfg.name || 'Fusion Forge Creation';
-  const sellerLegalName = cfg.legal_name || cfg.legalName || 'Fusion Forge Creation LLP';
-  const sellerAddress = cfg.address || 'H2/203, Yogi Milan, Near Ring Road, Silvassa, Dadra & Nagar Haveli - 396230';
-  const sellerGstin = cfg.gstin || '26AALFF1234F1Z5';
-  const sellerPan = cfg.pan || 'AALFF1234F';
+  const sellerLegalName = cfg.legal_name || cfg.legalName || 'Fusion Forge Creation';
+  const sellerAddress = cfg.address || 'Yogi Milan, Near Ring Road, Amli, Silvassa, Dadra & Nagar Haveli - 396230';
+  const sellerGstin = cfg.gstin || '';
+  const sellerPan = cfg.pan || '';
   const sellerEmail = cfg.email || 'admin@fusionforgecreation.com';
-  const sellerPhone = cfg.phone || '+91 98765 43210';
-  const msmeNumber = cfg.msme_number || cfg.msmeNumber || 'UDYAM-DN-00-0012345';
+  const sellerPhone = cfg.phone || '+91 63588 55524';
+  const msmeNumber = cfg.msme_number || cfg.msmeNumber || '';
 
-  const clientName = client?.name || payment.clientName;
-  const clientCompany = client?.company || payment.clientCompany || payment.clientName;
+  const clientName = client?.name || payment.clientName || 'Valued Client';
+  const clientCompany = client?.company || payment.clientCompany || payment.clientName || '';
   const clientEmail = client?.email || payment.clientEmail || invoice?.clientEmail || '';
-  const clientGstin = client?.gstin || invoice?.buyerGstin || invoice?.clientGstin || 'URP / Not Applicable';
+  const clientGstin = client?.gstin || invoice?.buyerGstin || invoice?.clientGstin || 'URP';
   const clientAddress = client?.address || invoice?.buyerAddress || invoice?.clientAddress || '';
 
   const paymentDateStr = formatDateDDMMYYYY(payment.paymentDate || new Date().toISOString());
@@ -1129,12 +1131,12 @@ export function generatePaymentReceiptPDF(
     .replace('_', ' ')
     .toUpperCase();
 
-  const bankName = cfg.bank_name || cfg.bankDetails?.bankName || 'HDFC Bank';
+  const bankName = cfg.bank_name || cfg.bankDetails?.bankName || '';
   const accountName = cfg.account_name || cfg.bankDetails?.accountName || 'Fusion Forge Creation';
-  const accountNumber = cfg.account_number || cfg.bankDetails?.accountNumber || '50200012345678';
-  const ifscCode = cfg.ifsc_code || cfg.bankDetails?.ifscCode || 'HDFC0001234';
-  const branch = cfg.branch_name || cfg.bankDetails?.branch || 'Silvassa Branch';
-  const upiId = cfg.upi_id || cfg.upiId || cfg.bankDetails?.upiId || 'fusionforge@hdfcbank';
+  const accountNumber = cfg.account_number || cfg.bankDetails?.accountNumber || '';
+  const ifscCode = cfg.ifsc_code || cfg.bankDetails?.ifscCode || '';
+  const branch = cfg.branch_name || cfg.bankDetails?.branch || '';
+  const upiId = cfg.upi_id || cfg.upiId || cfg.bankDetails?.upiId || '';
 
   const htmlContent = `
     <!DOCTYPE html>

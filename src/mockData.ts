@@ -22,7 +22,11 @@ import {
   EmailLog,
   LegalDocument,
   LegalDocumentHistoryItem,
-  VisitorEvent
+  VisitorEvent,
+  SupplierVendor,
+  UnitMasterItem,
+  HsnMasterItem,
+  GoodsItem
 } from './types';
 import { 
   DEFAULT_INVOICE_NUMBERING, 
@@ -171,12 +175,12 @@ export const DEFAULT_INVOICE_TERMS: string[] = [
 ];
 
 export const INITIAL_SOCIAL_CHANNELS: SocialChannelItem[] = [
-  { id: 'linkedin', platform: 'linkedin', name: 'LinkedIn', url: 'https://linkedin.com/company/fusionforgecreation', active: true, color: '#0A66C2' },
-  { id: 'github', platform: 'github', name: 'GitHub', url: 'https://github.com/fusionforgecreation', active: true, color: '#6e5494' },
-  { id: 'whatsapp', platform: 'whatsapp', name: 'WhatsApp', url: '', active: false, color: '#25D366' },
-  { id: 'twitter', platform: 'twitter', name: 'Twitter / X', url: 'https://twitter.com/fusionforge_dev', active: true, color: '#1DA1F2' },
+  { id: 'youtube', platform: 'youtube', name: 'YouTube', url: 'https://youtube.com/@fusionforgecreation', active: true, color: '#FF0000' },
   { id: 'instagram', platform: 'instagram', name: 'Instagram', url: 'https://instagram.com/fusionforgecreation', active: true, color: '#E1306C' },
-  { id: 'youtube', platform: 'youtube', name: 'YouTube', url: 'https://youtube.com/@fusionforgecreation', active: true, color: '#FF0000' }
+  { id: 'whatsapp', platform: 'whatsapp', name: 'WhatsApp', url: '', active: false, color: '#25D366' },
+  { id: 'twitter', platform: 'twitter', name: 'Twitter / X', url: 'https://twitter.com/fusionforge_dev', active: false, color: '#1DA1F2' },
+  { id: 'linkedin', platform: 'linkedin', name: 'LinkedIn', url: 'https://linkedin.com/company/fusionforgecreation', active: false, color: '#0A66C2' },
+  { id: 'github', platform: 'github', name: 'GitHub', url: 'https://github.com/fusionforgecreation', active: false, color: '#6e5494' }
 ];
 
 export const AGENCY_CONFIG = {
@@ -185,11 +189,14 @@ export const AGENCY_CONFIG = {
   company_name: 'Fusion Forge Creation',
   tagline: 'Where Ideas Fuse With Technology',
   motto: 'INNOVATE • BUILD • AUTOMATE • GROW',
-  email: '',
-  phone: '',
-  address: 'H2/203, Yogi Milan, Near Ring Road, Silvassa, Dadra & Nagar Haveli - 396230',
+  website_url: 'https://fusionforgecreation.com',
+  website: 'https://fusionforgecreation.com',
+  websiteUrl: 'https://fusionforgecreation.com',
+  email: 'admin@fusionforgecreation.com',
+  phone: '+91 63588 55524',
+  address: 'Yogi Milan, Near Ring Road, Amli, Silvassa, Dadra & Nagar Haveli - 396230',
   city: 'Silvassa',
-  state: 'Dadra & Nagar Haveli',
+  state: 'Dadra and Nagar Haveli and Daman and Diu',
   state_code: '26',
   postalCode: '396230',
   gstin: '',
@@ -208,6 +215,8 @@ export const AGENCY_CONFIG = {
   delay_interest_clause: 'Interest @ 18% per annum will be charged on all delayed payments exceeding the due date.',
   payment_delay_interest_rate: 18,
   reverse_charge_default: 'No',
+  gst_compliance_active: false,
+  gstComplianceActive: false,
   
   // Phase 11: LUT & SEZ Compliance Defaults
   lut_arn: '',
@@ -275,20 +284,20 @@ export const AGENCY_CONFIG = {
 export const INITIAL_USERS: UserProfile[] = [
   {
     id: 'user_super_admin',
-    full_name: 'Manoj Satapathy',
-    name: 'Manoj Satapathy',
+    full_name: 'Super Admin',
+    name: 'Super Admin',
     email: 'admin@fusionforgecreation.com',
     role: 'super_admin',
-    phone: '',
+    phone: '+91 63588 55524',
     is_active: true,
     mfa_enabled: true,
-    two_factor_confirmed: true,
+    two_factor_confirmed: false,
+    two_factor_secret: '',
     two_factor_auth_type: 'google_authenticator',
-    two_factor_secret: 'JBSWY3DPEHPK3PXP',
-    recovery_codes: ['FFC1-9824', 'FFC2-7716', 'FFC3-3490', 'FFC4-8812', 'FFC5-4421', 'FFC6-9031', 'FFC7-6120', 'FFC8-5539'],
+    recovery_codes: ['FFC1-9824', 'FFC2-7716', 'FFC3-3490', 'FFC4-8812', 'FFC5-4921', 'FFC6-8302', 'FFC7-2195', 'FFC8-6043'],
     company: 'Fusion Forge Creation',
     created_at: '2026-01-01T00:00:00Z',
-    updated_at: '2026-08-14T10:00:00Z'
+    updated_at: '2026-08-25T00:00:00Z'
   }
 ];
 
@@ -304,74 +313,172 @@ export const INITIAL_CREDIT_DEBIT_NOTES: CreditDebitNote[] = [];
 
 export const INITIAL_ENQUIRIES: ProjectEnquiry[] = [];
 
-export const INITIAL_PORTFOLIO: PortfolioProject[] = [];
+export const INITIAL_PORTFOLIO: PortfolioProject[] = [
+  {
+    id: 'port_shree_krishna',
+    title: 'Shree Krishna Multispecialty Hospital',
+    slug: 'shree-krishna-hospital',
+    clientName: 'Shree Krishna Multispecialty Hospital',
+    category: 'Hospital Management Web Application',
+    summary: 'Database-driven hospital management software designed to organize hospital operations, patient information, appointments, doctors, medical records, IPD workflows and administrative activities.',
+    deliverables: [
+      'Patient & OPD Registration',
+      'Doctor & Staff Schedules',
+      'Appointment Management',
+      'Medical Records & History',
+      'IPD Workflow & Bed Tracking',
+      'Admin Dashboard & Reports'
+    ],
+    techStack: ['React', 'TypeScript', 'Tailwind CSS', 'Node.js', 'PostgreSQL / Supabase'],
+    bannerGradient: 'from-blue-700 via-indigo-800 to-slate-900',
+    featured: true
+  },
+  {
+    id: 'port_chaudhary_medical',
+    title: 'Chaudhary Medical / Retail Management System',
+    slug: 'chaudhary-medical-retail',
+    clientName: 'Chaudhary Medical & Retail',
+    category: 'Medical & Retail Management Software',
+    summary: 'Business management software designed for medical and retail operations, including inventory, billing, products, purchases, sales and administrative management.',
+    deliverables: [
+      'Medicine & Product Inventory',
+      'Stock Management & Reorders',
+      'Point-of-Sale (POS) Billing',
+      'Purchases & Vendor Records',
+      'Customer Ledger & Invoicing',
+      'Sales & Profit Reports'
+    ],
+    techStack: ['React', 'TypeScript', 'Tailwind CSS', 'Node.js', 'PostgreSQL'],
+    bannerGradient: 'from-emerald-700 via-teal-800 to-slate-900',
+    featured: true
+  },
+  {
+    id: 'port_mh_engineering',
+    title: 'M H ENGINEERING WORKS',
+    slug: 'mh-engineering-works',
+    clientName: 'M H Engineering Works',
+    category: 'Business Website & Enquiry Management',
+    summary: 'Professional business website developed for a mechanical fabrication and erection contractor, including company information, services, contact enquiry and administrative management.',
+    deliverables: [
+      'Company Profile & Capability Desk',
+      'Fabrication & Erection Showcase',
+      'Project Enquiry & Lead Capture',
+      'Responsive Mobile & Desktop Layout',
+      'Admin Management Dashboard'
+    ],
+    techStack: ['React', 'TypeScript', 'Tailwind CSS', 'Vite'],
+    bannerGradient: 'from-amber-700 via-orange-800 to-slate-900',
+    featured: true
+  },
+  {
+    id: 'port_fusion_forge',
+    title: 'Fusion Forge Creation',
+    slug: 'fusion-forge-creation-platform',
+    clientName: 'Fusion Forge Creation',
+    category: 'Business & Agency Management Platform',
+    summary: 'Our own digital platform for managing enquiries, clients, projects, quotations, invoices, payments and website content.',
+    deliverables: [
+      'Client & Lead Enquiry CRM',
+      'Quotation & Formal Scope Generator',
+      'GST Tax Invoicing & Receipt Ledger',
+      'Project Milestone Monitoring',
+      'Content & Legal Docs Management',
+      'Centralized Admin Portal'
+    ],
+    techStack: ['React', 'TypeScript', 'Tailwind CSS', 'Supabase / PostgreSQL', 'Node.js'],
+    bannerGradient: 'from-purple-700 via-indigo-900 to-slate-950',
+    featured: true
+  }
+];
 
 export const INITIAL_SERVICES = [
   {
     id: 'srv_1',
-    title: 'Web Application Development',
-    category: 'Engineering',
-    description: 'High-speed single page applications, enterprise customer portals, and SaaS platforms using React 19, Next.js, and TypeScript.',
-    startingPrice: 75000,
+    title: 'Business Websites',
+    category: 'Web Development',
+    description: 'Professional, responsive websites for companies, contractors, businesses and organizations.',
+    startingPrice: 35000,
     sacCode: '998314',
-    deliverables: ['React 19 & Next.js Frameworks', 'Interactive Data Dashboards', 'Sub-second Page Speeds', 'Secure Client Portals'],
+    deliverables: ['Custom Company Branding', 'Responsive Layout (Desktop & Mobile)', 'Enquiry & Contact Forms', 'Fast Page Performance'],
     active: true,
     featured: true
   },
   {
     id: 'srv_2',
-    title: 'Mobile App Engineering',
-    category: 'Engineering',
-    description: 'Native feel, cross-platform mobile apps for iOS and Android built on React Native with smooth offline caching and native hardware integrations.',
-    startingPrice: 95000,
+    title: 'Business Web Applications',
+    category: 'Web Applications',
+    description: 'Custom web applications designed around your business processes, workflows and requirements.',
+    startingPrice: 65000,
     sacCode: '998314',
-    deliverables: ['iOS & Android Cross-Platform', 'Push Notifications & Background Sync', 'Native Biometrics & Camera Access', 'App Store & Play Store Deployment'],
+    deliverables: ['Tailored Workflow Logic', 'User Authentication & Roles', 'Interactive Data Management', 'Modern React & TypeScript Architecture'],
     active: true,
     featured: true
   },
   {
     id: 'srv_3',
-    title: 'Backend & Cloud Architecture',
-    category: 'Cloud & DevOps',
-    description: 'Microservices, serverless workloads, REST/GraphQL APIs, and auto-scaling cloud deployments with 99.9% uptime architecture.',
-    startingPrice: 60000,
+    title: 'Management Systems',
+    category: 'Software Systems',
+    description: 'Database-driven software for managing customers, products, employees, projects, records and daily operations.',
+    startingPrice: 85000,
     sacCode: '998314',
-    deliverables: ['Node.js, Express & Go Services', 'Docker Container Orchestration', 'AWS / Google Cloud Setup', 'OAuth 2.0 & JWT Security Control'],
+    deliverables: ['Customer & Client Management', 'Operational Records & History', 'Employee / Staff Tracking', 'Organized Day-to-Day Operations'],
     active: true,
     featured: true
   },
   {
     id: 'srv_4',
-    title: 'Database & Real-time Systems',
-    category: 'Database',
-    description: 'Relational PostgreSQL, Supabase BaaS, and Redis caching layers designed for zero data loss and sub-millisecond query performance.',
+    title: 'Admin Panels & Dashboards',
+    category: 'Dashboards',
+    description: 'Centralized dashboards for managing business information, users, enquiries, products, projects, reports and other operational data.',
     startingPrice: 50000,
     sacCode: '998314',
-    deliverables: ['PostgreSQL Schema & RLS Policies', 'Supabase Database Provisioning', 'Redis In-Memory Caching', 'WebSocket Live Multi-User Sync'],
+    deliverables: ['Centralized Administration', 'Live Data Tables & Filtering', 'Enquiry & Lead Tracking', 'Role-Based Access Controls'],
     active: true,
-    featured: false
+    featured: true
   },
   {
     id: 'srv_5',
-    title: 'UI/UX & Design Systems',
-    category: 'Design',
-    description: 'Bespoke design systems, responsive wireframing, high-fidelity Figma interactive prototypes, and conversion-focused user interfaces.',
+    title: 'Billing & Inventory Software',
+    category: 'Business Software',
+    description: 'Business software for billing, quotations, invoices, inventory, purchases, sales, payments and stock management.',
+    startingPrice: 55000,
+    sacCode: '998314',
+    deliverables: ['Quotation & Invoice Generation', 'Stock & Inventory Tracking', 'Purchase & Sales Records', 'Payment Status Tracking'],
+    active: true,
+    featured: true
+  },
+  {
+    id: 'srv_6',
+    title: 'Database & Business Data Systems',
+    category: 'Databases',
+    description: 'Structured database-driven applications for storing, managing, searching and reporting business information.',
+    startingPrice: 45000,
+    sacCode: '998314',
+    deliverables: ['Structured PostgreSQL Database', 'Reliable Data Storage & Backups', 'Search & Filtering Capabilities', 'Data Export & Reporting'],
+    active: true,
+    featured: true
+  },
+  {
+    id: 'srv_7',
+    title: 'Custom Business Automation',
+    category: 'Automation',
+    description: 'Digital workflows designed to reduce repetitive manual work and organize business processes.',
     startingPrice: 40000,
     sacCode: '998314',
-    deliverables: ['Figma High-Fidelity Prototypes', 'Design Tokens & UI Component Kits', 'Mobile Responsive Grid Math', 'User Flow & Usability Audits'],
+    deliverables: ['Automated Notifications & Logs', 'Streamlined Workflows', 'Reduction in Manual Data Entry', 'Structured Task Routing'],
     active: true,
     featured: false
   },
   {
-    id: 'srv_6',
-    title: 'GST Billing & Accounting Systems',
-    category: 'Automation',
-    description: 'Automated quotation and tax invoice software engines with SAC Code 998314 compliance, dynamic tax calculation, and instant PDF generation.',
-    startingPrice: 45000,
+    id: 'srv_8',
+    title: 'Existing Software Modification',
+    category: 'Maintenance',
+    description: 'Feature improvements, corrections and modifications for existing web applications where the source code and technology permit.',
+    startingPrice: 30000,
     sacCode: '998314',
-    deliverables: ['SAC 998314 Compliant Invoicing', 'CGST, SGST & IGST Calculation', 'Automated PDF Document Output', 'Client CRM & Payment Ledger'],
+    deliverables: ['Codebase Review & Analysis', 'Bug Fixes & Feature Additions', 'UI/UX Improvements', 'Database Adjustments'],
     active: true,
-    featured: true
+    featured: false
   }
 ];
 
@@ -382,98 +489,98 @@ export const INITIAL_COMPLETED_WORKS: CompletedWorkRecord[] = [];
 export const INITIAL_TECHNOLOGIES = [
   {
     id: 'tech_1',
-    name: 'React 19 & Next.js',
-    category: 'Frontend & UI' as const,
-    description: 'Modern reactive component architecture & server side rendering',
-    proficiency: 98,
+    name: 'React',
+    category: 'Frontend' as const,
+    description: 'Component-based user interfaces for modern web applications',
+    proficiency: 95,
     isFeatured: true
   },
   {
     id: 'tech_2',
     name: 'TypeScript',
-    category: 'Frontend & UI' as const,
-    description: 'Strict end-to-end type safety and compile-time verification',
+    category: 'Frontend' as const,
+    description: 'Type-safe JavaScript for reliable application logic',
     proficiency: 95,
     isFeatured: true
   },
   {
     id: 'tech_3',
-    name: 'Tailwind CSS & Motion',
-    category: 'Frontend & UI' as const,
-    description: 'Modern utility-first styling and fluid micro-interactions',
+    name: 'JavaScript / HTML / CSS',
+    category: 'Frontend' as const,
+    description: 'Standard web development core technologies',
     proficiency: 98,
     isFeatured: true
   },
   {
     id: 'tech_4',
-    name: 'Node.js & Express',
-    category: 'Backend & APIs' as const,
-    description: 'High-throughput microservices and REST API routing',
-    proficiency: 94,
+    name: 'Tailwind CSS',
+    category: 'Frontend' as const,
+    description: 'Responsive, clean utility-first interface styling',
+    proficiency: 95,
     isFeatured: true
   },
   {
     id: 'tech_5',
-    name: 'Go (Golang)',
-    category: 'Backend & APIs' as const,
-    description: 'Ultra-fast concurrent data processors & lightweight workers',
-    proficiency: 88,
+    name: 'Vite',
+    category: 'Frontend' as const,
+    description: 'Fast modern frontend build tool and dev environment',
+    proficiency: 92,
     isFeatured: true
   },
   {
     id: 'tech_6',
-    name: 'WebSockets & Realtime',
-    category: 'Backend & APIs' as const,
-    description: 'Sub-second real-time streaming and bidirectional channels',
+    name: 'Node.js',
+    category: 'Backend' as const,
+    description: 'Server-side JavaScript runtime for application logic',
     proficiency: 92,
     isFeatured: true
   },
   {
     id: 'tech_7',
-    name: 'PostgreSQL',
-    category: 'Databases & Storage' as const,
-    description: 'ACID compliant enterprise relational data with indexing',
-    proficiency: 96,
+    name: 'REST APIs',
+    category: 'Backend' as const,
+    description: 'Clean, structured API endpoints for client-server communication',
+    proficiency: 94,
     isFeatured: true
   },
   {
     id: 'tech_8',
-    name: 'Supabase & BaaS',
-    category: 'Databases & Storage' as const,
-    description: 'Managed Postgres with instant Row Level Security & Auth',
+    name: 'PostgreSQL',
+    category: 'Database' as const,
+    description: 'Reliable, relational database system for structured business records',
     proficiency: 95,
     isFeatured: true
   },
   {
     id: 'tech_9',
-    name: 'Redis Cache',
-    category: 'Databases & Storage' as const,
-    description: 'In-memory fast caching, session storage & rate limiting',
-    proficiency: 90,
-    isFeatured: false
+    name: 'Supabase',
+    category: 'Database' as const,
+    description: 'PostgreSQL backend with built-in authentication and data storage',
+    proficiency: 94,
+    isFeatured: true
   },
   {
     id: 'tech_10',
-    name: 'Docker & Containers',
-    category: 'Cloud, DevOps & Tools' as const,
-    description: 'Reproducible production containers and orchestration',
-    proficiency: 92,
+    name: 'SQL & Database Design',
+    category: 'Database' as const,
+    description: 'Relational data modeling, queries, schemas and indexes',
+    proficiency: 95,
     isFeatured: true
   },
   {
     id: 'tech_11',
-    name: 'Google Cloud & AWS',
-    category: 'Cloud, DevOps & Tools' as const,
-    description: 'Scalable serverless & VM container infrastructure',
+    name: 'GitHub',
+    category: 'Deployment & Tools' as const,
+    description: 'Version control and source code management',
     proficiency: 90,
     isFeatured: true
   },
   {
     id: 'tech_12',
-    name: 'GST Billing Engine (SAC 998314)',
-    category: 'Cloud, DevOps & Tools' as const,
-    description: 'Automated tax calculations, PDF generator, and compliance ledger',
-    proficiency: 100,
+    name: 'Hostinger / Cloud Hosting',
+    category: 'Deployment & Tools' as const,
+    description: 'Website, domain, mailbox and application deployment',
+    proficiency: 92,
     isFeatured: true
   }
 ];
@@ -493,66 +600,98 @@ export const INITIAL_TESTIMONIALS: {
 export const INITIAL_FAQS = [
   {
     id: 'faq_1',
-    question: 'How does the engagement and development lifecycle work?',
-    answer: 'Our workflow follows a structured 4-step agile process: 1) Architectural Discovery & Scope Definition, 2) Milestone-Based Commercial Quotation with GST breakdown, 3) Iterative Sprint Sprints with weekly live test links, and 4) Final Production Deployment, Security Audit, and 100% IP Code Handover.',
+    question: 'What type of software does Fusion Forge Creation develop?',
+    answer: 'We develop custom business websites, web applications, management systems, admin panels and database-driven software according to individual business requirements.',
     category: 'General' as const,
     order: 1,
     isPublished: true
   },
   {
     id: 'faq_2',
-    question: 'What is your pricing model and how are payments structured?',
-    answer: 'We provide transparent fixed-price quotations based on agreed deliverables. Typically, engagements follow a 50% initiation advance, 30% on beta milestone delivery, and 20% on final deployment. All quotations and invoices are GST-compliant (SAC Code 998314) with instant PDF downloads.',
-    category: 'Pricing & GST' as const,
+    question: 'Can you develop software for different types of businesses?',
+    answer: 'Yes. We can develop custom solutions around different business workflows. Our development work includes examples such as hospital management, medical and retail management, industrial business websites and agency management.',
+    category: 'General' as const,
     order: 2,
     isPublished: true
   },
   {
     id: 'faq_3',
-    question: 'Do we own 100% of the code and intellectual property (IP)?',
-    answer: 'Yes, absolutely. Upon settlement of the final invoice, 100% of the source code, design assets, database schemas, and intellectual property rights are unconditionally transferred to your organization.',
-    category: 'General' as const,
+    question: 'Can you build an admin panel?',
+    answer: 'Yes. Admin panels can be developed to manage enquiries, customers, products, projects, users, reports and other business information.',
+    category: 'Capabilities' as const,
     order: 3,
     isPublished: true
   },
   {
     id: 'faq_4',
-    question: 'What post-launch support and warranty do you offer?',
-    answer: 'Every project comes with an inclusive 60-day post-launch warranty covering bug fixes, performance monitoring, and server configuration. We also offer dedicated monthly SLA maintenance packages.',
-    category: 'Support' as const,
+    question: 'Can you modify existing software?',
+    answer: 'Yes. We can analyse an existing web application and work on feature modifications, improvements and corrections where the existing source code and technology allow.',
+    category: 'Capabilities' as const,
     order: 4,
     isPublished: true
   },
   {
     id: 'faq_5',
-    question: 'Can you integrate with our existing backend or database?',
-    answer: 'Yes. We specialize in greenfield application development as well as modernizing legacy systems, building custom REST/GraphQL APIs, and integrating with Supabase, PostgreSQL, Firebase, MongoDB, or third-party enterprise services.',
+    question: 'Can you develop database-driven applications?',
+    answer: 'Yes. We develop applications that use structured databases to store and manage business information.',
     category: 'Technical' as const,
     order: 5,
     isPublished: true
   },
   {
     id: 'faq_6',
-    question: 'Are your quotations and tax invoices GST compliant in India?',
-    answer: 'Yes. Fusion Forge Creation is fully compliant with Service Accounting Code SAC 998314 (Information Technology Software Services). We provide complete B2B tax invoices with itemized CGST/SGST or IGST breakdowns for Input Tax Credit (ITC) claiming.',
-    category: 'Pricing & GST' as const,
+    question: 'Do you develop billing and inventory software?',
+    answer: 'Yes. Custom billing, quotation, invoice, inventory, purchase, sales and stock-management functionality can be developed according to business requirements.',
+    category: 'Capabilities' as const,
     order: 6,
+    isPublished: true
+  },
+  {
+    id: 'faq_7',
+    question: 'Can you deploy the website or application?',
+    answer: 'We can assist with deployment and configuration on supported hosting and application platforms.',
+    category: 'Deployment' as const,
+    order: 7,
+    isPublished: true
+  },
+  {
+    id: 'faq_8',
+    question: 'Do you provide maintenance and modifications?',
+    answer: 'Yes. Post-development support, maintenance and additional feature development can be discussed according to the project requirements.',
+    category: 'Support' as const,
+    order: 8,
+    isPublished: true
+  },
+  {
+    id: 'faq_9',
+    question: 'How is the project cost decided?',
+    answer: 'Project cost depends on the required features, workflow, design, database requirements, integrations and development effort. We review the requirements before providing a quotation.',
+    category: 'Pricing' as const,
+    order: 9,
+    isPublished: true
+  },
+  {
+    id: 'faq_10',
+    question: 'Do you develop mobile applications?',
+    answer: 'Mobile application development is not currently offered as a standard Fusion Forge Creation service. Our current focus is on responsive websites, web applications and business management software that can be accessed through modern web browsers.',
+    category: 'General' as const,
+    order: 10,
     isPublished: true
   }
 ];
 
 export const INITIAL_CHATBOT_SETTINGS: ChatbotSettings = {
-  botName: 'ForgeBot AI',
-  botSubtitle: 'Fusion Forge Interactive Assistant',
+  botName: 'Forge Assistant',
+  botSubtitle: 'Fusion Forge Information Desk',
   avatarUrl: '',
-  welcomeMessage: 'Hello! 👋 Welcome to Fusion Forge Creation. I am your instant virtual advisor. Ask me about our software engineering services, tech stack, custom quotes, GST compliance, or timelines!',
-  fallbackMessage: "I couldn't find an exact match in our knowledge base, but our engineering directors can provide specific guidance. Would you like to submit a quick project enquiry or speak directly with our technical team?",
+  welcomeMessage: 'Hello! 👋 Welcome to Fusion Forge Creation. Ask me about our web development services, business software solutions, tech stack, or how to get in touch!',
+  fallbackMessage: 'I am here to assist with general information about our web and software development services. You can also submit a project enquiry directly to discuss your requirements.',
   quickPrompts: [
     'What services do you offer?',
-    'How much does a web app cost?',
+    'What types of software do you build?',
     'What is your tech stack?',
-    'Are your invoices GST compliant (SAC 998314)?',
-    'How to get a formal Quotation?'
+    'Can you build an admin panel or management system?',
+    'How do I discuss a project?'
   ],
   enableBot: true,
   contactEmail: '',
@@ -563,124 +702,422 @@ export const INITIAL_CHATBOT_QA: ChatbotQAItem[] = [
   {
     id: 'cqa_1',
     question: 'What core services does Fusion Forge Creation provide?',
-    answer: 'We engineer high-performance software solutions across 6 key pillars:\n\n1. Web Applications (React 19, Next.js, TypeScript)\n2. Mobile Applications (React Native iOS/Android)\n3. Full-Stack Enterprise Systems & Cloud Backends (Node.js, Go, REST/GraphQL)\n4. Database & Real-time Architectures (PostgreSQL, Supabase, Redis)\n5. GST-Compliant Billing & Accounting Engines (SAC 998314)\n6. UI/UX Design Systems & High-Fidelity Prototypes.',
+    answer: 'We develop custom business websites, web applications, management systems, admin panels, billing & inventory software, and database solutions tailored to business requirements.',
     category: 'Services',
-    keywords: ['service', 'services', 'offer', 'build', 'develop', 'what do you do', 'capabilities', 'features', 'solutions'],
-    suggestedFollowUps: ['How much does a web app cost?', 'What tech stack do you use?', 'View Project Portfolio'],
+    keywords: ['service', 'services', 'offer', 'build', 'develop', 'what do you do', 'solutions', 'websites', 'applications'],
+    suggestedFollowUps: ['What types of software do you build?', 'What tech stack do you use?', 'View Projects'],
     actionLink: '#services',
-    actionLabel: 'Explore Services Catalog',
+    actionLabel: 'View What We Build',
     isActive: true,
     orderIndex: 1,
     matchCount: 142
   },
   {
     id: 'cqa_2',
-    question: 'How much does developing a custom web or mobile application cost?',
-    answer: 'Our project investments are transparent and milestone-based:\n\n• MVP / Rapid Prototypes: ₹50,000 – ₹1,50,000\n• Standard Web & Mobile Applications: ₹1,50,000 – ₹3,00,000\n• Enterprise Cloud Platforms & Multi-User Portals: ₹3,00,000 – ₹6,00,000+\n• High-Scale Distributed Systems: Custom Scope.\n\nAll estimates include 18% GST with formal SAC 998314 Tax Invoices. You can submit your project scope requirements below to receive a formal commercial quotation within 24 hours!',
-    category: 'Pricing & Quotes',
-    keywords: ['price', 'pricing', 'cost', 'budget', 'rate', 'quote', 'quotation', 'how much', 'fee', 'charge', 'expensive', 'inr', 'rupees'],
-    suggestedFollowUps: ['Submit Project Scope', 'Are your invoices GST compliant?', 'How to get a formal quotation?'],
-    actionLink: '#contact',
-    actionLabel: 'Submit Project Scope for Quotation',
+    question: 'What types of software do you build?',
+    answer: 'We build practical business software including:\n• Business Websites\n• Custom Web Applications\n• Management Systems (e.g. Hospital, Medical / Retail)\n• Admin Panels & Dashboards\n• Billing & Inventory Systems\n• Database-driven Business Systems\n• Existing Software Modifications',
+    category: 'Services',
+    keywords: ['types', 'software', 'management', 'hospital', 'retail', 'billing', 'inventory', 'admin panel', 'dashboard'],
+    suggestedFollowUps: ['View Projects', 'How do I discuss a project?'],
+    actionLink: '#projects',
+    actionLabel: 'View Solutions We Have Built',
     isActive: true,
     orderIndex: 2,
-    matchCount: 210
+    matchCount: 195
   },
   {
     id: 'cqa_3',
-    question: 'What technologies and frameworks do you build with?',
-    answer: 'We leverage modern, production-hardened technologies:\n\n• Frontend: React 19, Next.js, TypeScript, Tailwind CSS, Motion\n• Mobile: React Native, Expo, WebRTC\n• Backend: Node.js, Express, Go (Golang), Python\n• Databases: PostgreSQL, Supabase, Redis Caching, WebSockets\n• Cloud & DevOps: Docker, Google Cloud Platform, AWS, CI/CD pipelines\n• Compliance: Automated GST SAC 998314 billing engines.',
+    question: 'What technologies do you work with?',
+    answer: 'Our realistic technology stack includes:\n• Frontend: React, TypeScript, JavaScript, HTML, CSS, Tailwind CSS, Vite\n• Backend: Node.js, REST APIs, Application Logic\n• Database: PostgreSQL, Supabase, SQL\n• Deployment: GitHub, Hostinger, Netlify, Supabase',
     category: 'Tech Stack',
-    keywords: ['tech', 'technology', 'stack', 'languages', 'react', 'nextjs', 'typescript', 'node', 'postgres', 'database', 'docker', 'cloud', 'backend', 'frontend'],
-    suggestedFollowUps: ['View Technology Stack', 'View Project Portfolio', 'Do we own the source code?'],
+    keywords: ['tech', 'technology', 'stack', 'languages', 'react', 'typescript', 'node', 'postgres', 'supabase', 'database', 'sql'],
+    suggestedFollowUps: ['View What We Build', 'View Projects'],
     actionLink: '#tech-stack',
-    actionLabel: 'View Detailed Technology Stack',
+    actionLabel: 'View Technologies',
     isActive: true,
     orderIndex: 3,
     matchCount: 95
   },
   {
     id: 'cqa_4',
-    question: 'How do I request a formal project quotation and proposal?',
-    answer: 'You can submit your requirements directly through our online Project Scope form on this website. Our engineering team, led by Manoj Satapathy, will review your deliverables and send an official commercial Quotation with itemized milestone costs, tax breakdown (CGST/SGST/IGST), and timeline within 24 hours.',
-    category: 'Pricing & Quotes',
-    keywords: ['quotation', 'formal quote', 'proposal', 'estimate', 'enquiry', 'lead', 'hire', 'start project', 'consultation', 'book'],
-    suggestedFollowUps: ['Fill Project Scope Form', 'How long does development take?', 'What are your payment terms?'],
+    question: 'How do I submit a project enquiry or discuss requirements?',
+    answer: 'You can submit your requirements directly through our Project Scope form on this website. We review every enquiry and get in touch to discuss your specific workflow and technical needs.',
+    category: 'Enquiries',
+    keywords: ['contact', 'quote', 'quotation', 'enquiry', 'hire', 'start project', 'discuss', 'requirement', 'form'],
+    suggestedFollowUps: ['What services do you offer?', 'View Projects'],
     actionLink: '#contact',
-    actionLabel: 'Submit Project Scope Form',
+    actionLabel: 'Open Project Scope Form',
     isActive: true,
     orderIndex: 4,
     matchCount: 168
   },
   {
     id: 'cqa_5',
-    question: 'Are your invoices GST compliant in India? What is SAC Code 998314?',
-    answer: 'Yes, 100%. Fusion Forge Creation provides official B2B Tax Invoices under SAC 998314 (Information Technology Software Services), enabling your business to claim full Input Tax Credit (ITC). Intra-state deals receive CGST (9%) + SGST/UTGST (9%), while inter-state deals receive IGST (18%).',
-    category: 'GST & Invoicing',
-    keywords: ['gst', 'gstin', 'sac', '998314', 'tax', 'invoice', 'itc', 'input tax credit', 'cgst', 'sgst', 'igst', 'hsn', 'compliance', 'b2b'],
-    suggestedFollowUps: ['What are your payment terms?', 'How much does a web app cost?'],
-    actionLink: '#contact',
-    actionLabel: 'Review Agency GST Information',
+    question: 'Can you build custom management systems and admin panels?',
+    answer: 'Yes! We specialize in database-driven management systems and centralized admin dashboards for organizing customers, products, appointments, records, staff, and day-to-day operations.',
+    category: 'Capabilities',
+    keywords: ['admin', 'panel', 'dashboard', 'management system', 'crm', 'erp', 'portal'],
+    suggestedFollowUps: ['View Projects', 'Discuss Your Project'],
+    actionLink: '#projects',
+    actionLabel: 'View Example Management Systems',
     isActive: true,
     orderIndex: 5,
     matchCount: 88
   },
   {
     id: 'cqa_6',
-    question: 'How long does a typical software project take to build and deploy?',
-    answer: 'Timelines depend on scope and milestone structure:\n\n• MVP / Rapid Prototype: 2 – 4 Weeks\n• Standard Web & Mobile App: 6 – 10 Weeks\n• Enterprise Platform & SaaS: 12 – 16 Weeks\n\nWe provide weekly staging preview links and live milestone demonstrations throughout every sprint.',
-    category: 'General',
-    keywords: ['timeline', 'duration', 'time', 'how long', 'weeks', 'months', 'deadline', 'delivery', 'turnaround', 'speed'],
-    suggestedFollowUps: ['What is your development workflow?', 'Do we own the source code?'],
-    actionLink: '#projects',
-    actionLabel: 'See Past Project Timelines',
+    question: 'Do you develop mobile applications?',
+    answer: 'Mobile application development (native iOS/Android apps) is not currently offered as a standard service. Our focus is on responsive websites, web applications and management systems that work seamlessly across desktop, tablet and mobile browsers.',
+    category: 'Services',
+    keywords: ['mobile', 'app', 'ios', 'android', 'react native', 'play store', 'app store'],
+    suggestedFollowUps: ['What services do you offer?', 'View What We Build'],
+    actionLink: '#services',
+    actionLabel: 'View Web Services',
     isActive: true,
     orderIndex: 6,
     matchCount: 74
   },
   {
     id: 'cqa_7',
-    question: 'Do we own 100% of the source code and intellectual property (IP)?',
-    answer: 'Yes, absolutely. Upon settlement of project milestones, 100% of the source code, repository commits, design files, database architectures, and intellectual property rights belong exclusively to your organization with zero vendor lock-in.',
-    category: 'General',
-    keywords: ['ip', 'intellectual property', 'code ownership', 'source code', 'ownership', 'copyright', 'github', 'repo', 'license'],
-    suggestedFollowUps: ['What post-launch support do you provide?', 'How to get a formal quote?'],
-    actionLink: '#faqs',
-    actionLabel: 'Read FAQs on IP Rights',
+    question: 'Can you modify or improve existing web applications?',
+    answer: 'Yes. We can review existing web applications and implement feature improvements, corrections, and modifications where the source code and technology stack permit.',
+    category: 'Capabilities',
+    keywords: ['modify', 'existing', 'improve', 'update', 'fix', 'codebase', 'legacy'],
+    suggestedFollowUps: ['Discuss Your Project', 'What services do you offer?'],
+    actionLink: '#contact',
+    actionLabel: 'Discuss Software Modification',
     isActive: true,
     orderIndex: 7,
     matchCount: 62
-  },
-  {
-    id: 'cqa_8',
-    question: 'What post-launch warranty and technical maintenance do you provide?',
-    answer: 'Every deployment includes an inclusive 60-day post-launch warranty covering bug fixes, performance tuning, and cloud infrastructure monitoring. We also provide monthly SLA retainers for continuous feature rollouts and 24/7 uptime monitoring.',
-    category: 'Contact & Support',
-    keywords: ['warranty', 'maintenance', 'support', 'sla', 'bugs', 'post launch', 'updates', 'monitoring', 'hosting'],
-    suggestedFollowUps: ['Contact Support Team', 'What services do you offer?'],
-    actionLink: '#contact',
-    actionLabel: 'Contact Technical Support',
-    isActive: true,
-    orderIndex: 8,
-    matchCount: 45
-  },
-  {
-    id: 'cqa_9',
-    question: 'Where is Fusion Forge Creation located and how can I contact you directly?',
-    answer: 'Our engineering headquarters is located in Silvassa, Dadra & Nagar Haveli (396230).\n\n• Executive Lead: Manoj Satapathy\n\nYou can reach out directly via the Project Scope Enquiry form on this website or through our official communication channels!',
-    category: 'Contact & Support',
-    keywords: ['location', 'address', 'where', 'city', 'silvassa', 'office', 'phone', 'whatsapp', 'email', 'contact', 'manoj', 'satapathy', 'call', 'talk'],
-    suggestedFollowUps: ['Fill Project Scope Form', 'How to get a formal quote?'],
-    actionLink: '#contact',
-    actionLabel: 'Reach Out via Enquiry Form',
-    isActive: true,
-    orderIndex: 9,
-    matchCount: 119
   }
 ];
 
 // =============================================================================
-// PHASE 10: INITIAL PURCHASES (B2B VENDORS & SUPPLIER INVOICES)
+// PHASE 10: GST UNIT MASTER (UOM / UQC STATUTORY CODES)
+// =============================================================================
+export const INITIAL_UNITS: UnitMasterItem[] = [
+  {
+    id: 'unit_nos',
+    code: 'NOS',
+    name: 'Numbers',
+    uqc: 'NOS-NUMBERS',
+    symbol: 'nos',
+    decimalPlaces: 0,
+    isDefault: true,
+    isActive: true,
+    createdAt: '2026-01-01T00:00:00Z',
+    updatedAt: '2026-08-16T00:00:00Z'
+  },
+  {
+    id: 'unit_pcs',
+    code: 'PCS',
+    name: 'Pieces',
+    uqc: 'PCS-PIECES',
+    symbol: 'pcs',
+    decimalPlaces: 0,
+    isDefault: false,
+    isActive: true,
+    createdAt: '2026-01-01T00:00:00Z',
+    updatedAt: '2026-08-16T00:00:00Z'
+  },
+  {
+    id: 'unit_box',
+    code: 'BOX',
+    name: 'Boxes',
+    uqc: 'BOX-BOX',
+    symbol: 'box',
+    decimalPlaces: 0,
+    isDefault: false,
+    isActive: true,
+    createdAt: '2026-01-01T00:00:00Z',
+    updatedAt: '2026-08-16T00:00:00Z'
+  },
+  {
+    id: 'unit_set',
+    code: 'SET',
+    name: 'Sets',
+    uqc: 'SET-SETS',
+    symbol: 'set',
+    decimalPlaces: 0,
+    isDefault: false,
+    isActive: true,
+    createdAt: '2026-01-01T00:00:00Z',
+    updatedAt: '2026-08-16T00:00:00Z'
+  },
+  {
+    id: 'unit_hrs',
+    code: 'HRS',
+    name: 'Hours',
+    uqc: 'HRS-HOURS',
+    symbol: 'hrs',
+    decimalPlaces: 2,
+    isDefault: false,
+    isActive: true,
+    createdAt: '2026-01-01T00:00:00Z',
+    updatedAt: '2026-08-16T00:00:00Z'
+  },
+  {
+    id: 'unit_day',
+    code: 'DAY',
+    name: 'Days',
+    uqc: 'DAY-DAYS',
+    symbol: 'day',
+    decimalPlaces: 1,
+    isDefault: false,
+    isActive: true,
+    createdAt: '2026-01-01T00:00:00Z',
+    updatedAt: '2026-08-16T00:00:00Z'
+  },
+  {
+    id: 'unit_mon',
+    code: 'MON',
+    name: 'Months',
+    uqc: 'MON-MONTHS',
+    symbol: 'mo',
+    decimalPlaces: 0,
+    isDefault: false,
+    isActive: true,
+    createdAt: '2026-01-01T00:00:00Z',
+    updatedAt: '2026-08-16T00:00:00Z'
+  },
+  {
+    id: 'unit_mtr',
+    code: 'MTR',
+    name: 'Meters',
+    uqc: 'MTR-METERS',
+    symbol: 'm',
+    decimalPlaces: 2,
+    isDefault: false,
+    isActive: true,
+    createdAt: '2026-01-01T00:00:00Z',
+    updatedAt: '2026-08-16T00:00:00Z'
+  },
+  {
+    id: 'unit_kgs',
+    code: 'KGS',
+    name: 'Kilograms',
+    uqc: 'KGS-KILOGRAMS',
+    symbol: 'kg',
+    decimalPlaces: 3,
+    isDefault: false,
+    isActive: true,
+    createdAt: '2026-01-01T00:00:00Z',
+    updatedAt: '2026-08-16T00:00:00Z'
+  },
+  {
+    id: 'unit_sqf',
+    code: 'SQF',
+    name: 'Square Feet',
+    uqc: 'SQF-SQUARE FEET',
+    symbol: 'sq.ft',
+    decimalPlaces: 2,
+    isDefault: false,
+    isActive: true,
+    createdAt: '2026-01-01T00:00:00Z',
+    updatedAt: '2026-08-16T00:00:00Z'
+  },
+  {
+    id: 'unit_oth',
+    code: 'OTH',
+    name: 'Others',
+    uqc: 'OTH-OTHERS',
+    symbol: 'oth',
+    decimalPlaces: 0,
+    isDefault: false,
+    isActive: true,
+    createdAt: '2026-01-01T00:00:00Z',
+    updatedAt: '2026-08-16T00:00:00Z'
+  }
+];
+
+// =============================================================================
+// PHASE 10: HSN / SAC MASTER (TAX RATES & CGST/SGST/IGST SCHEDULE)
+// =============================================================================
+export const INITIAL_HSN_CODES: HsnMasterItem[] = [
+  {
+    id: 'hsn_sac_998313',
+    code: '998313',
+    description: 'Information technology (IT) infrastructure and network management services',
+    type: 'services_sac',
+    gstRate: 18,
+    cgstRate: 9,
+    sgstRate: 9,
+    igstRate: 18,
+    cessRate: 0,
+    itcEligibility: 'Input Services',
+    defaultUnit: 'MON',
+    notes: 'Cloud hosting, VPS clusters, Kubernetes managed clusters and CDN subscriptions',
+    isActive: true,
+    createdAt: '2026-01-01T00:00:00Z',
+    updatedAt: '2026-08-16T00:00:00Z'
+  },
+  {
+    id: 'hsn_sac_998314',
+    code: '998314',
+    description: 'Information technology (IT) design and development services',
+    type: 'services_sac',
+    gstRate: 18,
+    cgstRate: 9,
+    sgstRate: 9,
+    igstRate: 18,
+    cessRate: 0,
+    itcEligibility: 'Input Services',
+    defaultUnit: 'HRS',
+    notes: 'Software coding, architecture, UI/UX design deliverables, API development',
+    isActive: true,
+    createdAt: '2026-01-01T00:00:00Z',
+    updatedAt: '2026-08-16T00:00:00Z'
+  },
+  {
+    id: 'hsn_sac_998315',
+    code: '998315',
+    description: 'Hosting and information technology (IT) infrastructure provisioning services',
+    type: 'services_sac',
+    gstRate: 18,
+    cgstRate: 9,
+    sgstRate: 9,
+    igstRate: 18,
+    cessRate: 0,
+    itcEligibility: 'Input Services',
+    defaultUnit: 'MON',
+    notes: 'Domain names, DNS managers, SSL certificates, load balancers',
+    isActive: true,
+    createdAt: '2026-01-01T00:00:00Z',
+    updatedAt: '2026-08-16T00:00:00Z'
+  },
+  {
+    id: 'hsn_sac_998413',
+    code: '998413',
+    description: 'Telecommunications and broadband internet access services',
+    type: 'services_sac',
+    gstRate: 18,
+    cgstRate: 9,
+    sgstRate: 9,
+    igstRate: 18,
+    cessRate: 0,
+    itcEligibility: 'Input Services',
+    defaultUnit: 'MON',
+    notes: 'Dedicated leased line internet, office fiber broadband connections',
+    isActive: true,
+    createdAt: '2026-01-01T00:00:00Z',
+    updatedAt: '2026-08-16T00:00:00Z'
+  },
+  {
+    id: 'hsn_847130',
+    code: '847130',
+    description: 'Laptops, notebooks, and portable digital automatic data processing machines',
+    type: 'goods_hsn',
+    gstRate: 18,
+    cgstRate: 9,
+    sgstRate: 9,
+    igstRate: 18,
+    cessRate: 0,
+    itcEligibility: 'Capital Goods',
+    defaultUnit: 'NOS',
+    notes: 'High-performance engineering laptops (MacBook, Dell Precision, ThinkPad)',
+    isActive: true,
+    createdAt: '2026-01-01T00:00:00Z',
+    updatedAt: '2026-08-16T00:00:00Z'
+  },
+  {
+    id: 'hsn_847170',
+    code: '847170',
+    description: 'Storage units, NVMe SSDs, hard disk drives, removable flash storage',
+    type: 'goods_hsn',
+    gstRate: 18,
+    cgstRate: 9,
+    sgstRate: 9,
+    igstRate: 18,
+    cessRate: 0,
+    itcEligibility: 'Inputs',
+    defaultUnit: 'NOS',
+    notes: 'Server SSD arrays, high-speed backup external drives',
+    isActive: true,
+    createdAt: '2026-01-01T00:00:00Z',
+    updatedAt: '2026-08-16T00:00:00Z'
+  },
+  {
+    id: 'hsn_851762',
+    code: '851762',
+    description: 'Machines for reception, conversion and transmission of data; switches, routers, modems',
+    type: 'goods_hsn',
+    gstRate: 18,
+    cgstRate: 9,
+    sgstRate: 9,
+    igstRate: 18,
+    cessRate: 0,
+    itcEligibility: 'Capital Goods',
+    defaultUnit: 'NOS',
+    notes: 'Gigabit Managed Switches, Wi-Fi 6 Routers, Hardware Firewalls',
+    isActive: true,
+    createdAt: '2026-01-01T00:00:00Z',
+    updatedAt: '2026-08-16T00:00:00Z'
+  },
+  {
+    id: 'hsn_852852',
+    code: '852852',
+    description: 'Monitors and display units capable of connecting to automatic data processing systems',
+    type: 'goods_hsn',
+    gstRate: 18,
+    cgstRate: 9,
+    sgstRate: 9,
+    igstRate: 18,
+    cessRate: 0,
+    itcEligibility: 'Capital Goods',
+    defaultUnit: 'NOS',
+    notes: '27-inch 4K IPS Developer Displays, Ultrawide dual-input monitors',
+    isActive: true,
+    createdAt: '2026-01-01T00:00:00Z',
+    updatedAt: '2026-08-16T00:00:00Z'
+  },
+  {
+    id: 'hsn_482010',
+    code: '482010',
+    description: 'Registers, account books, note books, order books, receipt books, letter pads',
+    type: 'goods_hsn',
+    gstRate: 12,
+    cgstRate: 6,
+    sgstRate: 6,
+    igstRate: 12,
+    cessRate: 0,
+    itcEligibility: 'Inputs',
+    defaultUnit: 'PAC',
+    notes: 'Office registers, carbon copy receipt pads, printer paper packs',
+    isActive: true,
+    createdAt: '2026-01-01T00:00:00Z',
+    updatedAt: '2026-08-16T00:00:00Z'
+  },
+  {
+    id: 'hsn_998221',
+    code: '998221',
+    description: 'Financial auditing, tax compliance and accounting retainer services',
+    type: 'services_sac',
+    gstRate: 18,
+    cgstRate: 9,
+    sgstRate: 9,
+    igstRate: 18,
+    cessRate: 0,
+    itcEligibility: 'Input Services',
+    defaultUnit: 'MON',
+    notes: 'Chartered Accountant audits, GST filing and corporate compliance advisory',
+    isActive: true,
+    createdAt: '2026-01-01T00:00:00Z',
+    updatedAt: '2026-08-16T00:00:00Z'
+  }
+];
+
+// =============================================================================
+// PHASE 10: SUPPLIER / VENDOR MASTER
+// =============================================================================
+export const INITIAL_SUPPLIERS: SupplierVendor[] = [];
+
+// =============================================================================
+// PHASE 10: GOODS & ITEMS MASTER FOR PURCHASES
+// =============================================================================
+export const INITIAL_GOODS_ITEMS: GoodsItem[] = [];
+
+// =============================================================================
+// PHASE 10: INITIAL PURCHASES (B2B VENDORS & SUPPLIER INVOICES WITH ATTACHMENTS)
 // =============================================================================
 export const INITIAL_PURCHASES: Purchase[] = [];
 
@@ -751,7 +1188,7 @@ export const INITIAL_NOTIFICATIONS: AppNotification[] = [];
 
 export const INITIAL_EMAIL_LOGS: EmailLog[] = [];
 
-export { SUPABASE_SQL_SCHEMA } from './data/supabaseSql';
+export { INSFORGE_PRODUCTION_SCHEMA_V2, INSFORGE_SQL_SCHEMA } from './data/insforgeSql';
 
 /*
 -- OLD_SCHEMA_REPLACED_BY_AUTHORITATIVE_SOURCE
@@ -1700,131 +2137,942 @@ export const INITIAL_LEGAL_DOCUMENTS: LegalDocument[] = [
   {
     id: 'legal_doc_privacy',
     slug: 'privacy-policy',
-    title: 'Privacy Policy & Data Protection Charter',
+    title: 'Privacy Policy',
     documentType: 'privacy_policy',
-    version: 'v2.1',
-    effectiveDate: '2026-08-01',
-    lastUpdatedDate: '2026-08-16',
+    version: 'v3.0',
+    effectiveDate: '2026-08-25',
+    lastUpdatedDate: '2026-08-25',
     status: 'active',
-    summary: 'Comprehensive privacy policy detailing data minimization, zero-third-party tracking sale, client credential encryption, and compliance with the Digital Personal Data Protection (DPDP) Act, 2023.',
-    content: `# Privacy Policy & Data Protection Charter
-**Fusion Forge Creation** ("we", "us", or "our") is dedicated to protecting the privacy, confidentiality, and sovereign data rights of our clients, prospects, and visitors.
+    summary: 'Official Privacy Policy of Fusion Forge Creation explaining our practices on collecting, using, storing, and protecting visitor, client, project enquiry, business, account, and technical information.',
+    content: `# PRIVACY POLICY
+
+**Last Updated:** 25 August 2026
+
+## 1. Introduction
+
+Fusion Forge Creation ("Fusion Forge Creation", "we", "us", or "our") respects the privacy of visitors, prospective customers, customers and users of our website and services.
+
+This Privacy Policy explains how we collect, use, store and protect information when you visit our website, submit an enquiry, communicate with us, or use services and web applications provided by Fusion Forge Creation.
+
+By using our website or voluntarily providing information to us, you acknowledge the practices described in this Privacy Policy.
 
 ---
 
-### 1. Scope & Sovereign Data Collection
-We operate on a **Data Minimization Principle**. We only gather information strictly required to design, develop, deploy, and support bespoke software architectures.
-- **Inbound Inquiries**: Full Name, Authorized Corporate Email, Mobile / WhatsApp Number, Company Trade Name, Registered GSTIN (for B2B invoicing), and Project Technical Scope.
-- **Client Portal Authentication**: Secure encrypted tokens managed via Supabase PostgreSQL Auth.
-- **Telemetry & Visitor Analytics**: Aggregated, privacy-conscious event logs (anonymized session identifiers, section dwell count, device categories). We **never** record passwords, keystrokes, or invasive third-party cross-site trackers.
+## 2. About Fusion Forge Creation
+
+**Fusion Forge Creation** provides website development, web application development, business software development, database-driven applications, management systems, admin panels, billing and inventory software, custom business automation and related technical services.
+
+Our current business contact details are:
+
+**Fusion Forge Creation**
+Yogi Milan,
+Near Ring Road, Amli,
+Silvassa, Dadra & Nagar Haveli – 396230, India
+
+**Phone:** +91 63588 55524
+
+**Email:** [admin@fusionforgecreation.com](mailto:admin@fusionforgecreation.com)
 
 ---
 
-### 2. Legal Basis & Statutory Compliance
-Our data processing protocols comply with:
-- **Digital Personal Data Protection (DPDP) Act, 2023** (India)
-- **Information Technology Act, 2000** & IT (Reasonable Security Practices) Rules, 2011
-- **Goods and Services Tax Act, 2017** (mandatory record retention for registered B2B invoices)
+## 3. Information We May Collect
+
+Depending on how you interact with our website or services, we may collect information such as:
+
+### 3.1 Contact Information
+
+* Name
+* Email address
+* Telephone/mobile number
+* Company or organization name
+* Business address
+* Other contact information voluntarily provided by you
+
+### 3.2 Project Information
+
+When you submit a project enquiry, we may collect:
+
+* Type of service required
+* Estimated budget range
+* Project requirements
+* Business requirements
+* Preferred features
+* Technical requirements
+* Other information voluntarily provided in the enquiry
+
+### 3.3 Business Information
+
+If required for a project, quotation, invoice or business relationship, we may collect information such as:
+
+* Company information
+* Billing information
+* Tax-related information voluntarily provided by the customer
+* Project information
+* Purchase or service details
+* Payment-related information necessary for accounting or transaction processing
+
+### 3.4 Account Information
+
+Where a project or application provides user accounts, we may collect information necessary to create and manage those accounts, including:
+
+* Name
+* Email address
+* Login information
+* User role
+* Account status
+
+Passwords should be stored using appropriate security mechanisms and should not be knowingly stored or displayed in plain text.
+
+### 3.5 Technical Information
+
+Our website or services may automatically receive limited technical information such as:
+
+* IP address
+* Browser type
+* Device type
+* Operating system
+* Pages visited
+* Approximate usage information
+* Error or diagnostic information
+
+The exact information collected depends on the technologies and services used by the website.
 
 ---
 
-### 3. Purpose of Processing
-1. Preparing commercial Quotations, Technical Scopes of Work (SOW), and Project Roadmaps.
-2. Generating statutory GST Tax Invoices and maintaining double-entry accounting ledgers.
-3. Providing real-time milestone tracking, staging access, and client dashboard analytics.
-4. Sending transactional email dispatches (estimates, tax invoices, payment acknowledgments).
+## 4. How We Use Information
+
+We may use collected information for legitimate business and operational purposes, including:
+
+* Responding to enquiries
+* Understanding project requirements
+* Preparing quotations and proposals
+* Communicating with prospective customers
+* Providing requested services
+* Managing customer relationships
+* Developing and maintaining software
+* Providing technical support
+* Managing accounts and application access
+* Processing invoices and payments
+* Maintaining business records
+* Improving our website and services
+* Detecting security problems or misuse
+* Meeting applicable legal or regulatory obligations
+
+We do not collect information for purposes unrelated to the services or business activities described in this Policy unless permitted or required by applicable law.
 
 ---
 
-### 4. Zero-Sale & Strict Confidentiality Guarantee
-- We **NEVER** sell, rent, broker, or monetize your personal or corporate data under any circumstances.
-- All intellectual assets, source code repositories, and client API keys are secured under standard Non-Disclosure Agreements (NDA).
+## 5. Project Enquiry Information
+
+When you submit an enquiry through our website, the information you provide may be stored in our business management system so that we can:
+
+* Review your requirements
+* Contact you
+* Track the enquiry
+* Prepare a quotation
+* Follow up on the project
+* Convert the enquiry into a customer/project where applicable
+
+Providing accurate information helps us understand your requirements and respond appropriately.
 
 ---
 
-### 5. Data Retention & Erasure Rights
-- Inactive enquiry records may be erased upon written request to **manojsatapathy.jp@gmail.com**.
-- B2B GST tax invoices, accounting vouchers, and payment receipts are retained for a statutory period of **72 months** pursuant to GST Rules.
+## 6. Communication
+
+If you provide your contact details through our enquiry or contact forms, we may contact you regarding:
+
+* Your enquiry
+* Project requirements
+* Quotations
+* Project discussions
+* Technical matters
+* Service-related communication
+* Existing customer support
+
+We do not intend to use project enquiry information for unrelated promotional purposes without an appropriate basis or permission.
 
 ---
 
-### 6. Grievance Officer & Contact
-- **Grievance Officer**: Manoj Satapathy (Founder & Solutions Architect)
-- **Registered Office**: Dadra and Nagar Haveli and Daman and Diu, India - 396230
-- **Email**: manojsatapathy.jp@gmail.com | **Phone**: +91 94084 56499`,
-    jurisdiction: 'Dadra and Nagar Haveli and Daman and Diu, India',
-    applicableLaw: 'Digital Personal Data Protection (DPDP) Act, 2023 & IT Act, 2000',
-    createdBy: 'Manoj Satapathy',
-    createdByEmail: 'manojsatapathy.jp@gmail.com',
-    lastModifiedBy: 'Manoj Satapathy',
-    lastModifiedByEmail: 'manojsatapathy.jp@gmail.com',
-    lastModifiedByRole: 'Super Admin',
-    changeSummary: 'Updated Section 1 with explicit DPDP Act 2023 compliance clauses and B2B GSTIN collection protocols.',
-    versionHistoryCount: 2,
+## 7. Cookies and Similar Technologies
+
+Our website may use cookies or similar technologies for purposes such as:
+
+* Maintaining website functionality
+* Remembering certain preferences
+* Authentication where applicable
+* Security
+* Website analytics
+* Improving user experience
+
+The use of cookies may depend on the services and third-party technologies integrated with the website.
+
+You may be able to control cookies through your browser settings. Disabling certain cookies may affect some website functionality.
+
+---
+
+## 8. Third-Party Services
+
+Our website and software projects may use third-party technology providers for services such as:
+
+* Hosting
+* Database services
+* Authentication
+* Email delivery
+* Analytics
+* Payment processing
+* Website deployment
+* Cloud infrastructure
+* Communication
+
+Examples may include hosting, database or application service providers selected for a particular project.
+
+Third-party providers may process information according to their own privacy policies and terms.
+
+Fusion Forge Creation does not control the privacy practices of independent third-party providers.
+
+---
+
+## 9. Payment Information
+
+Where payments are made for our services, payment information may be processed through the applicable payment method or service provider.
+
+We do not intend to unnecessarily store sensitive payment credentials such as complete card numbers, CVV numbers or banking passwords on our website.
+
+Customers should provide payment information only through appropriate and authorized payment channels.
+
+---
+
+## 10. Protection of Information
+
+We take reasonable technical and organizational measures to protect information against unauthorized access, misuse, alteration, disclosure or loss.
+
+Depending on the nature of the information and the system involved, safeguards may include:
+
+* Authentication
+* Access controls
+* Database security
+* Secure communication
+* Role-based permissions
+* Server-side protection
+* Backup and recovery procedures
+
+However, no internet-based system can be guaranteed to be completely secure.
+
+Therefore, we cannot guarantee absolute security of information transmitted over the internet.
+
+---
+
+## 11. Confidential Project Information
+
+During software development, customers may provide confidential business information, documents, workflows, credentials or technical information.
+
+We will use such information only as reasonably necessary to understand, develop, maintain or support the relevant project, subject to the applicable agreement with the customer.
+
+Customers should not provide unnecessary passwords, secret keys or other sensitive credentials through ordinary website enquiry forms.
+
+Where credentials are required for technical work, they should be provided through an appropriate secure method.
+
+---
+
+## 12. Data Retention
+
+We may retain information for as long as reasonably necessary for:
+
+* Providing services
+* Managing customer relationships
+* Maintaining project records
+* Accounting and invoicing
+* Legal or regulatory requirements
+* Resolving disputes
+* Security and fraud prevention
+* Legitimate business purposes
+
+The retention period may vary depending on the nature of the information.
+
+When information is no longer reasonably required, we may delete, anonymize or securely dispose of it, subject to applicable legal obligations.
+
+---
+
+## 13. Data Sharing
+
+We do not intend to sell personal information as a commercial product.
+
+Information may be shared with appropriate parties where reasonably necessary for:
+
+* Providing requested services
+* Hosting and operating applications
+* Sending requested communications
+* Processing payments
+* Providing technical services
+* Maintaining infrastructure
+* Meeting legal requirements
+* Protecting rights, property or security
+
+Where third-party service providers are involved, they may process information on their own systems according to their applicable terms and privacy policies.
+
+---
+
+## 14. Legal Disclosure
+
+We may disclose information where we reasonably believe disclosure is necessary to:
+
+* Comply with applicable law
+* Respond to lawful requests
+* Protect our rights or property
+* Prevent fraud or misuse
+* Protect the security of users or systems
+* Investigate unlawful activity
+
+---
+
+## 15. Children's Privacy
+
+Our website and services are primarily intended for businesses, organizations and adult users.
+
+We do not knowingly request personal information from children for independent use of our business services.
+
+If a parent or guardian believes that a child has provided personal information to us unnecessarily, they may contact us so that the matter can be reviewed.
+
+---
+
+## 16. External Links
+
+Our website may contain links to external websites or services.
+
+Fusion Forge Creation is not responsible for the privacy practices, content or security of third-party websites.
+
+Users should review the privacy policies of external services before providing information to them.
+
+---
+
+## 17. Your Rights and Requests
+
+Subject to applicable law, you may contact us to request information regarding personal data that we hold about you.
+
+Depending on the circumstances and applicable legal requirements, you may request:
+
+* Access to relevant personal information
+* Correction of inaccurate information
+* Deletion of information where legally permissible
+* Clarification regarding the use of your information
+* Withdrawal of certain permissions where applicable
+
+Requests should be sent to:
+
+**[admin@fusionforgecreation.com](mailto:admin@fusionforgecreation.com)**
+
+We may need to verify the identity of the person making a request before processing it.
+
+---
+
+## 18. Accuracy of Information
+
+You are responsible for providing reasonably accurate information when submitting an enquiry, creating an account or entering into a business relationship with Fusion Forge Creation.
+
+If your information changes, you may contact us to request an update where appropriate.
+
+---
+
+## 19. Changes to This Privacy Policy
+
+We may update this Privacy Policy from time to time to reflect:
+
+* Changes in our services
+* Changes in technology
+* Changes in legal requirements
+* Changes in website functionality
+* Changes in our data practices
+
+The updated version will be published on this page with a revised "Last Updated" date.
+
+---
+
+## 20. Contact Us
+
+For privacy-related questions, requests or concerns, contact:
+
+**Fusion Forge Creation**
+
+**Email:** [admin@fusionforgecreation.com](mailto:admin@fusionforgecreation.com)  
+**Phone:** +91 63588 55524
+
+**Address:**  
+Yogi Milan,  
+Near Ring Road, Amli,  
+Silvassa, Dadra & Nagar Haveli – 396230, India
+
+---
+
+## 21. Important Notice
+
+This Privacy Policy is intended to explain our general information-handling practices for the website and related services.
+
+For specific software projects, customers may have additional contractual, confidentiality, security or data-processing requirements. Such requirements may be addressed separately in the applicable project agreement, quotation, service agreement or other written documentation.`,
+    jurisdiction: 'Dadra & Nagar Haveli, India',
+    applicableLaw: 'Information Technology Act, 2000 & DPDP Act, 2023',
+    createdBy: 'Fusion Forge Creation',
+    createdByEmail: 'admin@fusionforgecreation.com',
+    lastModifiedBy: 'Fusion Forge Creation',
+    lastModifiedByEmail: 'admin@fusionforgecreation.com',
+    lastModifiedByRole: 'Admin',
+    changeSummary: 'Published comprehensive 21-section Privacy Policy covering project enquiries, business information handling, security safeguards, and data rights as of 25 August 2026.',
+    versionHistoryCount: 3,
     created_at: '2026-01-10T00:00:00Z',
-    updated_at: '2026-08-16T14:30:00Z'
+    updated_at: '2026-08-25T00:00:00Z'
   },
   {
     id: 'legal_doc_terms',
-    slug: 'terms-of-engagement',
-    title: 'Master Terms of Engagement & Commercial Services Agreement',
+    slug: 'terms-and-conditions',
+    title: 'Terms & Conditions',
     documentType: 'terms_of_engagement',
-    version: 'v2.0',
-    effectiveDate: '2026-07-15',
-    lastUpdatedDate: '2026-08-15',
+    version: 'v3.0',
+    effectiveDate: '2026-08-25',
+    lastUpdatedDate: '2026-08-25',
     status: 'active',
-    summary: 'Standard contractual framework governing project scoping, milestone payments, intellectual property transfer, deliverables acceptance criteria, and limitation of liability.',
-    content: `# Master Terms of Engagement & Commercial Services Agreement
-These Terms of Engagement govern all software engineering, mobile development, cloud architecture, and technical consulting contracts delivered by **Fusion Forge Creation**.
+    summary: 'Official Terms & Conditions governing website use, enquiries, quotations, custom software development, third-party services, intellectual property, payments, and client responsibilities.',
+    content: `# TERMS & CONDITIONS
+
+**Last Updated:** 25 August 2026
+
+## 1. Introduction
+
+These Terms & Conditions ("Terms") govern the use of the Fusion Forge Creation website and provide general terms relating to enquiries, quotations, software development services and related business interactions.
+
+By using this website or engaging Fusion Forge Creation for services, you acknowledge that you have read and understood these Terms.
+
+For a specific software project, the final scope, price, timelines, deliverables and other obligations may be defined separately in a quotation, proposal, work order, service agreement or other written agreement.
+
+Where a signed or otherwise accepted project agreement contains terms that specifically apply to a project, those project-specific terms will govern that project to the extent of any inconsistency.
 
 ---
 
-### 1. Project Scoping & Formal Quotations
-- Every engagement commences with an approved **Commercial Quotation** detailing the scope of deliverables, technology stack, timeline, and SAC Code **998314**.
-- Any scope changes or additional feature requests outside the agreed milestone breakdown will be processed via an official written Addendum / Change Order.
+## 2. About Fusion Forge Creation
+
+**Fusion Forge Creation** provides services including:
+
+* Business website development
+* Web application development
+* Business management software
+* Admin panels and dashboards
+* Database-driven applications
+* Billing and invoice software
+* Inventory and retail management systems
+* Custom business automation
+* Existing software modifications
+* Deployment assistance
+* Technical maintenance and support
+
+Mobile application development is not currently offered as a standard Fusion Forge Creation service.
 
 ---
 
-### 2. Commercial Terms & Payment Schedule
-1. **Advance Commitment**: Standard 40% initial deposit prior to architecture provisioning and sprint initiation.
-2. **Milestone Disbursements**: 40% upon staging environment deployment and functional feature review.
-3. **Final Settlement**: 20% balance prior to production handover, DNS domain binding, and source code transfer.
-4. **Payment Windows**: All tax invoices carry Net-15 or Net-30 payment terms as specified on the invoice document.
+## 3. Website Use
+
+You may use this website for legitimate purposes, including:
+
+* Learning about our services
+* Reviewing our projects
+* Contacting us
+* Submitting a project enquiry
+* Requesting information or a quotation
+
+You must not use the website to:
+
+* Conduct unlawful activity
+* Attempt unauthorized access
+* Interfere with website operation
+* Introduce malicious software
+* Abuse enquiry forms
+* Submit fraudulent information
+* Attempt to access another user's account
+* Copy or misuse protected website content
+* Attack or disrupt our servers, applications or services
+
+We reserve the right to restrict access where misuse or suspicious activity is identified.
 
 ---
 
-### 3. Intellectual Property (IP) Transfer
-- Upon receipt of 100% full and final payment of all outstanding tax invoices, **Fusion Forge Creation** transfers all proprietary custom source code, design system assets, and database schemas created exclusively for the Client.
-- Reusable underlying libraries, open-source modules, and proprietary framework boilerplates remain subject to standard permissive licenses.
+## 4. Project Enquiries
+
+Submitting an enquiry through our website does not create a contract between you and Fusion Forge Creation.
+
+An enquiry allows us to understand your requirements and determine whether we can provide the requested service.
+
+We may contact you to obtain additional information before preparing a quotation or proposal.
 
 ---
 
-### 4. Client Staging & User Acceptance Testing (UAT)
-- The Client receives a 10-business-day UAT window upon staging delivery to report functional discrepancies against the written Scope of Work.
-- Acceptance is deemed ratified upon written sign-off, live deployment, or lapse of the 10-day review period without blocking issue notices.
+## 5. Target Service Category and Budget
+
+The project enquiry form may request:
+
+* Target Service Category
+* Estimated Budget Range
+* Project requirements
+* Other business information
+
+The estimated budget range is collected for preliminary project understanding and planning.
+
+It is not a final quotation or binding price.
+
+The final project price depends on the agreed scope, features, complexity, integrations, development requirements and other project-specific factors.
 
 ---
 
-### 5. Warranty & Post-Launch Support
-- All custom deliverables include a **30-day complimentary bug-fix warranty** post-production rollout.
-- Extended SLA maintenance, server DevOps management, and ongoing feature iterations are governed under dedicated Retainer Agreements.
+## 6. Quotations and Proposals
+
+Any quotation or proposal issued by Fusion Forge Creation may include:
+
+* Project scope
+* Features
+* Deliverables
+* Development charges
+* Hosting or third-party charges where applicable
+* Estimated timeline
+* Payment schedule
+* Support terms
+* Other project conditions
+
+A quotation is not a final contract until it is accepted according to the stated acceptance method.
+
+Unless otherwise stated, quotations may have a specified validity period.
 
 ---
 
-### 6. Governing Law & Dispute Resolution
-- This agreement is constructed under the laws of the Republic of India.
-- Any unresolved legal dispute shall be subject to the exclusive jurisdiction of the competent courts of **Silvassa, Dadra and Nagar Haveli and Daman and Diu**.`,
-    jurisdiction: 'Courts of Silvassa, Dadra and Nagar Haveli and Daman and Diu',
+## 7. Project Scope
+
+Software development will be performed according to the agreed project scope.
+
+Features that are not included in the agreed scope may require:
+
+* Additional development
+* Additional charges
+* Additional time
+* A separate quotation or change request
+
+Requests made after approval of the original scope may therefore be treated as change requests.
+
+---
+
+## 8. Requirements Provided by the Customer
+
+The customer is responsible for providing reasonably accurate and complete project requirements, business rules, content and information necessary for development.
+
+Delays in receiving required information, approvals, content, credentials or decisions may affect project timelines.
+
+Where requirements change substantially during development, the project scope and timeline may need to be reviewed.
+
+---
+
+## 9. Software Development
+
+Fusion Forge Creation develops software according to agreed requirements and the technologies selected for the particular project.
+
+Depending on the project, software may include:
+
+* Frontend applications
+* Backend services
+* Databases
+* Authentication
+* Admin panels
+* Reports
+* APIs
+* Business workflows
+* Third-party integrations
+
+The exact features and technologies will depend on the agreed project scope.
+
+We do not guarantee that every technology or integration requested by a customer will be technically or commercially suitable.
+
+---
+
+## 10. Third-Party Services
+
+Projects may depend on third-party services such as:
+
+* Hosting providers
+* Domain providers
+* Database platforms
+* Email providers
+* Payment gateways
+* Authentication providers
+* Cloud services
+* APIs
+* Software libraries
+
+Third-party service availability, pricing, policies and technical limitations are outside our direct control.
+
+Customers may be required to maintain their own third-party accounts and subscriptions where applicable.
+
+Third-party charges are generally separate from Fusion Forge Creation development charges unless explicitly included in the quotation.
+
+---
+
+## 11. Hosting and Domain Services
+
+Where Fusion Forge Creation assists with hosting or deployment, the specific hosting provider and service arrangement will depend on the project.
+
+Hosting, domain registration, SSL certificates, email services and other third-party services may have separate charges and renewal requirements.
+
+We are not responsible for service interruptions caused solely by third-party providers.
+
+---
+
+## 12. Development Timeline
+
+Estimated project timelines are based on the agreed scope and information available at the time of estimation.
+
+Timelines may change because of:
+
+* Scope changes
+* Delayed approvals
+* Delayed customer feedback
+* Missing content
+* Third-party service problems
+* Technical dependencies
+* Unforeseen development issues
+* Changes requested by the customer
+
+Unless a project agreement specifically states otherwise, an estimated timeline should not be treated as an unconditional delivery guarantee.
+
+---
+
+## 13. Testing and Acceptance
+
+Before final delivery, reasonable testing may be performed according to the agreed project scope.
+
+Customers should review the delivered software and report material issues related to the agreed scope.
+
+Issues caused by:
+
+* New requirements
+* Customer modifications
+* Third-party changes
+* Unsupported environments
+* Incorrect customer configuration
+* Unauthorized code modifications
+
+may be treated separately from defects in the originally agreed implementation.
+
+---
+
+## 14. Payments
+
+Payment terms will be specified in the applicable quotation, proposal or project agreement.
+
+Depending on the project, payments may be structured around:
+
+* Project initiation
+* Development milestones
+* Testing
+* Final delivery
+
+The exact payment schedule will be agreed before or during project commencement.
+
+Work may be paused where agreed payments remain overdue.
+
+---
+
+## 15. Taxes and Government Charges
+
+Applicable taxes, duties or government charges, if any, will be handled according to the applicable legal requirements and the terms stated in the relevant quotation or invoice.
+
+Fusion Forge Creation does not represent itself as a tax advisor.
+
+Customers remain responsible for obtaining their own professional tax advice where required.
+
+---
+
+## 16. Intellectual Property
+
+Unless otherwise agreed in writing, ownership and usage rights for project deliverables will be governed by the applicable quotation, proposal or project agreement.
+
+Depending on the agreement, the customer may receive rights to use or own specific custom-developed deliverables after the applicable payment obligations have been fulfilled.
+
+Third-party libraries, frameworks, open-source software, fonts, icons, APIs and other third-party materials remain subject to their respective licenses.
+
+Transfer of a project does not automatically transfer ownership of third-party software or services.
+
+---
+
+## 17. Pre-Existing Materials
+
+Fusion Forge Creation may use:
+
+* Existing software components
+* Frameworks
+* Libraries
+* Reusable development techniques
+* General-purpose code
+* Development tools
+* Open-source software
+
+These may remain part of Fusion Forge Creation's or third-party intellectual property unless specifically transferred under a written agreement.
+
+---
+
+## 18. Customer Content
+
+The customer remains responsible for content, documents, images, logos, trademarks, product information and other materials supplied to Fusion Forge Creation.
+
+The customer represents that it has the necessary rights or permissions to provide such materials for use in the project.
+
+Fusion Forge Creation is not responsible for disputes arising from unauthorized customer-supplied content.
+
+---
+
+## 19. Confidential Information
+
+Both parties may receive confidential information during a project.
+
+Confidential information should be used only for legitimate project or business purposes.
+
+Where a project requires stronger confidentiality obligations, the parties may enter into a separate Non-Disclosure Agreement or confidentiality agreement.
+
+---
+
+## 20. Credentials and Access
+
+Customers may need to provide access to:
+
+* Hosting
+* Domains
+* Databases
+* APIs
+* Email systems
+* Existing applications
+* Other technical services
+
+Customers should provide credentials through secure methods wherever possible.
+
+Customers are responsible for ensuring that they have authority to provide the requested access.
+
+Fusion Forge Creation should not be provided with unnecessary credentials or access unrelated to the project.
+
+---
+
+## 21. Security
+
+We take reasonable measures to develop and maintain applications according to the agreed requirements.
+
+However, no software or internet service can be guaranteed to be completely immune from:
+
+* Security vulnerabilities
+* Cyberattacks
+* Third-party failures
+* Configuration errors
+* Data loss
+* Unauthorized access
+
+Security requirements that are particularly important to a project should be specifically identified and included in the project scope.
+
+---
+
+## 22. Backups
+
+Where a project includes database or hosting management, backup arrangements should be clearly defined in the applicable project agreement.
+
+Customers should maintain appropriate backups of critical business information.
+
+Unless expressly agreed in writing, Fusion Forge Creation does not guarantee indefinite retention or recovery of all customer data.
+
+---
+
+## 23. Support and Maintenance
+
+Support and maintenance may be provided according to the applicable project agreement.
+
+Support may include:
+
+* Bug corrections
+* Minor adjustments
+* Technical assistance
+* Configuration assistance
+* Feature modifications
+
+New functionality or substantial changes may be treated as additional development work.
+
+The exact support period and scope should be specified in the applicable quotation or agreement.
+
+---
+
+## 24. Software Modifications by Third Parties
+
+If a customer or another developer modifies the delivered application without authorization or outside the agreed development process, Fusion Forge Creation may not be responsible for problems caused by those modifications.
+
+Further support may require an assessment of the modified application.
+
+---
+
+## 25. Project Cancellation
+
+Cancellation terms will depend on the applicable quotation or project agreement.
+
+Work already performed, approved expenses, third-party charges and other non-refundable costs may remain payable according to the agreed terms.
+
+Where no separate cancellation terms have been agreed, the parties should discuss the status of work completed and outstanding obligations before termination.
+
+---
+
+## 26. Refunds
+
+Refunds, where applicable, will be governed by the applicable quotation or project agreement.
+
+Development work that has already been completed, delivered or approved may not automatically qualify for a refund.
+
+Third-party charges may also be non-refundable where the provider does not offer a refund.
+
+---
+
+## 27. Portfolio and Project Display
+
+Fusion Forge Creation may display selected completed projects in its portfolio only where appropriate and where the relevant customer, project or contractual terms permit such display.
+
+Customer confidentiality and contractual restrictions will take precedence.
+
+A project should not be represented publicly as a customer project if it is only a demo, concept or internal project.
+
+---
+
+## 28. No Guarantee of Business Results
+
+Software and websites are developed to support business objectives, but Fusion Forge Creation does not guarantee specific business results such as:
+
+* Increased sales
+* Increased profits
+* Search-engine ranking
+* Customer growth
+* Guaranteed leads
+* Guaranteed website traffic
+* Guaranteed return on investment
+
+Results depend on many factors outside the control of the developer.
+
+---
+
+## 29. Website Information
+
+We attempt to keep information on our website reasonably accurate.
+
+However, service descriptions, technologies, project information, prices and other website content may change as our services develop.
+
+Website information should not be interpreted as a binding project quotation unless specifically stated otherwise.
+
+---
+
+## 30. Third-Party Links
+
+Our website may contain links to external websites.
+
+These links are provided for convenience or reference.
+
+Fusion Forge Creation does not control third-party websites and is not responsible for their content, availability, security or policies.
+
+---
+
+## 31. Limitation of Liability
+
+To the extent permitted by applicable law, Fusion Forge Creation will not be responsible for indirect, incidental, special or consequential losses arising from the use of a website, software application or service, including losses resulting from:
+
+* Business interruption
+* Loss of anticipated profits
+* Loss caused by third-party services
+* Loss caused by customer-provided information
+* Unauthorized customer modifications
+* External attacks or security incidents
+* Hosting failures outside our control
+
+Any project-specific liability limitations may be defined separately in the applicable written agreement.
+
+Nothing in these Terms is intended to exclude liability that cannot lawfully be excluded under applicable law.
+
+---
+
+## 32. Customer Responsibility
+
+Customers are responsible for:
+
+* Providing accurate requirements
+* Providing lawful content
+* Maintaining ownership or permission for supplied materials
+* Providing timely feedback
+* Reviewing delivered software
+* Maintaining their own third-party accounts
+* Keeping their credentials secure
+* Complying with laws applicable to their business
+
+Customers are also responsible for ensuring that their use of developed software complies with laws and regulations applicable to their particular industry.
+
+---
+
+## 33. Healthcare, Medical and Other Regulated Applications
+
+Fusion Forge Creation may develop software for industries such as healthcare, medical retail, engineering, manufacturing and other businesses.
+
+Development of software does not mean that Fusion Forge Creation is providing:
+
+* Medical advice
+* Legal advice
+* Tax advice
+* Financial advice
+* Regulatory certification
+
+Customers remain responsible for ensuring that their business processes and use of software comply with applicable industry requirements.
+
+Where special regulatory or compliance requirements are necessary, they should be explicitly identified during project planning.
+
+---
+
+## 34. Changes to These Terms
+
+We may update these Terms from time to time.
+
+The updated version will be published on this page with a revised "Last Updated" date.
+
+Continued use of the website after an update may constitute acceptance of the revised Terms to the extent permitted by applicable law.
+
+---
+
+## 35. Governing Law
+
+These Terms shall be interpreted in accordance with applicable laws of India.
+
+Subject to applicable law and any specific agreement between the parties, disputes may be subject to the jurisdiction of the appropriate courts having jurisdiction over the relevant location.
+
+---
+
+## 36. Contact
+
+For questions regarding these Terms, please contact:
+
+**Fusion Forge Creation**
+
+**Email:** [admin@fusionforgecreation.com](mailto:admin@fusionforgecreation.com)  
+**Phone:** +91 63588 55524
+
+**Address:**  
+Yogi Milan,  
+Near Ring Road, Amli,  
+Silvassa, Dadra & Nagar Haveli – 396230, India
+
+---
+
+## 37. Acceptance
+
+By using the Fusion Forge Creation website, submitting an enquiry or entering into a project agreement with Fusion Forge Creation, you acknowledge that these Terms apply to the extent relevant to your interaction with our website or services.
+
+For paid projects, the specific quotation, proposal, work order or service agreement should be reviewed carefully before work begins.`,
+    jurisdiction: 'Courts having jurisdiction over Silvassa, Dadra & Nagar Haveli, India',
     applicableLaw: 'Indian Contract Act, 1872 & Information Technology Act, 2000',
-    createdBy: 'Manoj Satapathy',
-    createdByEmail: 'manojsatapathy.jp@gmail.com',
-    lastModifiedBy: 'Manoj Satapathy',
-    lastModifiedByEmail: 'manojsatapathy.jp@gmail.com',
-    lastModifiedByRole: 'Super Admin',
-    changeSummary: 'Standardized 3-tier milestone structure (40-40-20) and clarified 30-day post-launch warranty.',
-    versionHistoryCount: 2,
+    createdBy: 'Fusion Forge Creation',
+    createdByEmail: 'admin@fusionforgecreation.com',
+    lastModifiedBy: 'Fusion Forge Creation',
+    lastModifiedByEmail: 'admin@fusionforgecreation.com',
+    lastModifiedByRole: 'Admin',
+    changeSummary: 'Published comprehensive 37-section Terms & Conditions governing website use, enquiries, quotations, custom development scopes, IP, and client responsibilities as of 25 August 2026.',
+    versionHistoryCount: 3,
     created_at: '2026-01-15T00:00:00Z',
-    updated_at: '2026-08-15T11:00:00Z'
+    updated_at: '2026-08-25T00:00:00Z'
   },
   {
     id: 'legal_doc_gst',
@@ -1874,10 +3122,10 @@ To enable our corporate clients to seamlessly claim 100% Input Tax Credit (ITC) 
 - Formatted for automatic monthly filing reconciliation in GSTR-1 Table 9B.`,
     jurisdiction: 'Dadra and Nagar Haveli and Daman and Diu (State Code 26)',
     applicableLaw: 'Central Goods and Services Tax (CGST) Act, 2017 & UTGST / IGST Acts',
-    createdBy: 'Manoj Satapathy',
-    createdByEmail: 'manojsatapathy.jp@gmail.com',
-    lastModifiedBy: 'Manoj Satapathy',
-    lastModifiedByEmail: 'manojsatapathy.jp@gmail.com',
+    createdBy: 'Super Admin',
+    createdByEmail: 'admin@fusionforgecreation.com',
+    lastModifiedBy: 'Super Admin',
+    lastModifiedByEmail: 'admin@fusionforgecreation.com',
     lastModifiedByRole: 'Super Admin',
     changeSummary: 'Verified SAC 998314 IT software classification and documented GSTR-1 Table 9B credit note filing protocols.',
     versionHistoryCount: 2,
@@ -1888,17 +3136,33 @@ To enable our corporate clients to seamlessly claim 100% Input Tax Credit (ITC) 
 
 export const INITIAL_LEGAL_HISTORY: LegalDocumentHistoryItem[] = [
   {
+    id: 'hist_privacy_v3_0',
+    documentId: 'legal_doc_privacy',
+    documentSlug: 'privacy-policy',
+    version: 'v3.0',
+    title: 'Privacy Policy',
+    summary: 'Official Privacy Policy of Fusion Forge Creation explaining our practices on collecting, using, storing, and protecting visitor, client, project enquiry, business, account, and technical information.',
+    content: INITIAL_LEGAL_DOCUMENTS[0].content,
+    effectiveDate: '2026-08-25',
+    status: 'active',
+    changedBy: 'Fusion Forge Creation',
+    changedByEmail: 'admin@fusionforgecreation.com',
+    changedByRole: 'Admin',
+    changeSummary: 'Published comprehensive 21-section Privacy Policy covering project enquiries, business information handling, security safeguards, and data rights as of 25 August 2026.',
+    created_at: '2026-08-25T00:00:00Z'
+  },
+  {
     id: 'hist_privacy_v2_1',
     documentId: 'legal_doc_privacy',
     documentSlug: 'privacy-policy',
     version: 'v2.1',
     title: 'Privacy Policy & Data Protection Charter',
     summary: 'Comprehensive privacy policy detailing data minimization, zero-third-party tracking sale, client credential encryption, and compliance with the Digital Personal Data Protection (DPDP) Act, 2023.',
-    content: INITIAL_LEGAL_DOCUMENTS[0].content,
+    content: `# Privacy Policy & Data Protection Charter\n**Fusion Forge Creation** ("we", "us", or "our") is dedicated to protecting the privacy, confidentiality, and sovereign data rights of our clients, prospects, and visitors.\n1. Data Minimization Principle.\n2. DPDP Act 2023 & IT Act 2000 compliance.\n3. Zero-sale guarantee.`,
     effectiveDate: '2026-08-01',
-    status: 'active',
-    changedBy: 'Manoj Satapathy',
-    changedByEmail: 'manojsatapathy.jp@gmail.com',
+    status: 'archived',
+    changedBy: 'Super Admin',
+    changedByEmail: 'admin@fusionforgecreation.com',
     changedByRole: 'Super Admin',
     changeSummary: 'Updated Section 1 with explicit DPDP Act 2023 compliance clauses and B2B GSTIN collection protocols.',
     created_at: '2026-08-16T14:30:00Z'
@@ -1913,11 +3177,27 @@ export const INITIAL_LEGAL_HISTORY: LegalDocumentHistoryItem[] = [
     content: `# Privacy Policy & Client Data Charter\n**Fusion Forge Creation** ensures full data privacy and security for all business accounts.\n1. We collect only necessary contact details.\n2. We do not sell user data.\n3. We comply with Indian IT Act 2000.`,
     effectiveDate: '2026-03-01',
     status: 'archived',
-    changedBy: 'Manoj Satapathy',
-    changedByEmail: 'manojsatapathy.jp@gmail.com',
+    changedBy: 'Super Admin',
+    changedByEmail: 'admin@fusionforgecreation.com',
     changedByRole: 'Super Admin',
     changeSummary: 'Initial comprehensive revision from v1.0 standard terms.',
     created_at: '2026-03-01T10:00:00Z'
+  },
+  {
+    id: 'hist_terms_v3_0',
+    documentId: 'legal_doc_terms',
+    documentSlug: 'terms-and-conditions',
+    version: 'v3.0',
+    title: 'Terms & Conditions',
+    summary: 'Official Terms & Conditions governing website use, enquiries, quotations, custom software development, third-party services, intellectual property, payments, and client responsibilities.',
+    content: INITIAL_LEGAL_DOCUMENTS[1].content,
+    effectiveDate: '2026-08-25',
+    status: 'active',
+    changedBy: 'Fusion Forge Creation',
+    changedByEmail: 'admin@fusionforgecreation.com',
+    changedByRole: 'Admin',
+    changeSummary: 'Published comprehensive 37-section Terms & Conditions governing website use, enquiries, quotations, custom development scopes, IP, and client responsibilities as of 25 August 2026.',
+    created_at: '2026-08-25T00:00:00Z'
   },
   {
     id: 'hist_terms_v2_0',
@@ -1926,11 +3206,11 @@ export const INITIAL_LEGAL_HISTORY: LegalDocumentHistoryItem[] = [
     version: 'v2.0',
     title: 'Master Terms of Engagement & Commercial Services Agreement',
     summary: 'Standard contractual framework governing project scoping, milestone payments, intellectual property transfer, deliverables acceptance criteria, and limitation of liability.',
-    content: INITIAL_LEGAL_DOCUMENTS[1].content,
+    content: `# Master Terms of Engagement & Commercial Services Agreement\n1. Project Scoping & Formal Quotations (SAC 998314).\n2. Commercial Terms (40-40-20 payment milestones).\n3. IP Transfer upon 100% full invoice settlement.`,
     effectiveDate: '2026-07-15',
-    status: 'active',
-    changedBy: 'Manoj Satapathy',
-    changedByEmail: 'manojsatapathy.jp@gmail.com',
+    status: 'archived',
+    changedBy: 'Super Admin',
+    changedByEmail: 'admin@fusionforgecreation.com',
     changedByRole: 'Super Admin',
     changeSummary: 'Standardized 3-tier milestone structure (40-40-20) and clarified 30-day post-launch warranty.',
     created_at: '2026-08-15T11:00:00Z'
@@ -1945,8 +3225,8 @@ export const INITIAL_LEGAL_HISTORY: LegalDocumentHistoryItem[] = [
     content: `# Terms of Engagement (v1.0)\nInitial agency client agreement. Deliverables subject to formal invoice payment.`,
     effectiveDate: '2026-01-15',
     status: 'archived',
-    changedBy: 'Manoj Satapathy',
-    changedByEmail: 'manojsatapathy.jp@gmail.com',
+    changedBy: 'Super Admin',
+    changedByEmail: 'admin@fusionforgecreation.com',
     changedByRole: 'Super Admin',
     changeSummary: 'Initial baseline creation.',
     created_at: '2026-01-15T09:00:00Z'
@@ -1961,8 +3241,8 @@ export const INITIAL_LEGAL_HISTORY: LegalDocumentHistoryItem[] = [
     content: INITIAL_LEGAL_DOCUMENTS[2].content,
     effectiveDate: '2026-06-01',
     status: 'active',
-    changedBy: 'Manoj Satapathy',
-    changedByEmail: 'manojsatapathy.jp@gmail.com',
+    changedBy: 'Super Admin',
+    changedByEmail: 'admin@fusionforgecreation.com',
     changedByRole: 'Super Admin',
     changeSummary: 'Verified SAC 998314 IT software classification and documented GSTR-1 Table 9B credit note filing protocols.',
     created_at: '2026-08-14T09:45:00Z'
