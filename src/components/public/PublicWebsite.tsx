@@ -562,7 +562,7 @@ export const PublicWebsite: React.FC = () => {
                   <div className="w-full overflow-hidden rounded-[18px] bg-slate-950 aspect-[1440/600] flex items-center justify-center">
                     <img 
                       src="/banner.svg" 
-                      alt="Fusion Forge Creations - Where Ideas Fuse With Technology" 
+                      alt="Fusion Forge Creation - Where Ideas Fuse With Technology" 
                       className="w-full h-full object-cover object-center transform hover:scale-[1.01] transition duration-500"
                       referrerPolicy="no-referrer"
                     />

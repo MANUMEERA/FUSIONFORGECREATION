@@ -36,12 +36,26 @@ Options -Indexes
   RewriteRule . /index.html [L]
 </IfModule>
 
-# 4. Correct MIME Types & Charsets
+# 4. Correct MIME Types, Charsets & Headers for XML / Robots
 <IfModule mod_mime.c>
   AddType text/plain .txt
   AddType application/xml .xml
   AddType image/svg+xml .svg
 </IfModule>
+
+<Files "sitemap.xml">
+  <IfModule mod_headers.c>
+    Header set Content-Type "application/xml; charset=UTF-8"
+    Header set Cache-Control "max-age=3600, public, must-revalidate"
+  </IfModule>
+</Files>
+
+<Files "robots.txt">
+  <IfModule mod_headers.c>
+    Header set Content-Type "text/plain; charset=UTF-8"
+    Header set Cache-Control "max-age=3600, public, must-revalidate"
+  </IfModule>
+</Files>
 
 # 5. Security & Caching Headers
 <IfModule mod_headers.c>
@@ -55,11 +69,6 @@ Options -Indexes
   # Cache static assets for 1 year
   <FilesMatch "\.(ico|pdf|flv|jpg|jpeg|png|gif|js|css|swf|svg|webp|woff|woff2|ttf|otf)$">
     Header set Cache-Control "max-age=31536000, public"
-  </FilesMatch>
-  
-  # SEO & Config files should be freshly validated
-  <FilesMatch "(robots\.txt|sitemap\.xml)">
-    Header set Cache-Control "max-age=3600, public, must-revalidate"
   </FilesMatch>
 
   # HTML files should not be cached aggressively
